@@ -64,6 +64,10 @@ class DbcLineParser {
   // and loads result to cm struct, return @true if parsed ok
   bool ParseCommentLine(Comment_t* cm, const std::string& line);
 
+  // tries to parse value table string in line
+  // and load result to attr ValueStr, return true if parsed ok
+  bool ParseValTableLine(Comment_t* cm, const std::string& line);
+
  private:
   // defines the type for the message struct member
   SigType GetSigType(SignalDescriptor_t* sig);
@@ -73,5 +77,8 @@ class DbcLineParser {
 
   // string to collect attribute dbc line
   std::string attribline;
+
+  // strign to collect value line
+  std::string valueline;
 };
 

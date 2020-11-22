@@ -18,6 +18,7 @@ static const std::string kRegCommMeta = "[ ]+";
 // This reg splits line to parts (for attributes)
 static const std::string kRegAttrMain = "[^A-Za-z0-9_\.]+";
 
+static const std::string kRegValTable = "\"";
 
 static uint64_t __maxvalues[] =
 {
@@ -358,6 +359,60 @@ bool DbcLineParser::ParseAttributeLine(AttributeDescriptor_t* attr, const std::s
       }
 
       attribline.clear();
+    }
+  }
+
+  return ret;
+}
+
+bool DbcLineParser::ParseValTableLine(Comment_t* comm, const std::string& line)
+{
+  bool ret = false;
+
+  if (line.size() > 0)
+  {
+    if (line.find("VAL_ ") == 0)
+    {
+      valueline.clear();
+      valueline = line;
+    }
+    else if (valueline.size() > 0)
+    {
+      valueline += line;
+    }
+
+    // check if the current line is last
+    if (valueline.size() > 0 && line.back() == ';')
+    {
+      // split all line by quote char
+      auto items = resplit(valueline, kRegValTable);
+
+      if (items.size() >= 2)
+      {
+        // split first part by spaces, the last item will have first value key
+        auto meta = resplit(items[0], kRegCommMeta);
+
+        if (meta.size() == 4)
+        {
+          // ok, set items[0] -> meta[3] (set value key as first @items element)
+          items[0] = meta[3];
+
+          comm->MsgId = (clear_msgid(atoi(meta[1].c_str())));
+
+          comm->SigName = meta[2];
+          // Load value table params to container
+          comm->Text = "";
+
+          for (size_t valpair = 0; valpair < (items.size() / 2); valpair++)
+          {
+            comm->Text += items[valpair * 2 + 0] + " : ";
+            comm->Text += items[valpair * 2 + 1] + "\n";
+          }
+
+          // value table params were parse successfully
+          ret = true;
+        }
+      }
     }
   }
 

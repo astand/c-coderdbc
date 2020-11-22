@@ -145,6 +145,35 @@ void DbcScanner::ParseOtherInfo(istream& readstrm)
       }
     }
 
+    if (lparser.ParseValTableLine(&cmmnt, sline))
+    {
+      uint32_t found_msg_id = cmmnt.MsgId;
+
+      // update message comment field
+      auto msg = find_message(msgs, cmmnt.MsgId);
+
+      if (msg != nullptr)
+      {
+        // comment line was found
+        if (cmmnt.ca_target == CommentTarget::Message)
+        {
+          // put comment to message descriptor
+          msg->CommentText = cmmnt.Text;
+        }
+        else if (cmmnt.ca_target == CommentTarget::Signal)
+        {
+          for (size_t i = 0; i < msg->Signals.size(); i++)
+          {
+            if (cmmnt.SigName == msg->Signals[i].Name)
+            {
+              // signal has been found, update commnet text
+              msg->Signals[i].ValueText = cmmnt.Text;
+            }
+          }
+        }
+      }
+    }
+
     if (lparser.ParseAttributeLine(&attr, sline))
     {
       auto msg = find_message(msgs, attr.MsgId);
@@ -170,10 +199,10 @@ void DbcScanner::AddMessage(MessageDescriptor_t* message)
     {
       // sort signals by start bit
       std::sort(message->Signals.begin(), message->Signals.end(),
-                [](const SignalDescriptor_t& a, const SignalDescriptor_t& b) -> bool
-      {
-        return a.StartBit < b.StartBit;
-      });
+        [](const SignalDescriptor_t& a, const SignalDescriptor_t& b) -> bool
+        {
+          return a.StartBit < b.StartBit;
+        });
 
       for (size_t i = 0; i < message->Signals.size(); i++)
       {
