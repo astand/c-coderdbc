@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <iostream>
-#include "types/message.h"
+#include "../types/message.h"
 #include "dbclineparser.h"
 
 using namespace std;

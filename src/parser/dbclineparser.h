@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include "types/message.h"
+#include "../types/message.h"
 
 //Information from official vector DBC format spec:
 //
