@@ -8,8 +8,8 @@ public:
 	CSigPrinter();
 	~CSigPrinter();
 
-	void AddMessage(const MessageDescriptor_t& message);
-	void AddMessage(const std::vector<MessageDescriptor_t*> message);
+	void LoadMessage(const MessageDescriptor_t& message);
+	void LoadMessages(const std::vector<MessageDescriptor_t*> message);
 
 public: 
 	std::vector<CiExpr_t*> sigs_expr;
@@ -19,7 +19,7 @@ private:
 
 	int32_t BuildCConvertExprs(CiExpr_t* msg);
 
-	std::string PrintSignalExpr(SignalDescriptor_t* sig, std::vector<std::string>& to_bytes);
+	std::string PrintSignalExpr(const SignalDescriptor_t* sig, std::vector<std::string>& to_bytes);
 
 	void AppendToByteLine(std::string& expr, std::string str);
 

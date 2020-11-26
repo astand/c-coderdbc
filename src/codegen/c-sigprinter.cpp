@@ -23,17 +23,17 @@ CSigPrinter::~CSigPrinter()
   sigs_expr.clear();
 }
 
-void CSigPrinter::AddMessage(const std::vector<MessageDescriptor_t*> message)
+void CSigPrinter::LoadMessages(const std::vector<MessageDescriptor_t*> message)
 {
   sigs_expr.clear();
 
   for (size_t i = 0; i < message.size(); i++)
   {
-    AddMessage(*(message[i]));
+    LoadMessage(*(message[i]));
   }
 }
 
-void CSigPrinter::AddMessage(const MessageDescriptor_t& message)
+void CSigPrinter::LoadMessage(const MessageDescriptor_t& message)
 {
   CiExpr_t* nexpr = new CiExpr_t;
 
@@ -94,14 +94,14 @@ int32_t CSigPrinter::BuildCConvertExprs(CiExpr_t* msg)
   return ret;
 }
 
-std::string CSigPrinter::PrintSignalExpr(SignalDescriptor_t* sig,
-    std::vector<std::string>& to_bytes)
+std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig,
+  std::vector<std::string>& to_bytes)
 {
   // value for collecting expression (to_signal)
   std::string tosigexpr;
 
   uint16_t startb = (uint16_t)((sig->Order == BitLayout::kIntel) ?
-                               (sig->StartBit + (sig->LengthBit - 1)) : (sig->StartBit));
+    (sig->StartBit + (sig->LengthBit - 1)) : (sig->StartBit));
 
   if (startb > 63)
     startb = 63;
@@ -118,7 +118,7 @@ std::string CSigPrinter::PrintSignalExpr(SignalDescriptor_t* sig,
     tosigexpr += workbuff;
 
     snprintf(workbuff, WBUFF_LEN, "((_m->{%s} & (%s)) << %d)", sig->Name.c_str(), msk[slen].c_str(),
-             bbc - slen);
+      bbc - slen);
     AppendToByteLine(to_bytes[bn], workbuff);
   }
   else if (bbc == slen)
@@ -144,7 +144,7 @@ std::string CSigPrinter::PrintSignalExpr(SignalDescriptor_t* sig,
     tosigexpr += workbuff;
 
     snprintf(workbuff, WBUFF_LEN, "((_m->%s >> %d) & (%s))", sig->Name.c_str(), slen,
-             msk[bbc].c_str());
+      msk[bbc].c_str());
     AppendToByteLine(to_bytes[bn], workbuff);
 
     while ((slen - 8) >= 0)
@@ -190,7 +190,7 @@ std::string CSigPrinter::PrintSignalExpr(SignalDescriptor_t* sig,
       tosigexpr += workbuff;
 
       snprintf(workbuff, WBUFF_LEN, "((_m->%s & (%s)) << %d)", sig->Name.c_str(), msk[slen].c_str(),
-               8 - slen);
+        8 - slen);
       AppendToByteLine(to_bytes[bn], workbuff);
     }
   }
