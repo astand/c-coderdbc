@@ -36,6 +36,15 @@
     <ClInclude Include="src\codegen\c-sigprinter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\codegen\c-main-generator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\types\outfile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\codegen\filewriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\parser\dbclineparser.cpp">
@@ -47,5 +56,11 @@
     <ClCompile Include="src\codegen\c-sigprinter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\codegen\c-main-generator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\codegen\filewriter.cpp" />
   </ItemGroup>
 </Project>
