@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "c-sigprinter.h"
 
 // work buffer for all snprintf operations
@@ -176,7 +177,6 @@ std::string CSigPrinter::PrintSignalExpr(SignalDescriptor_t* sig,
         snprintf(workbuff, WBUFF_LEN, "(%s(_d[%d] & (%s)) << %d)", t64.c_str(), bn, msk[8].c_str(), slen);
         tosigexpr += workbuff;
 
-
         snprintf(workbuff, WBUFF_LEN, "((_m->%s >> %d) & (%s))", sig->Name.c_str(), slen, msk[8].c_str());
         AppendToByteLine(to_bytes[bn], workbuff);
       }
@@ -193,6 +193,17 @@ std::string CSigPrinter::PrintSignalExpr(SignalDescriptor_t* sig,
                8 - slen);
       AppendToByteLine(to_bytes[bn], workbuff);
     }
+  }
+
+  if (sig->Offset < 0)
+  {
+    snprintf(workbuff, WBUFF_LEN, "(%s) - %d", tosigexpr.c_str(), abs(sig->RawOffset));
+    tosigexpr = workbuff;
+  }
+  else if (sig->Offset > 0)
+  {
+    snprintf(workbuff, WBUFF_LEN, "(%s) + %d", tosigexpr.c_str(), abs(sig->RawOffset));
+    tosigexpr = workbuff;
   }
 
   return tosigexpr;
