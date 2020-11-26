@@ -18,24 +18,33 @@
     <ClInclude Include="src\types\message.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\dbcscanner.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\dbclineparser.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\types\attributes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\types\comment.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\types\c-expr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\parser\dbclineparser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\parser\dbcscanner.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\codegen\c-sigprinter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\dbcscanner.cpp">
+    <ClCompile Include="src\parser\dbclineparser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\dbclineparser.cpp">
+    <ClCompile Include="src\parser\dbcscanner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\codegen\c-sigprinter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

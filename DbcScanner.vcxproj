@@ -152,15 +152,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\dbclineparser.h" />
-    <ClInclude Include="src\dbcscanner.h" />
+    <ClInclude Include="src\codegen\c-sigprinter.h" />
+    <ClInclude Include="src\parser\dbclineparser.h" />
+    <ClInclude Include="src\parser\dbcscanner.h" />
     <ClInclude Include="src\types\attributes.h" />
+    <ClInclude Include="src\types\c-expr.h" />
     <ClInclude Include="src\types\comment.h" />
     <ClInclude Include="src\types\message.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\dbclineparser.cpp" />
-    <ClCompile Include="src\dbcscanner.cpp" />
+    <ClCompile Include="src\codegen\c-sigprinter.cpp" />
+    <ClCompile Include="src\parser\dbclineparser.cpp" />
+    <ClCompile Include="src\parser\dbcscanner.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
