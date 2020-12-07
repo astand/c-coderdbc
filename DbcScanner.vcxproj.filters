@@ -59,8 +59,8 @@
     <ClCompile Include="src\codegen\c-main-generator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="src\codegen\filewriter.cpp" />
+    <ClCompile Include="src\codegen\filewriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
