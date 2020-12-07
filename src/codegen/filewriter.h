@@ -5,30 +5,24 @@
 #include <string>
 #include <sstream>
 
-class FileWriter
-{
-public:
+class FileWriter {
+ public:
 
-	FileWriter();
-	~FileWriter();
+  FileWriter();
+  ~FileWriter();
 
-	void Flush();
-	void AppendText(const char* text, size_t len);
-	void AppendLine(const char* text, size_t len);
+  void Flush();
+  void Flush(const std::string& filename);
 
-	void AppendText(const std::string& str);
-	void AppendLine(const std::string& str);
+  void AppendText(const char* text);
+  void AppendLine(const char* text, int32_t post_empty_lines = 1);
 
-private:
+  void AppendText(const std::string& str);
+  void AppendLine(const std::string& str);
 
-	std::stringstream strm;
+
+ private:
+
+  std::stringstream strm;
 
 };
-
-FileWriter::FileWriter()
-{
-}
-
-FileWriter::~FileWriter()
-{
-}

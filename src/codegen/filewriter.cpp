@@ -1,30 +1,57 @@
+#include <iostream>
+#include <fstream>
 #include "filewriter.h"
+
+
+FileWriter::FileWriter()
+{
+}
+
+FileWriter::~FileWriter()
+{
+}
 
 void FileWriter::Flush()
 {
-	strm.clear();
+  strm.clear();
 }
 
-void FileWriter::AppendText(const char* text, size_t len)
+void FileWriter::Flush(const std::string& fpath)
 {
-	strm.write(text, len);
+  std::ofstream wfile;
+
+  wfile.open(fpath, std::ios::out);
+
+  wfile << strm.rdbuf();
+
+  wfile.close();
+
+  Flush();
 }
 
-void FileWriter::AppendLine(const char* text, size_t len)
+void FileWriter::AppendText(const char* text)
 {
-	AppendText(text, len);
-	AppendText("\n", 1);
+  std::string str = text;
+  AppendText(str);
+}
+
+void FileWriter::AppendLine(const char* text, int32_t post_empty_lines)
+{
+  AppendText(text);
+
+  for (int32_t i = 0; i < post_empty_lines; i++)
+    AppendText("\n");
 }
 
 
 void FileWriter::AppendText(const std::string& str)
 {
-	strm.str(str);
+  strm << str;
 }
 
 void FileWriter::AppendLine(const std::string& str)
 {
-	AppendText(str);
-	AppendText("\n", 1);
+  AppendText(str);
+  AppendText("\n");
 }
 
