@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
+#include <stdarg.h>
 #include <filesystem>
 #include <algorithm>
 #include <regex>
@@ -13,7 +14,7 @@ static const size_t kMaxDirNum = 1000;
 
 static const size_t kWBUFF_len = 2048;
 
-static char wbuff[kWBUFF_len] = {0};
+static char wbuff[kWBUFF_len] = { 0 };
 
 static std::string __typeprint[] =
 {
@@ -26,6 +27,15 @@ static std::string __typeprint[] =
   "uint32_t",
   "uint64_t"
 };
+
+char* PrintF(const char* format, ...)
+{
+  va_list args;
+  va_start(args, format);
+  vsnprintf(wbuff, kWBUFF_len, format, args);
+  va_end(args);
+  return wbuff;
+}
 
 std::string str_toupper(std::string s)
 {
@@ -89,27 +99,21 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs,
 
   );
 
-  snprintf(wbuff, kWBUFF_len, "#endif // %s", usediag_str.c_str());
-  fwriter->AppendLine(wbuff, 3);
+  fwriter->AppendLine(PrintF("#endif // %s", usediag_str.c_str()), 3);
 
   for (size_t num = 0; num < sigprt->sigs_expr.size(); num++)
   {
     // write message typedef s and additional expressions
     MessageDescriptor_t& m = sigprt->sigs_expr[num]->msg;
 
-    snprintf(wbuff, kWBUFF_len, "// def @%s CAN Message (%-4d %#x)", m.Name.c_str(), m.MsgID, m.MsgID);
-    fwriter->AppendLine(wbuff);
-    snprintf(wbuff, kWBUFF_len, "#define %s_IDE (%uU)", m.Name.c_str(), m.IsExt);
-    fwriter->AppendLine(wbuff);
-    snprintf(wbuff, kWBUFF_len, "#define %s_DLC (%uU)", m.Name.c_str(), m.DLC);
-    fwriter->AppendLine(wbuff);
-    snprintf(wbuff, kWBUFF_len, "#define %s_CANID (%#x)", m.Name.c_str(), m.MsgID);
-    fwriter->AppendLine(wbuff);
+    fwriter->AppendLine(PrintF("// def @%s CAN Message (%-4d %#x)", m.Name.c_str(), m.MsgID, m.MsgID));
+    fwriter->AppendLine(PrintF("#define %s_IDE (%uU)", m.Name.c_str(), m.IsExt));
+    fwriter->AppendLine(PrintF("#define %s_DLC (%uU)", m.Name.c_str(), m.DLC));
+    fwriter->AppendLine(PrintF("#define %s_CANID (%#x)", m.Name.c_str(), m.MsgID));
 
     if (m.Cycle > 0)
     {
-      snprintf(wbuff, kWBUFF_len, "#define %s_CYC (%dU)", m.Name.c_str(), m.Cycle);
-      fwriter->AppendLine(wbuff);
+      fwriter->AppendLine(PrintF("#define %s_CYC (%dU)", m.Name.c_str(), m.Cycle));
     }
 
     if (m.CommentText.size() > 0)
@@ -137,14 +141,12 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs,
     // empty line before struct definition
     fwriter->AppendLine("\n");
 
-    snprintf(wbuff, kWBUFF_len, "typedef struct");
-    fwriter->AppendLine(wbuff);
+    fwriter->AppendLine(PrintF("typedef struct"));
 
     fwriter->AppendLine("{\n");
 
     // Write section for bitfielded part
-    snprintf(wbuff, kWBUFF_len, "#ifdef %s", usebits_str.c_str());
-    fwriter->AppendLine(wbuff, 2);
+    fwriter->AppendLine(PrintF("#ifdef %s", usebits_str.c_str()), 2);
 
     for (size_t signum = 0; signum < m.Signals.size(); signum++)
     {
@@ -163,20 +165,13 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs,
       WriteSigStructField(sig, false, max_sig_name_len);
     }
 
-    snprintf(wbuff, kWBUFF_len, "#endif // %s", usebits_str.c_str());
-    fwriter->AppendLine(wbuff, 2);
+    fwriter->AppendLine(PrintF("#endif // %s", usebits_str.c_str()), 2);
 
     // start mon1 section
-    snprintf(wbuff, kWBUFF_len, "#ifdef %s", usebits_str.c_str());
-    fwriter->AppendLine(wbuff, 2);
-
+    fwriter->AppendLine(PrintF("#ifdef %s", usebits_str.c_str()), 2);
     fwriter->AppendLine("  FrameMonitor_t mon1;", 2);
-
-    snprintf(wbuff, kWBUFF_len, "#endif // %s", usebits_str.c_str());
-    fwriter->AppendLine(wbuff, 2);
-
-    snprintf(wbuff, kWBUFF_len, "} %s_t;", m.Name.c_str());
-    fwriter->AppendLine(wbuff, 2);
+    fwriter->AppendLine(PrintF("#endif // %s", usebits_str.c_str()), 2);
+    fwriter->AppendLine(PrintF("} %s_t;", m.Name.c_str()), 2);
   }
 
   fwriter->AppendLine("// Function signatures", 2);
@@ -185,27 +180,24 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs,
   {
     // write message typedef s and additional expressions
     MessageDescriptor_t& m = sigprt->sigs_expr[num]->msg;
+    
+    fwriter->AppendLine(
+      PrintF("uint32_t Unpack_%s_%s(%s_t* _m, const uint8_t* _d, uint8_t dlc_);",
+             m.Name.c_str(), drvname.c_str(), m.Name.c_str()));
 
-    snprintf(wbuff, kWBUFF_len, "uint32_t Unpack_%s_%s(%s_t* _m, const uint8_t* _d, uint8_t dlc_);",
-             m.Name.c_str(), drvname.c_str(), m.Name.c_str());
-
-    fwriter->AppendLine(wbuff);
-
-    snprintf(wbuff, kWBUFF_len, "#ifdef %s", usestruct_str.c_str());
-    fwriter->AppendLine(wbuff);
-    snprintf(wbuff, kWBUFF_len, "uint32_t Pack_%s_%s(const %s_t* _m, __CoderDbcCanFrame_t__* cframe);",
-             m.Name.c_str(), drvname.c_str(), m.Name.c_str());
-    fwriter->AppendLine(wbuff);
-
+    fwriter->AppendLine(PrintF("#ifdef %s", usestruct_str.c_str()));
+    
+    fwriter->AppendLine(
+      PrintF("uint32_t Pack_%s_%s(const %s_t* _m, __CoderDbcCanFrame_t__* cframe);",
+             m.Name.c_str(), drvname.c_str(), m.Name.c_str()));
+    
     fwriter->AppendLine("#else");
+    
+    fwriter->AppendLine(
+      PrintF("uint32_t Pack_%s_%s(const %s_t* _m, uint8_t* _d, uint8_t* _len, uint8_t* _ide);",
+             m.Name.c_str(), drvname.c_str(), m.Name.c_str()));
 
-    snprintf(wbuff, kWBUFF_len,
-             "uint32_t Pack_%s_%s(const %s_t* _m, uint8_t* _d, uint8_t* _len, uint8_t* _ide);",
-             m.Name.c_str(), drvname.c_str(), m.Name.c_str());
-    fwriter->AppendLine(wbuff);
-
-    snprintf(wbuff, kWBUFF_len, "#endif // %s", usestruct_str.c_str());
-    fwriter->AppendLine(wbuff, 2);
+    fwriter->AppendLine(PrintF("#endif // %s", usestruct_str.c_str()), 2);
   }
 
   fwriter->AppendLine("#ifdef __cplusplus\n}\n#endif");
@@ -320,5 +312,5 @@ void CiMainGenerator::SetCommonValues(const std::string& drvname)
   usediag_str = wbuff;
 
   snprintf(wbuff, kWBUFF_len, "%s_USE_CANSTRUCT", DRVNAME.c_str());
-  canframe_str = wbuff;
+  usestruct_str = wbuff;
 }
