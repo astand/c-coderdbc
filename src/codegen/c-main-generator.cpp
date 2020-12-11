@@ -12,6 +12,7 @@
 static const size_t kMaxDirNum = 1000;
 
 static const size_t kWBUFF_len = 2048;
+
 static char wbuff[kWBUFF_len] = {0};
 
 static std::string __typeprint[] =
@@ -70,9 +71,25 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs,
   mhead.fpath = mhead.dir + "/" + mhead.fname;
 
   // 1 step is to define final directory for source code bunch
-  fwriter->AppendLine("#pragma once", 3);
+  fwriter->AppendLine("#pragma once", 2);
   fwriter->AppendLine("#ifdef __cplusplus\nextern \"C\" {\n#endif", 2);
-  fwriter->AppendLine("#include <stdint.h>");
+  fwriter->AppendLine("#include <stdint.h>", 2);
+
+  snprintf(wbuff, kWBUFF_len, "#ifdef %s", usediag_str.c_str());
+  fwriter->AppendLine(wbuff);
+
+  fwriter->AppendText(
+    "// This file must define:\n"
+    "// base monitor struct\n"
+    "// function signature for CRC calculation\n"
+    "// function signature for getting system tick value (100 us step)\n"
+    "#include \"canmonitorutil.h\"\n"
+    "\n"
+
+  );
+
+  snprintf(wbuff, kWBUFF_len, "#endif // %s", usediag_str.c_str());
+  fwriter->AppendLine(wbuff, 3);
 
   for (size_t num = 0; num < sigprt->sigs_expr.size(); num++)
   {
@@ -116,6 +133,9 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs,
         max_sig_name_len = s.Name.size();
     }
 
+    // empty line before struct definition
+    fwriter->AppendLine("\n");
+
     snprintf(wbuff, kWBUFF_len, "typedef struct");
     fwriter->AppendLine(wbuff);
 
@@ -145,13 +165,17 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs,
     snprintf(wbuff, kWBUFF_len, "#endif // %s", usebits_str.c_str());
     fwriter->AppendLine(wbuff, 2);
 
-    //if (CodeSett.Code.UseMonitors == 1)
-    //  fwriter->AppendLine("  FrameMonitor_t mon1;");
+    // start mon1 section
+    snprintf(wbuff, kWBUFF_len, "#ifdef %s", usebits_str.c_str());
+    fwriter->AppendLine(wbuff, 2);
+
+    fwriter->AppendLine("  FrameMonitor_t mon1;", 2);
+
+    snprintf(wbuff, kWBUFF_len, "#endif // %s", usebits_str.c_str());
+    fwriter->AppendLine(wbuff, 2);
 
     snprintf(wbuff, kWBUFF_len, "} %s_t;", m.Name.c_str());
     fwriter->AppendLine(wbuff, 2);
-    //fwriter->AppendLine("} " + msg.MessageName + "_t;");
-    //fwriter->AppendLine();
   }
 
   fwriter->AppendLine("#ifdef __cplusplus\n}\n#endif");
