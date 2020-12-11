@@ -28,7 +28,7 @@ class CiMainGenerator {
 
   std::string usebits_str;
   std::string usediag_str;
-  std::string canframe_str;
+  std::string usestruct_str;
 
   std::vector<std::string> tmpvect;
 

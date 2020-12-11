@@ -66,11 +66,12 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs,
   SetCommonValues(drvname);
 
   // work_dir_path has the base dir path to gen files
+  // 1 step is to define final directory for source code bunch
   mhead.dir = work_dir_path;
   mhead.fname = drvname + ".h";
   mhead.fpath = mhead.dir + "/" + mhead.fname;
 
-  // 1 step is to define final directory for source code bunch
+  // 2 step is to print main head file
   fwriter->AppendLine("#pragma once", 2);
   fwriter->AppendLine("#ifdef __cplusplus\nextern \"C\" {\n#endif", 2);
   fwriter->AppendLine("#include <stdint.h>", 2);
@@ -178,9 +179,37 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs,
     fwriter->AppendLine(wbuff, 2);
   }
 
+  fwriter->AppendLine("// Function signatures", 2);
+
+  for (size_t num = 0; num < sigprt->sigs_expr.size(); num++)
+  {
+    // write message typedef s and additional expressions
+    MessageDescriptor_t& m = sigprt->sigs_expr[num]->msg;
+
+    snprintf(wbuff, kWBUFF_len, "uint32_t Unpack_%s_%s(%s_t* _m, const uint8_t* _d, uint8_t dlc_);",
+             m.Name.c_str(), drvname.c_str(), m.Name.c_str());
+
+    fwriter->AppendLine(wbuff);
+
+    snprintf(wbuff, kWBUFF_len, "#ifdef %s", usestruct_str.c_str());
+    fwriter->AppendLine(wbuff);
+    snprintf(wbuff, kWBUFF_len, "uint32_t Pack_%s_%s(const %s_t* _m, __CoderDbcCanFrame_t__* cframe);",
+             m.Name.c_str(), drvname.c_str(), m.Name.c_str());
+    fwriter->AppendLine(wbuff);
+
+    fwriter->AppendLine("#else");
+
+    snprintf(wbuff, kWBUFF_len,
+             "uint32_t Pack_%s_%s(const %s_t* _m, uint8_t* _d, uint8_t* _len, uint8_t* _ide);",
+             m.Name.c_str(), drvname.c_str(), m.Name.c_str());
+    fwriter->AppendLine(wbuff);
+
+    snprintf(wbuff, kWBUFF_len, "#endif // %s", usestruct_str.c_str());
+    fwriter->AppendLine(wbuff, 2);
+  }
+
   fwriter->AppendLine("#ifdef __cplusplus\n}\n#endif");
   fwriter->Flush(mhead.fpath);
-  // 2 step is to print main head file
 
   // 3 step is to print main source file
 
