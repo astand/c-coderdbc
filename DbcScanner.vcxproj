@@ -158,6 +158,7 @@
     <ClInclude Include="src\codegen\c-main-generator.h" />
     <ClInclude Include="src\codegen\c-sigprinter.h" />
     <ClInclude Include="src\codegen\filewriter.h" />
+    <ClInclude Include="src\codegen\fs-creator.h" />
     <ClInclude Include="src\parser\dbclineparser.h" />
     <ClInclude Include="src\parser\dbcscanner.h" />
     <ClInclude Include="src\types\attributes.h" />
@@ -170,6 +171,7 @@
     <ClCompile Include="src\codegen\c-main-generator.cpp" />
     <ClCompile Include="src\codegen\c-sigprinter.cpp" />
     <ClCompile Include="src\codegen\filewriter.cpp" />
+    <ClCompile Include="src\codegen\fs-creator.cpp" />
     <ClCompile Include="src\parser\dbclineparser.cpp" />
     <ClCompile Include="src\parser\dbcscanner.cpp" />
   </ItemGroup>

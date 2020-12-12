@@ -37,25 +37,13 @@ char* PrintF(const char* format, ...)
   return wbuff;
 }
 
-std::string str_toupper(std::string s)
-{
-  std::transform(s.begin(), s.end(), s.begin(),
-                 [](unsigned char c)
-  {
-    return std::toupper(c);
-  });
-  return s;
-}
-
 CiMainGenerator::CiMainGenerator()
 {
   sigprt = new CSigPrinter;
   fwriter = new FileWriter;
 }
 
-void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs,
-                               std::string drvname,
-                               std::string dirpath)
+void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const FsDescriptor_t& fsd)
 {
   // Load income messages to sig printer
   sigprt->LoadMessages(msgs);
@@ -65,21 +53,6 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs,
   {
     return a->msg.MsgID < b->msg.MsgID;
   });
-
-  auto dirok = SetFinalPath(dirpath);
-
-  if (!dirok)
-  {
-    // TODO: handle error if directory cannot be used
-  }
-
-  SetCommonValues(drvname);
-
-  // work_dir_path has the base dir path to gen files
-  // 1 step is to define final directory for source code bunch
-  mhead.dir = work_dir_path;
-  mhead.fname = drvname + ".h";
-  mhead.fpath = mhead.dir + "/" + mhead.fname;
 
   // 2 step is to print main head file
   fwriter->AppendLine("#pragma once", 2);
@@ -180,28 +153,28 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs,
   {
     // write message typedef s and additional expressions
     MessageDescriptor_t& m = sigprt->sigs_expr[num]->msg;
-    
+
     fwriter->AppendLine(
       PrintF("uint32_t Unpack_%s_%s(%s_t* _m, const uint8_t* _d, uint8_t dlc_);",
-             m.Name.c_str(), drvname.c_str(), m.Name.c_str()));
+             m.Name.c_str(), fsd.drvname.c_str(), m.Name.c_str()));
 
     fwriter->AppendLine(PrintF("#ifdef %s", usestruct_str.c_str()));
-    
+
     fwriter->AppendLine(
       PrintF("uint32_t Pack_%s_%s(const %s_t* _m, __CoderDbcCanFrame_t__* cframe);",
-             m.Name.c_str(), drvname.c_str(), m.Name.c_str()));
-    
+             m.Name.c_str(), fsd.drvname.c_str(), m.Name.c_str()));
+
     fwriter->AppendLine("#else");
-    
+
     fwriter->AppendLine(
       PrintF("uint32_t Pack_%s_%s(const %s_t* _m, uint8_t* _d, uint8_t* _len, uint8_t* _ide);",
-             m.Name.c_str(), drvname.c_str(), m.Name.c_str()));
+             m.Name.c_str(), fsd.drvname.c_str(), m.Name.c_str()));
 
     fwriter->AppendLine(PrintF("#endif // %s", usestruct_str.c_str()), 2);
   }
 
   fwriter->AppendLine("#ifdef __cplusplus\n}\n#endif");
-  fwriter->Flush(mhead.fpath);
+  fwriter->Flush(fsd.core_h.fpath);
 
   // 3 step is to print main source file
 
@@ -269,48 +242,3 @@ void CiMainGenerator::WriteSigStructField(const SignalDescriptor_t& sig, bool bi
   fwriter->AppendLine("", 2);
 }
 
-bool CiMainGenerator::SetFinalPath(std::string dirpath)
-{
-  // find free directory
-  struct stat info;
-
-  for (int32_t dirnum = 0; dirnum < 1000; dirnum++)
-  {
-    snprintf(wbuff, kWBUFF_len, "%03d", dirnum);
-    work_dir_path = dirpath + "/" + wbuff;
-
-    if (stat(work_dir_path.c_str(), &info) != 0)
-    {
-      if (std::filesystem::create_directory(work_dir_path))
-        return true;
-      else
-        return false;
-    }
-    else if (info.st_mode & S_IFDIR)
-    {
-      // directory exists, try next num
-      continue;
-    }
-    else
-    {
-      if (std::filesystem::create_directory(work_dir_path) != 0)
-        return false;
-    }
-  }
-
-  return true;
-}
-
-void CiMainGenerator::SetCommonValues(const std::string& drvname)
-{
-  DRVNAME = str_toupper(drvname);
-
-  snprintf(wbuff, kWBUFF_len, "%s_USE_BITS_SIGNAL", DRVNAME.c_str());
-  usebits_str = wbuff;
-
-  snprintf(wbuff, kWBUFF_len, "%s_USE_DIAG_MONITORS", DRVNAME.c_str());
-  usediag_str = wbuff;
-
-  snprintf(wbuff, kWBUFF_len, "%s_USE_CANSTRUCT", DRVNAME.c_str());
-  usestruct_str = wbuff;
-}

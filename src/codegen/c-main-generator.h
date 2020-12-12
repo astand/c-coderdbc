@@ -5,17 +5,15 @@
 #include "filewriter.h"
 #include "../types/message.h"
 #include "../types/outfile.h"
+#include "fs-creator.h"
 
 class CiMainGenerator {
  public:
   CiMainGenerator();
 
-  void Generate(std::vector<MessageDescriptor_t*>& msgs, std::string drvname, std::string dirpath);
+  void Generate(std::vector<MessageDescriptor_t*>& msgs, const FsDescriptor_t& fsd);
 
  private:
-  bool SetFinalPath(std::string dirpath);
-
-  void SetCommonValues(const std::string& drvname);
 
   void WriteSigStructField(const SignalDescriptor_t& sig, bool bitfield, size_t pad);
 
@@ -35,9 +33,4 @@ class CiMainGenerator {
   CSigPrinter* sigprt;
 
   FileWriter* fwriter;
-
-  OutFileDescriptor_t mhead;
-  OutFileDescriptor_t mcode;
-  OutFileDescriptor_t fhead;
-  OutFileDescriptor_t fcode;
 };
