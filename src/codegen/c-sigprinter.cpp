@@ -140,7 +140,7 @@ std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig,
       t64 = "(uint64_t)";
     }
 
-    snprintf(workbuff, WBUFF_LEN, "(%s_d[%d] & (%s)) << %d)", t64.c_str(), bn, msk[bbc].c_str(), slen);
+    snprintf(workbuff, WBUFF_LEN, "(%s(_d[%d] & (%s)) << %d)", t64.c_str(), bn, msk[bbc].c_str(), slen);
     tosigexpr += workbuff;
 
     snprintf(workbuff, WBUFF_LEN, "((_m->%s >> %d) & (%s))", sig->Name.c_str(), slen,
