@@ -59,8 +59,7 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
   fwriter->AppendLine("#ifdef __cplusplus\nextern \"C\" {\n#endif", 2);
   fwriter->AppendLine("#include <stdint.h>", 2);
 
-  snprintf(wbuff, kWBUFF_len, "#ifdef %s", fsd.usemon_def.c_str());
-  fwriter->AppendLine(wbuff);
+  fwriter->AppendLine(PrintF("#ifdef %s", fsd.usemon_def.c_str()));
 
   fwriter->AppendText(
     "// This file must define:\n"
@@ -200,8 +199,7 @@ void CiMainGenerator::WriteSigStructField(const SignalDescriptor_t& sig, bool bi
 
   if (bits && (sig.LengthBit < 8))
   {
-    snprintf(wbuff, kWBUFF_len, " : %d", sig.LengthBit);
-    dtype += wbuff;
+    dtype += PrintF(" : %d", sig.LengthBit);
   }
 
   dtype += ";";
@@ -217,25 +215,21 @@ void CiMainGenerator::WriteSigStructField(const SignalDescriptor_t& sig, bool bi
 
   fwriter->AppendText(pad);
 
-  snprintf(wbuff, kWBUFF_len, " Bits=%2d", sig.LengthBit);
-  fwriter->AppendText(wbuff);
+  fwriter->AppendText(PrintF(" Bits=%2d", sig.LengthBit));
 
   if (sig.Unit.size() > 0)
   {
-    snprintf(wbuff, kWBUFF_len, " Unit:'%-13s'", sig.Unit.c_str());
-    fwriter->AppendText(wbuff);
+    fwriter->AppendText(PrintF(" Unit:'%-13s'", sig.Unit.c_str()));
   }
 
   if (sig.Offset != 0)
   {
-    snprintf(wbuff, kWBUFF_len, " Offset= %-18f", sig.Offset);
-    fwriter->AppendText(wbuff);
+    fwriter->AppendText(PrintF(" Offset= %-18f", sig.Offset));
   }
 
   if (sig.Factor != 1)
   {
-    snprintf(wbuff, kWBUFF_len, " Factor= %-15d", sig.LengthBit);
-    fwriter->AppendText(wbuff);
+    fwriter->AppendText(PrintF(" Factor= %-15d", sig.LengthBit));
   }
 
   fwriter->AppendLine("", 2);
