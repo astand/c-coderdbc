@@ -57,25 +57,25 @@ std::string CSigPrinter::GetSignalType(const SignalDescriptor_t& signal)
   return ret;
 }
 
-int32_t CSigPrinter::BuildCConvertExprs(CiExpr_t* msg)
+int32_t CSigPrinter::BuildCConvertExprs(CiExpr_t* msgprinter)
 {
   int32_t ret = 0;
   std::string tmpstr;
 
-  msg->to_bytes.clear();
-  msg->to_signals.clear();
-  msg->to_bytes.resize(msg->msg.DLC);
+  msgprinter->to_bytes.clear();
+  msgprinter->to_signals.clear();
+  msgprinter->to_bytes.resize(msgprinter->msg.DLC);
 
   // for each signal specific to_signal expression must be defined,
   // and during all signals processing, for each byte to_byte expression
   // must be collected
 
-  for (size_t i = 0; i < msg->msg.Signals.size(); i++)
+  for (size_t i = 0; i < msgprinter->msg.Signals.size(); i++)
   {
     // there are two main goal of this code:
     // 1 - to generate bytes to signal C-expression, (_d - name of array).
-    // For each signal there is only one byte reference. It's generated
-    // once each function call for each signal
+    // For each signal one or more bytes can be referenced. It's generated
+    // once on each function call for each signal
     //
     // 2 - to generate signals to each byte expression, (_m - name of struct with
     // signals). For each byte a 8 signals can be referenced. It's generated
@@ -88,7 +88,8 @@ int32_t CSigPrinter::BuildCConvertExprs(CiExpr_t* msg)
     //
     // bytes expression is saved to vector @to_bytes, where id is the
     // byte number in frame payload (i.e. to_bytes.size() == frame.DLC)
-    msg->to_signals.push_back(PrintSignalExpr(&msg->msg.Signals[i], msg->to_bytes));
+    msgprinter->to_signals.push_back(PrintSignalExpr(&msgprinter->msg.Signals[i],
+                                     msgprinter->to_bytes));
   }
 
   return ret;
