@@ -17,10 +17,14 @@ class CiMainGenerator {
 
   void WriteSigStructField(const SignalDescriptor_t& sig, bool bitfield, size_t pad);
 
+  void WriteUnpackBody(const CiExpr_t* sgs);
+
  private:
   std::vector<std::string> tmpvect;
 
   CSigPrinter* sigprt;
 
   FileWriter* fwriter;
+
+  const FsDescriptor_t* fdesc;
 };

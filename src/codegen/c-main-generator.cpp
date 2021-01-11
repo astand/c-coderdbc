@@ -48,6 +48,10 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
   // Load income messages to sig printer
   sigprt->LoadMessages(msgs);
 
+  // save pointer to output file descriptor struct to
+  // enable using this information inside class member functions
+  fdesc = &fsd;
+
   std::sort(sigprt->sigs_expr.begin(), sigprt->sigs_expr.end(),
             [](const CiExpr_t* a, const CiExpr_t* b) -> bool
   {
@@ -177,7 +181,59 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
   fwriter->Flush(fsd.core_h.fpath);
 
   // 3 step is to print main source file
+  // include main header file
+  fwriter->AppendLine(PrintF("#include ""%s""", fsd.core_h.fname.c_str()), 3);
 
+  // put diagmonitor ifdef selection for including @drv-fmon header
+  // with FMon_* signatures to call from unpack function
+  fwriter->AppendLine(PrintF("#ifdef %s", fsd.usemon_def.c_str()));
+
+  fwriter->AppendText(
+    "// This file must define:\n"
+    "// base monitor struct\n"
+    "// function signature for CRC calculation\n"
+    "// function signature for getting system tick value (100 us step)\n");
+
+  fwriter->AppendLine(PrintF("#include ""%s-fmon.h""", fsd.drvname.c_str()), 2);
+
+  fwriter->AppendLine(PrintF("#endif // %s", fsd.usemon_def.c_str()), 3);
+
+  // for each message 3 functions must be defined - 1 unpack function,
+  // 2: pack with raw signature
+  // 3: pack with canstruct
+  for (size_t num = 0; num < sigprt->sigs_expr.size(); num++)
+  {
+    // write message typedef s and additional expressions
+    MessageDescriptor_t& m = sigprt->sigs_expr[num]->msg;
+
+    // first function
+    fwriter->AppendLine(
+      PrintF("uint32_t Unpack_%s_%s(%s_t* _m, const uint8_t* _d, uint8_t dlc_)\n{",
+             m.Name.c_str(), fsd.DrvName_orig.c_str(), m.Name.c_str()));
+
+    WriteUnpackBody(sigprt->sigs_expr[num]);
+
+    fwriter->AppendLine("}", 2);
+
+
+    fwriter->AppendLine(PrintF("#ifdef %s", fsd.usesruct_def.c_str()));
+
+    // second function
+    fwriter->AppendLine(
+      PrintF("uint32_t Pack_%s_%s(const %s_t* _m, __CoderDbcCanFrame_t__* cframe);",
+             m.Name.c_str(), fsd.DrvName_orig.c_str(), m.Name.c_str()));
+
+    fwriter->AppendLine("#else");
+
+    // third function
+    fwriter->AppendLine(
+      PrintF("uint32_t Pack_%s_%s(const %s_t* _m, uint8_t* _d, uint8_t* _len, uint8_t* _ide);",
+             m.Name.c_str(), fsd.DrvName_orig.c_str(), m.Name.c_str()));
+
+    fwriter->AppendLine(PrintF("#endif // %s", fsd.usesruct_def.c_str()), 2);
+  }
+
+  fwriter->Flush(fsd.core_c.fpath);
   // 4 step is to pring fmon head file
 
   // 5 step is to print fmon source file
@@ -237,3 +293,36 @@ void CiMainGenerator::WriteSigStructField(const SignalDescriptor_t& sig, bool bi
   fwriter->AppendLine("", 2);
 }
 
+void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
+{
+  for (size_t num = 0; num < sgs->to_signals.size(); num++)
+  {
+    auto expr = sgs->to_signals[num];
+
+    fwriter->AppendLine(PrintF("  _m->%s = %s;", sgs->msg.Signals[num].Name.c_str(), expr.c_str()));
+  }
+
+  fwriter->AppendLine("");
+
+  fwriter->AppendLine(PrintF("#ifdef %s", fdesc->usemon_def.c_str()));
+
+  fwriter->AppendLine("  // check DLC correctness");
+  fwriter->AppendLine(PrintF("  _m->mon1.dlc_error = (dlc_ < %s_DLC);", sgs->msg.Name.c_str()));
+
+
+  // TODO: put CRC and ROLLING COUNTER tests here
+  // 1
+  // 2
+
+
+  fwriter->AppendLine("  _m->mon1.last_cycle = GetSysTick();");
+  fwriter->AppendLine("  _m->mon1.frame_cnt++;", 2);
+
+  auto Fmon_func = "FMon_" + sgs->msg.Name + "_" + fdesc->drvname;
+
+  fwriter->AppendLine(PrintF("  %s(&_m->mon1);", Fmon_func.c_str()));
+
+  fwriter->AppendLine(PrintF("#endif // %s", fdesc->usemon_def.c_str()), 2);
+
+  fwriter->AppendLine(PrintF(" return %s_CANID;", sgs->msg.Name.c_str()));
+}
