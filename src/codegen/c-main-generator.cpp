@@ -59,7 +59,7 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
   fwriter->AppendLine("#ifdef __cplusplus\nextern \"C\" {\n#endif", 2);
   fwriter->AppendLine("#include <stdint.h>", 2);
 
-  snprintf(wbuff, kWBUFF_len, "#ifdef %s", usediag_str.c_str());
+  snprintf(wbuff, kWBUFF_len, "#ifdef %s", fsd.usemon_def.c_str());
   fwriter->AppendLine(wbuff);
 
   fwriter->AppendText(
@@ -69,10 +69,9 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
     "// function signature for getting system tick value (100 us step)\n"
     "#include \"canmonitorutil.h\"\n"
     "\n"
-
   );
 
-  fwriter->AppendLine(PrintF("#endif // %s", usediag_str.c_str()), 3);
+  fwriter->AppendLine(PrintF("#endif // %s", fsd.usemon_def.c_str()), 3);
 
   for (size_t num = 0; num < sigprt->sigs_expr.size(); num++)
   {
@@ -119,7 +118,7 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
     fwriter->AppendLine("{\n");
 
     // Write section for bitfielded part
-    fwriter->AppendLine(PrintF("#ifdef %s", usebits_str.c_str()), 2);
+    fwriter->AppendLine(PrintF("#ifdef %s", fsd.usebits_def.c_str()), 2);
 
     for (size_t signum = 0; signum < m.Signals.size(); signum++)
     {
@@ -138,12 +137,12 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
       WriteSigStructField(sig, false, max_sig_name_len);
     }
 
-    fwriter->AppendLine(PrintF("#endif // %s", usebits_str.c_str()), 2);
+    fwriter->AppendLine(PrintF("#endif // %s", fsd.usebits_def.c_str()), 2);
 
     // start mon1 section
-    fwriter->AppendLine(PrintF("#ifdef %s", usebits_str.c_str()), 2);
+    fwriter->AppendLine(PrintF("#ifdef %s", fsd.usebits_def.c_str()), 2);
     fwriter->AppendLine("  FrameMonitor_t mon1;", 2);
-    fwriter->AppendLine(PrintF("#endif // %s", usebits_str.c_str()), 2);
+    fwriter->AppendLine(PrintF("#endif // %s", fsd.usebits_def.c_str()), 2);
     fwriter->AppendLine(PrintF("} %s_t;", m.Name.c_str()), 2);
   }
 
@@ -158,7 +157,7 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
       PrintF("uint32_t Unpack_%s_%s(%s_t* _m, const uint8_t* _d, uint8_t dlc_);",
              m.Name.c_str(), fsd.drvname.c_str(), m.Name.c_str()));
 
-    fwriter->AppendLine(PrintF("#ifdef %s", usestruct_str.c_str()));
+    fwriter->AppendLine(PrintF("#ifdef %s", fsd.usesruct_def.c_str()));
 
     fwriter->AppendLine(
       PrintF("uint32_t Pack_%s_%s(const %s_t* _m, __CoderDbcCanFrame_t__* cframe);",
@@ -170,7 +169,7 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
       PrintF("uint32_t Pack_%s_%s(const %s_t* _m, uint8_t* _d, uint8_t* _len, uint8_t* _ide);",
              m.Name.c_str(), fsd.drvname.c_str(), m.Name.c_str()));
 
-    fwriter->AppendLine(PrintF("#endif // %s", usestruct_str.c_str()), 2);
+    fwriter->AppendLine(PrintF("#endif // %s", fsd.usesruct_def.c_str()), 2);
   }
 
   fwriter->AppendLine("#ifdef __cplusplus\n}\n#endif");

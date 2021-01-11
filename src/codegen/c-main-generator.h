@@ -18,16 +18,6 @@ class CiMainGenerator {
   void WriteSigStructField(const SignalDescriptor_t& sig, bool bitfield, size_t pad);
 
  private:
-  std::string work_dir_path;
-
-  std::string workstr;
-
-  std::string DRVNAME;
-
-  std::string usebits_str;
-  std::string usediag_str;
-  std::string usestruct_str;
-
   std::vector<std::string> tmpvect;
 
   CSigPrinter* sigprt;
