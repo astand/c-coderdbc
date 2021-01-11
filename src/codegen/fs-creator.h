@@ -6,6 +6,8 @@
 
 typedef struct
 {
+  // original driver name view
+  std::string DrvName_orig;
   // low case driver name
   std::string drvname;
   // up case driver name
@@ -26,7 +28,7 @@ typedef struct
 // This class is used to build all neccessary string -ed
 // value that will be required during code generation
 // (paths, file names, drvnames, common defines etc)
-// if preparation ends with true, the collection of 
+// if preparation ends with true, the collection of
 // values can be used.
 class FsCreator {
  public:

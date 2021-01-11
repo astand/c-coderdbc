@@ -154,24 +154,26 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
 
     fwriter->AppendLine(
       PrintF("uint32_t Unpack_%s_%s(%s_t* _m, const uint8_t* _d, uint8_t dlc_);",
-             m.Name.c_str(), fsd.drvname.c_str(), m.Name.c_str()));
+             m.Name.c_str(), fsd.DrvName_orig.c_str(), m.Name.c_str()));
 
     fwriter->AppendLine(PrintF("#ifdef %s", fsd.usesruct_def.c_str()));
 
     fwriter->AppendLine(
       PrintF("uint32_t Pack_%s_%s(const %s_t* _m, __CoderDbcCanFrame_t__* cframe);",
-             m.Name.c_str(), fsd.drvname.c_str(), m.Name.c_str()));
+             m.Name.c_str(), fsd.DrvName_orig.c_str(), m.Name.c_str()));
 
     fwriter->AppendLine("#else");
 
     fwriter->AppendLine(
       PrintF("uint32_t Pack_%s_%s(const %s_t* _m, uint8_t* _d, uint8_t* _len, uint8_t* _ide);",
-             m.Name.c_str(), fsd.drvname.c_str(), m.Name.c_str()));
+             m.Name.c_str(), fsd.DrvName_orig.c_str(), m.Name.c_str()));
 
     fwriter->AppendLine(PrintF("#endif // %s", fsd.usesruct_def.c_str()), 2);
   }
 
   fwriter->AppendLine("#ifdef __cplusplus\n}\n#endif");
+
+  // save fwrite cached text to file
   fwriter->Flush(fsd.core_h.fpath);
 
   // 3 step is to print main source file

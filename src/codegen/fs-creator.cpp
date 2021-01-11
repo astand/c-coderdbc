@@ -75,25 +75,25 @@ bool FsCreator::PrepareDirectory(std::string drvname, std::string basepath, bool
   if (ret)
   {
     // directory valid and exists, set all the values
-    FS.drvname = drvname;
+    FS.DrvName_orig = drvname;
     FS.DRVNAME = str_toupper(drvname);
+    FS.drvname = str_tolower(drvname);
 
-    std::string ldrvname = str_tolower(drvname);
 
     FS.core_h.dir = work_dir_path;
-    FS.core_h.fname = ldrvname + ".h";
+    FS.core_h.fname = FS.drvname + ".h";
     FS.core_h.fpath = work_dir_path + "/" + FS.core_h.fname;
 
     FS.core_c.dir = work_dir_path;
-    FS.core_c.fname = ldrvname + ".c";
+    FS.core_c.fname = FS.drvname + ".c";
     FS.core_c.fpath = work_dir_path + "/" + FS.core_c.fname;
 
     FS.util_h.dir = work_dir_path;
-    FS.util_h.fname = ldrvname + "_binutil" + ".h";
+    FS.util_h.fname = FS.drvname + "_binutil" + ".h";
     FS.util_h.fpath = work_dir_path + "/" + FS.util_h.fname;
 
     FS.util_c.dir = work_dir_path;
-    FS.util_c.fname = ldrvname + "_binutil" + ".c";
+    FS.util_c.fname = FS.drvname + "_binutil" + ".c";
     FS.util_c.fpath = work_dir_path + "/" + FS.util_c.fname;
 
     snprintf(_tmpb, kTmpLen, "%s_USE_BITS_SIGNAL", FS.DRVNAME.c_str());
