@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <algorithm>
 #include <regex>
+#include "helpers/formatter.h"
 
 #include "c-main-generator.h"
 
@@ -15,18 +16,6 @@ static const size_t kMaxDirNum = 1000;
 static const size_t kWBUFF_len = 2048;
 
 static char wbuff[kWBUFF_len] = { 0 };
-
-static std::string __typeprint[] =
-{
-  "int8_t",
-  "int16_t",
-  "int32_t",
-  "int64_t",
-  "uint8_t",
-  "uint16_t",
-  "uint32_t",
-  "uint64_t"
-};
 
 char* PrintF(const char* format, ...)
 {
@@ -256,7 +245,7 @@ void CiMainGenerator::WriteSigStructField(const SignalDescriptor_t& sig, bool bi
 
   std::string dtype = "";
 
-  dtype += "  " + __typeprint[(int)sig.Type] + " " + sig.Name;
+  dtype += "  " + PrintType((int)sig.Type) + " " + sig.Name;
 
   if (bits && (sig.LengthBit < 8))
   {
