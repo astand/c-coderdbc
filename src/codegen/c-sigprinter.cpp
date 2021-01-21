@@ -195,41 +195,6 @@ std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig,
     }
   }
 
-  if (!sig->IsDoubleSig)
-  {
-    int32_t i_fact = (int32_t)sig->Factor;
-    int32_t i_offset = (int32_t)sig->Offset;
-
-    // For signals which have both: factor and offset integer type
-    // the physical value can be calculated inside unpack expression
-    if (sig->Offset < 0)
-    {
-      if (i_fact != 1)
-      {
-        snprintf(workbuff, WBUFF_LEN, "((%s) * %d) - %d", tosigexpr.c_str(), i_fact, abs(i_offset));
-      }
-      else
-      {
-        snprintf(workbuff, WBUFF_LEN, "(%s) - %d", tosigexpr.c_str(), abs(i_offset));
-      }
-
-      tosigexpr = workbuff;
-    }
-    else if (sig->Offset > 0)
-    {
-      if (i_fact != 1)
-      {
-        snprintf(workbuff, WBUFF_LEN, "((%s) * %d) + %d", tosigexpr.c_str(), i_fact, abs(i_offset));
-      }
-      else
-      {
-        snprintf(workbuff, WBUFF_LEN, "(%s) + %d", tosigexpr.c_str(), abs(i_offset));
-      }
-
-      tosigexpr = workbuff;
-    }
-  }
-
   return tosigexpr;
 }
 
