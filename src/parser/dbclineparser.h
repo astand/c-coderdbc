@@ -27,7 +27,7 @@
 //The factorand offset define the linear conversion rule to convert the signals raw
 //value into the signal's physical value and vice versa:
 //physical_value = raw_value * factor + offset
-//raw_value = (physical_value � offset) / factor
+//raw_value = (physical_value - offset) / factor
 //As can be seen in the conversion rule formulas the factor must not be 0.
 //minimum = double;
 //maximum = double;

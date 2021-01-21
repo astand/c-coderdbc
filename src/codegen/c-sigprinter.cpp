@@ -88,8 +88,7 @@ int32_t CSigPrinter::BuildCConvertExprs(CiExpr_t* msgprinter)
     //
     // bytes expression is saved to vector @to_bytes, where id is the
     // byte number in frame payload (i.e. to_bytes.size() == frame.DLC)
-    msgprinter->to_signals.push_back(PrintSignalExpr(&msgprinter->msg.Signals[i],
-                                     msgprinter->to_bytes));
+    msgprinter->to_signals.push_back(PrintSignalExpr(&msgprinter->msg.Signals[i], msgprinter->to_bytes));
   }
 
   return ret;
@@ -196,15 +195,39 @@ std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig,
     }
   }
 
-  if (sig->Offset < 0)
+  if (!sig->IsDoubleSig)
   {
-    snprintf(workbuff, WBUFF_LEN, "(%s) - %d", tosigexpr.c_str(), abs(sig->RawOffset));
-    tosigexpr = workbuff;
-  }
-  else if (sig->Offset > 0)
-  {
-    snprintf(workbuff, WBUFF_LEN, "(%s) + %d", tosigexpr.c_str(), abs(sig->RawOffset));
-    tosigexpr = workbuff;
+    int32_t i_fact = (int32_t)sig->Factor;
+    int32_t i_offset = (int32_t)sig->Offset;
+
+    // For signals which have both: factor and offset integer type
+    // the physical value can be calculated inside unpack expression
+    if (sig->Offset < 0)
+    {
+      if (i_fact != 1)
+      {
+        snprintf(workbuff, WBUFF_LEN, "((%s) * %d) - %d", tosigexpr.c_str(), i_fact, abs(i_offset));
+      }
+      else
+      {
+        snprintf(workbuff, WBUFF_LEN, "(%s) - %d", tosigexpr.c_str(), abs(i_offset));
+      }
+
+      tosigexpr = workbuff;
+    }
+    else if (sig->Offset > 0)
+    {
+      if (i_fact != 1)
+      {
+        snprintf(workbuff, WBUFF_LEN, "((%s) * %d) + %d", tosigexpr.c_str(), i_fact, abs(i_offset));
+      }
+      else
+      {
+        snprintf(workbuff, WBUFF_LEN, "(%s) + %d", tosigexpr.c_str(), abs(i_offset));
+      }
+
+      tosigexpr = workbuff;
+    }
   }
 
   return tosigexpr;

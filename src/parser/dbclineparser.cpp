@@ -20,12 +20,20 @@ static const std::string kRegAttrMain = "[^A-Za-z0-9_\.]+";
 
 static const std::string kRegValTable = "\"";
 
-static uint64_t __maxvalues[] =
+static uint64_t __maxunsigvalues[] =
 {
   UCHAR_MAX,
   USHRT_MAX,
   UINT_MAX,
   ULLONG_MAX
+};
+
+static uint64_t __maxsignedvals[] =
+{
+  CHAR_MAX,
+  SHRT_MAX,
+  INT_MAX,
+  LLONG_MAX
 };
 
 static int __typeslen[] = { 8, 16, 32, 64 };
@@ -151,16 +159,25 @@ bool DbcLineParser::ParseSignalLine(SignalDescriptor_t* sig, const std::string& 
     sig->StartBit = atoi(valpart[0].c_str());
     sig->LengthBit = atoi(valpart[1].c_str());
 
+    // get info about factor or offset double nature
+    sig->IsDoubleSig = false;
+
+    // for enabling double conversation the factor or offset
+    // substring must have dot ('.') character
+    if (valpart[3].find_first_of('.') != std::string::npos ||
+        valpart[4].find_first_of('.') != std::string::npos)
+      sig->IsDoubleSig = true;
+
     //  factor = double;
     //  offset = double;
     //The factorand offset define the linear conversion rule to convert the signals raw
     //value into the signal's physical value and vice versa:
     //  physical_value = raw_value * factor + offset
-    //  raw_value = (physical_value � offset) / factor
+    //  raw_value = (physical_value - offset) / factor
     sig->Factor = atof(valpart[3].c_str());
     sig->Offset = atof(valpart[4].c_str());
 
-    sig->RawOffset = static_cast<int32_t>(sig->Offset / sig->Factor);
+    sig->RawOffset = sig->Offset / sig->Factor;
 
     sig->MinValue = atof(valpart[5].c_str());
     sig->MaxValue = atof(valpart[6].c_str());
@@ -210,28 +227,40 @@ SigType DbcLineParser::GetSigType(SignalDescriptor_t* sig)
 
   int64_t roffset = (int64_t)(sig->Offset / sig->Factor);
 
-  if (!sig->Signed)
-  {
-    uint64_t maxval = 0;
+  uint64_t max_v = 0;
 
-    if (sig->LengthBit <= 32)
+  if (!sig->IsDoubleSig)
+  {
+    int64_t i_offset = (int64_t)sig->Offset;
+    int64_t i_factor = (int64_t)sig->Factor;
+
+    // for this case physical value needs to be allowed to
+    // fit inside field type
+    if (sig->Signed)
     {
-      if (roffset >= 0)
+      // physical_value = raw_value * factor + offset
+      // 1 get the max value for the positive part
+      max_v = (uint64_t)(std::pow(2, sig->LengthBit - 1));
+      // 2 scale to max value
+      max_v *= i_factor;
+
+      // 3 add offset
+      // factor affects on difference between min and max values
+      // abs(max_neg)-(max_pos) = sig->Factor;
+      // so if offset == Factor
+      if (sig->Offset > (int32_t)(sig->Factor - 1))
       {
-        // this only unsinged case
-        maxval = (uint64_t)(std::pow(2, sig->LengthBit) - 1 + roffset);
-        is_unsigned = 1;
+        // positive value less then
+        max_v = (max_v + i_offset - ((int64_t)sig->Factor));
       }
       else
       {
-        uint64_t maxpos = (uint64_t)(std::pow(2, sig->LengthBit + 1) - 1);
-        uint64_t maxneg = (uint64_t)(std::abs(roffset * 2));
-        maxval = std::max(maxpos, maxneg);
+        max_v = (max_v - i_offset) - 1;
       }
 
       for (uint8_t i = 0; i < 4; i++)
       {
-        if (maxval <= __maxvalues[i])
+        if (max_v <= (__maxsignedvals[i]))
         {
           ret = (SigType)(i + (is_unsigned * 4));
           break;
@@ -241,13 +270,61 @@ SigType DbcLineParser::GetSigType(SignalDescriptor_t* sig)
     else
     {
       is_unsigned = 1;
+
+      max_v = (uint64_t)(std::pow(2, sig->LengthBit));
+
+      max_v *= (int32_t)sig->Factor;
+
+      if (sig->Offset >= 0)
+      {
+        // when offset positive the max physical value is got just
+        // adding roffset value
+        max_v += roffset;
+      }
+      else
+      {
+        is_unsigned = 0;
+        // this code must determmine which part of range is larger - positive or negative
+        // the largest part will define which sig type will be used for signal
+        // roffset here - negative value
+
+        // max positive value fot the LenBits if it would have signed type
+        uint64_t maxpos = (uint64_t)(std::pow(2, sig->LengthBit) - 1);
+        // max negative value
+        uint64_t maxneg = (uint64_t)(std::abs(roffset));
+
+        max_v = std::max(maxpos, maxneg);
+        // mul 2 for using unsinged compare levels (int8_t (127) like uint8_t (255))
+        max_v *= 2;
+      }
+
+      for (uint8_t i = 0; i < 4; i++)
+      {
+        if (max_v <= (__maxunsigvalues[i]))
+        {
+          ret = (SigType)(i + (is_unsigned * 4));
+          break;
+        }
+      }
     }
   }
+
   else
   {
+    // this type definition is simple (without
+    // additional type-expanded operations inside
+    // main driver, so to determine type simple
+    // operations is needed
+    max_v = (uint64_t)(std::pow(2, sig->LengthBit) - 1);
+
+    if (sig->Signed)
+    {
+      is_unsigned = 0;
+    }
+
     for (uint8_t i = 0; i < 4; i++)
     {
-      if (len <= __typeslen[i])
+      if (max_v <= __maxunsigvalues[i])
       {
         ret = (SigType)(i + (is_unsigned * 4));
         break;
@@ -348,8 +425,7 @@ bool DbcLineParser::ParseAttributeLine(AttributeDescriptor_t* attr, const std::s
       // raw line is ready
       auto items = resplit(attribline, kRegAttrMain);
 
-      if (items.size() > 4 && items[1] == "GenMsgCycleTime"
-          && items[2] == "BO_")
+      if (items.size() > 4 && items[1] == "GenMsgCycleTime" && items[2] == "BO_")
       {
         attr->Type = AttributeType::CycleTime;
         attr->MsgId = clear_msgid(atoi(items[3].c_str()));

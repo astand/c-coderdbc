@@ -38,11 +38,15 @@ typedef struct
 
   uint8_t LengthBit;
 
+  // this flag shows when factor (or offset) is double
+  // it is used when *_from_S and _to_S macros is generated
+  bool IsDoubleSig;
+
   double Factor;
 
   double Offset;
 
-  int32_t RawOffset;
+  double RawOffset;
 
   BitLayout Order;
 
