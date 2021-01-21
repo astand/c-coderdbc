@@ -351,8 +351,8 @@ void CiMainGenerator::WritePackStructBody(const CiExpr_t* sgs)
 
   fwriter->AppendLine(PrintF("  cframe->MsgId = %s_CANID;", sgs->msg.Name.c_str()));
   fwriter->AppendLine(PrintF("  cframe->DLC = %s_DLC;", sgs->msg.Name.c_str()));
-  fwriter->AppendLine(PrintF("  cframe->IDE = %_IDE;", sgs->msg.Name.c_str(), 2));
-  fwriter->AppendLine(PrintF("  return %_CANID;", sgs->msg.Name.c_str()));
+  fwriter->AppendLine(PrintF("  cframe->IDE = %s_IDE;", sgs->msg.Name.c_str(), 2));
+  fwriter->AppendLine(PrintF("  return %s_CANID;", sgs->msg.Name.c_str()));
   fwriter->AppendLine("}", 2);
 }
 
@@ -376,6 +376,6 @@ void CiMainGenerator::WritePackArrayBody(const CiExpr_t* sgs)
 
   fwriter->AppendText(PrintF("  *_len = %s_DLC;", sgs->msg.Name.c_str()));
   fwriter->AppendLine(PrintF(" *_ide = %s_IDE;", sgs->msg.Name.c_str(), 2));
-  fwriter->AppendLine(PrintF("  return %_CANID;", sgs->msg.Name.c_str()));
+  fwriter->AppendLine(PrintF("  return %s_CANID;", sgs->msg.Name.c_str()));
   fwriter->AppendLine("}", 2);
 }
