@@ -92,12 +92,11 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
       SignalDescriptor_t& s = m.Signals[signum];
 
       // TODO: print signal to_S and from_S definitions if necessary
-      //string ret = cprint.PrintSignalPackExpression(sig, msg.MessageName);
+      if (s.IsDoubleSig == true || ((s.Factor != 1) || (s.Offset != 0)))
+      {
+        fwriter->AppendLine(sigprt->PrintPhysicalToRaw(&s, fsd.DRVNAME));
+      }
 
-      //if (ret != null)
-      //{
-      //  fwriter->AppendLine(ret);
-      //}
       if (s.Name.size() > max_sig_name_len)
         max_sig_name_len = s.Name.size();
     }

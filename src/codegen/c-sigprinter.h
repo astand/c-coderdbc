@@ -2,25 +2,26 @@
 
 #include "../types/c-expr.h"
 
-class CSigPrinter
-{
-public:
-	CSigPrinter();
-	~CSigPrinter();
+class CSigPrinter {
+ public:
+  CSigPrinter();
+  ~CSigPrinter();
 
-	void LoadMessage(const MessageDescriptor_t& message);
-	void LoadMessages(const std::vector<MessageDescriptor_t*> message);
+  void LoadMessage(const MessageDescriptor_t& message);
+  void LoadMessages(const std::vector<MessageDescriptor_t*> message);
 
-public: 
-	std::vector<CiExpr_t*> sigs_expr;
+  std::string PrintPhysicalToRaw(const SignalDescriptor_t* msg, const std::string& drvname);
 
-private:
-	std::string GetSignalType(const SignalDescriptor_t& signal);
+ public:
+  std::vector<CiExpr_t*> sigs_expr;
 
-	int32_t BuildCConvertExprs(CiExpr_t* msg);
+ private:
+  std::string GetSignalType(const SignalDescriptor_t& signal);
 
-	std::string PrintSignalExpr(const SignalDescriptor_t* sig, std::vector<std::string>& to_bytes);
+  int32_t BuildCConvertExprs(CiExpr_t* msg);
 
-	void AppendToByteLine(std::string& expr, std::string str);
+  std::string PrintSignalExpr(const SignalDescriptor_t* sig, std::vector<std::string>& to_bytes);
+
+  void AppendToByteLine(std::string& expr, std::string str);
 
 };

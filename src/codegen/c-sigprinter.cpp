@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "c-sigprinter.h"
+#include "helpers/formatter.h"
 
 // work buffer for all snprintf operations
 static const size_t WBUFF_LEN = 2048;
@@ -48,6 +49,72 @@ void CSigPrinter::LoadMessage(const MessageDescriptor_t& message)
   sigs_expr.push_back(nexpr);
 }
 
+std::string CSigPrinter::PrintPhysicalToRaw(const SignalDescriptor_t* sig, const std::string& drvname)
+{
+  std::string retstr = "";
+
+  retstr = StrPrint("// signal: @%s\n", sig->Name.c_str());
+
+  if (sig->IsDoubleSig)
+    retstr += StrPrint("#define %s_%s_CovFactor (%f)\n", drvname.c_str(), sig->Name.c_str(), sig->Factor);
+  else
+    retstr += StrPrint("#define %s_%s_CovFactor (%d)\n", drvname.c_str(), sig->Name.c_str(), (int32_t)sig->Factor);
+
+  retstr += StrPrint("#define %s_%s_toS(x) ( (%s) ", drvname.c_str(), sig->Name.c_str(),
+                     PrintType((uint8_t)sig->Type).c_str());
+
+  if (sig->IsDoubleSig)
+  {
+    retstr += StrPrint("(((x) - (%f)) / (%f)) )\n", sig->Offset, sig->Factor);
+  }
+  else
+  {
+    if (sig->Offset == 0)
+    {
+      // only factor
+      retstr += StrPrint("((x) / (%d)) )\n", (int32_t)sig->Factor);
+    }
+    else if (sig->Factor == 1)
+    {
+      // only offset
+      retstr += StrPrint("((x) - (%d)) )\n", (int32_t)sig->Offset);
+    }
+    else
+    {
+      // full expression
+      retstr += StrPrint("(((x) - (%d)) / (%d)) )\n", (int32_t)sig->Offset, (int32_t)sig->Factor);
+    }
+  }
+
+  retstr += StrPrint("#define %s_%s_fromS(x) ( (%s) ", drvname.c_str(), sig->Name.c_str(),
+                     PrintType((uint8_t)sig->Type).c_str());
+
+  if (sig->IsDoubleSig)
+  {
+    retstr += StrPrint("(((x) * (%f)) + (%f)) )\n", sig->Factor, sig->Offset);
+  }
+  else
+  {
+    if (sig->Offset == 0)
+    {
+      // only factor
+      retstr += StrPrint("((x) * (%d)) )\n", (int32_t)sig->Factor);
+    }
+    else if (sig->Factor == 1)
+    {
+      // only offset
+      retstr += StrPrint("((x) + (%d)) )\n", (int32_t)sig->Offset);
+    }
+    else
+    {
+      // full expression
+      retstr += StrPrint("(((x) * (%d)) + (%d)) )\n", (int32_t)sig->Factor, (int32_t)sig->Offset);
+    }
+  }
+
+  return retstr;
+}
+
 // This function determines what type will have struct
 // field for the @signal. It saves the <stdint> name
 std::string CSigPrinter::GetSignalType(const SignalDescriptor_t& signal)
@@ -94,8 +161,7 @@ int32_t CSigPrinter::BuildCConvertExprs(CiExpr_t* msgprinter)
   return ret;
 }
 
-std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig,
-    std::vector<std::string>& to_bytes)
+std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig, std::vector<std::string>& to_bytes)
 {
   // value for collecting expression (to_signal)
   std::string tosigexpr;
