@@ -18,6 +18,8 @@ class CiMainGenerator {
   void WriteSigStructField(const SignalDescriptor_t& sig, bool bitfield, size_t pad);
 
   void WriteUnpackBody(const CiExpr_t* sgs);
+  void WritePackStructBody(const CiExpr_t* sgs);
+  void WritePackArrayBody(const CiExpr_t* sgs);
 
  private:
   std::vector<std::string> tmpvect;

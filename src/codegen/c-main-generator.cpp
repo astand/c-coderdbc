@@ -215,20 +215,23 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
 
     fwriter->AppendLine("}", 2);
 
-
-    fwriter->AppendLine(PrintF("#ifdef %s", fsd.usesruct_def.c_str()));
+    // next one is the pack function for using with CANFrame struct
+    fwriter->AppendLine(PrintF("#ifdef %s", fsd.usesruct_def.c_str()), 2);
 
     // second function
-    fwriter->AppendLine(
-      PrintF("uint32_t Pack_%s_%s(const %s_t* _m, __CoderDbcCanFrame_t__* cframe);",
-             m.Name.c_str(), fsd.DrvName_orig.c_str(), m.Name.c_str()));
+    fwriter->AppendLine(PrintF("uint32_t Pack_%s_%s(const %s_t* _m, __CoderDbcCanFrame_t__* cframe)",
+                               m.Name.c_str(), fsd.DrvName_orig.c_str(), m.Name.c_str()));
 
-    fwriter->AppendLine("#else");
+    WritePackStructBody(sigprt->sigs_expr[num]);
+
+    fwriter->AppendLine("#else", 2);
 
     // third function
     fwriter->AppendLine(
-      PrintF("uint32_t Pack_%s_%s(const %s_t* _m, uint8_t* _d, uint8_t* _len, uint8_t* _ide);",
+      PrintF("uint32_t Pack_%s_%s(const %s_t* _m, uint8_t* _d, uint8_t* _len, uint8_t* _ide)",
              m.Name.c_str(), fsd.DrvName_orig.c_str(), m.Name.c_str()));
+
+    WritePackArrayBody(sigprt->sigs_expr[num]);
 
     fwriter->AppendLine(PrintF("#endif // %s", fsd.usesruct_def.c_str()), 2);
   }
@@ -325,4 +328,54 @@ void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
   fwriter->AppendLine(PrintF("#endif // %s", fdesc->usemon_def.c_str()), 2);
 
   fwriter->AppendLine(PrintF(" return %s_CANID;", sgs->msg.Name.c_str()));
+}
+
+void CiMainGenerator::WritePackStructBody(const CiExpr_t* sgs)
+{
+  fwriter->AppendLine("{");
+
+  // pring array content clearin loop
+  fwriter->AppendLine(
+    PrintF("  uint8_t i; for (i = 0; (i < %s_DLC) && (i < 8); cframe->Data[i++] = 0);",
+           sgs->msg.Name.c_str()), 2);
+
+  for (size_t i = 0; i < sgs->to_bytes.size(); i++)
+  {
+    if (sgs->to_bytes[i].size() < 2)
+      continue;
+
+    fwriter->AppendLine(PrintF("  cframe->Data[%d] |= %s;", i, sgs->to_bytes[i].c_str()));
+  }
+
+  fwriter->AppendLine("");
+
+  fwriter->AppendLine(PrintF("  cframe->MsgId = %s_CANID;", sgs->msg.Name.c_str()));
+  fwriter->AppendLine(PrintF("  cframe->DLC = %s_DLC;", sgs->msg.Name.c_str()));
+  fwriter->AppendLine(PrintF("  cframe->IDE = %_IDE;", sgs->msg.Name.c_str(), 2));
+  fwriter->AppendLine(PrintF("  return %_CANID;", sgs->msg.Name.c_str()));
+  fwriter->AppendLine("}", 2);
+}
+
+void CiMainGenerator::WritePackArrayBody(const CiExpr_t* sgs)
+{
+  fwriter->AppendLine("{");
+
+  // pring array content clearin loop
+  fwriter->AppendLine(PrintF("  uint8_t i; for (i = 0; (i < %s_DLC) && (i < 8); _d[i++] = 0);",
+                             sgs->msg.Name.c_str()), 2);
+
+  for (size_t i = 0; i < sgs->to_bytes.size(); i++)
+  {
+    if (sgs->to_bytes[i].size() < 2)
+      continue;
+
+    fwriter->AppendLine(PrintF("  _d[%d] |= %s;", i, sgs->to_bytes[i].c_str()));
+  }
+
+  fwriter->AppendLine("");
+
+  fwriter->AppendText(PrintF("  *_len = %s_DLC;", sgs->msg.Name.c_str()));
+  fwriter->AppendLine(PrintF(" *_ide = %s_IDE;", sgs->msg.Name.c_str(), 2));
+  fwriter->AppendLine(PrintF("  return %_CANID;", sgs->msg.Name.c_str()));
+  fwriter->AppendLine("}", 2);
 }
