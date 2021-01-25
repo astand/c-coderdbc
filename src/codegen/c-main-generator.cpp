@@ -195,9 +195,13 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
     MessageDescriptor_t& m = sigprt->sigs_expr[num]->msg;
 
     // first function
-    fwriter->AppendLine(
-      PrintF("uint32_t Unpack_%s_%s(%s_t* _m, const uint8_t* _d, uint8_t dlc_)\n{",
-             m.Name.c_str(), fsd.DrvName_orig.c_str(), m.Name.c_str()));
+    fwriter->AppendLine(PrintF("uint32_t Unpack_%s_%s(%s_t* _m, const uint8_t* _d, uint8_t dlc_)\n{",
+                               m.Name.c_str(), fsd.DrvName_orig.c_str(), m.Name.c_str()));
+
+    // put dirt trick to avoid warning about unusing parameter
+    // (dlc) when monitora are disabled. trick is better than
+    // selection different signatures because of external API consistency
+    fwriter->AppendLine("  dlc_ = dlc_;");
 
     WriteUnpackBody(sigprt->sigs_expr[num]);
 
