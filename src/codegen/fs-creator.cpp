@@ -102,6 +102,9 @@ bool FsCreator::PrepareDirectory(std::string drvname, std::string basepath, bool
     snprintf(_tmpb, kTmpLen, "%s_USE_DIAG_MONITORS", FS.DRVNAME.c_str());
     FS.usemon_def = _tmpb;
 
+    snprintf(_tmpb, kTmpLen, "%s_USE_SIGFLOAT", FS.DRVNAME.c_str());
+    FS.usesigfloat_def = _tmpb;
+
     snprintf(_tmpb, kTmpLen, "%s_USE_CANSTRUCT", FS.DRVNAME.c_str());
     FS.usesruct_def = _tmpb;
   }

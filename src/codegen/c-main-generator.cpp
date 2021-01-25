@@ -91,8 +91,7 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
     {
       SignalDescriptor_t& s = m.Signals[signum];
 
-      // TODO: print signal to_S and from_S definitions if necessary
-      if (s.IsDoubleSig == true || ((s.Factor != 1) || (s.Offset != 0)))
+      if (!s.IsSimpleSig)
       {
         fwriter->AppendLine(sigprt->PrintPhysicalToRaw(&s, fsd.DRVNAME));
       }
@@ -282,6 +281,21 @@ void CiMainGenerator::WriteSigStructField(const SignalDescriptor_t& sig, bool bi
   }
 
   fwriter->AppendLine("", 2);
+
+  if (sig.IsDoubleSig)
+  {
+    // this code only required be d-signals (floating point values based)
+    // it placed additional signals to struct for conversion
+    // to/from physical values. For non-simple and non-double signal
+    // there is no necessity to create addition fields
+    // @sigfloat_t must be typedefed by user (e.g. double / float)
+    fwriter->AppendLine(PrintF("#ifdef %s", fdesc->usesigfloat_def.c_str()));
+
+    fwriter->AppendLine(PrintF("  sigfloat_t %s_phys;", sig.Name.c_str()));
+
+    fwriter->AppendLine(PrintF("#endif // %s", fdesc->usesigfloat_def.c_str()), 2);
+
+  }
 }
 
 void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
@@ -291,6 +305,28 @@ void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
     auto expr = sgs->to_signals[num];
 
     fwriter->AppendLine(PrintF("  _m->%s = %s;", sgs->msg.Signals[num].Name.c_str(), expr.c_str()));
+
+    // print sigfloat conversion
+    if (sgs->msg.Signals[num].IsDoubleSig)
+    {
+      fwriter->AppendLine(PrintF("\n#ifdef %s", fdesc->usesigfloat_def.c_str()));
+      fwriter->AppendLine(PrintF("  _m->%s_phys = (sigfloat_t)(%s_%s_fromS(_m->%s));",
+                                 sgs->msg.Signals[num].Name.c_str(), fdesc->DRVNAME.c_str(),
+                                 sgs->msg.Signals[num].Name.c_str(), sgs->msg.Signals[num].Name.c_str()));
+      fwriter->AppendLine(PrintF("#endif // %s", fdesc->usesigfloat_def.c_str()), 2);
+    }
+
+    else if (!sgs->msg.Signals[num].IsSimpleSig)
+    {
+      // print unpack conversion for non-simple and non-double signals
+      // for this case conversion fromS is performed to signal itself
+      // without (sigfloat_t) type casting
+      fwriter->AppendLine(PrintF("\n#ifdef %s", fdesc->usesigfloat_def.c_str()));
+      fwriter->AppendLine(PrintF("  _m->%s = (%s_%s_fromS(_m->%s));",
+                                 sgs->msg.Signals[num].Name.c_str(), fdesc->DRVNAME.c_str(),
+                                 sgs->msg.Signals[num].Name.c_str(), sgs->msg.Signals[num].Name.c_str()));
+      fwriter->AppendLine(PrintF("#endif // %s", fdesc->usesigfloat_def.c_str()), 2);
+    }
   }
 
   fwriter->AppendLine("");
@@ -323,9 +359,36 @@ void CiMainGenerator::WritePackStructBody(const CiExpr_t* sgs)
   fwriter->AppendLine("{");
 
   // pring array content clearin loop
-  fwriter->AppendLine(
-    PrintF("  uint8_t i; for (i = 0; (i < %s_DLC) && (i < 8); cframe->Data[i++] = 0);",
-           sgs->msg.Name.c_str()), 2);
+  fwriter->AppendLine(PrintF("  uint8_t i; for (i = 0; (i < %s_DLC) && (i < 8); cframe->Data[i++] = 0);",
+                             sgs->msg.Name.c_str()), 2);
+
+  // first step is to put code for sigfloat conversion, before
+  // sigint packing to bytes.
+  fwriter->AppendLine(PrintF("#ifdef %s", fdesc->usesigfloat_def.c_str()), 2);
+
+  for (size_t n = 0; n < sgs->to_signals.size(); n++)
+  {
+    if (sgs->msg.Signals[n].IsSimpleSig == false)
+    {
+      if (sgs->msg.Signals[n].IsDoubleSig)
+      {
+        // print toS from *_phys to original named sigint (integer duplicate of signal)
+        fwriter->AppendLine(PrintF("  _m->%s = %s_%s_fromS(_m->%s_phys);",
+                                   sgs->msg.Signals[n].Name.c_str(), fdesc->DRVNAME.c_str(),
+                                   sgs->msg.Signals[n].Name.c_str(), sgs->msg.Signals[n].Name.c_str()));
+      }
+      else
+      {
+        // print toS from original named signal to itself (because this signal
+        // has enough space for scaling by factor and proper sign
+        fwriter->AppendLine(PrintF("  _m->%s = %s_%s_fromS(_m->%s);",
+                                   sgs->msg.Signals[n].Name.c_str(), fdesc->DRVNAME.c_str(),
+                                   sgs->msg.Signals[n].Name.c_str(), sgs->msg.Signals[n].Name.c_str()));
+      }
+    }
+  }
+
+  fwriter->AppendLine(PrintF("\n#endif // %s", fdesc->usesigfloat_def.c_str()), 2);
 
   for (size_t i = 0; i < sgs->to_bytes.size(); i++)
   {
@@ -351,6 +414,34 @@ void CiMainGenerator::WritePackArrayBody(const CiExpr_t* sgs)
   // pring array content clearin loop
   fwriter->AppendLine(PrintF("  uint8_t i; for (i = 0; (i < %s_DLC) && (i < 8); _d[i++] = 0);",
                              sgs->msg.Name.c_str()), 2);
+
+  // first step is to put code for sigfloat conversion, before
+  // sigint packing to bytes.
+  fwriter->AppendLine(PrintF("#ifdef %s", fdesc->usesigfloat_def.c_str()), 2);
+
+  for (size_t n = 0; n < sgs->to_signals.size(); n++)
+  {
+    if (sgs->msg.Signals[n].IsSimpleSig == false)
+    {
+      if (sgs->msg.Signals[n].IsDoubleSig)
+      {
+        // print toS from *_phys to original named sigint (integer duplicate of signal)
+        fwriter->AppendLine(PrintF("  _m->%s = %s_%s_fromS(_m->%s_phys);",
+                                   sgs->msg.Signals[n].Name.c_str(), fdesc->DRVNAME.c_str(),
+                                   sgs->msg.Signals[n].Name.c_str(), sgs->msg.Signals[n].Name.c_str()));
+      }
+      else
+      {
+        // print toS from original named signal to itself (because this signal
+        // has enough space for scaling by factor and proper sign
+        fwriter->AppendLine(PrintF("  _m->%s = %s_%s_fromS(_m->%s);",
+                                   sgs->msg.Signals[n].Name.c_str(), fdesc->DRVNAME.c_str(),
+                                   sgs->msg.Signals[n].Name.c_str(), sgs->msg.Signals[n].Name.c_str()));
+      }
+    }
+  }
+
+  fwriter->AppendLine(PrintF("\n#endif // %s", fdesc->usesigfloat_def.c_str()), 2);
 
   for (size_t i = 0; i < sgs->to_bytes.size(); i++)
   {
