@@ -146,9 +146,8 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
     // write message typedef s and additional expressions
     MessageDescriptor_t& m = sigprt->sigs_expr[num]->msg;
 
-    fwriter->AppendLine(
-      PrintF("uint32_t Unpack_%s_%s(%s_t* _m, const uint8_t* _d, uint8_t dlc_);",
-             m.Name.c_str(), fsd.DrvName_orig.c_str(), m.Name.c_str()));
+    fwriter->AppendLine(PrintF("uint32_t Unpack_%s_%s(%s_t* _m, const uint8_t* _d, uint8_t dlc_);",
+                               m.Name.c_str(), fsd.DrvName_orig.c_str(), m.Name.c_str()));
 
     fwriter->AppendLine(PrintF("#ifdef %s", fsd.usesruct_def.c_str()));
 
@@ -269,19 +268,35 @@ void CiMainGenerator::WriteSigStructField(const SignalDescriptor_t& sig, bool bi
 
   fwriter->AppendText(PrintF(" Bits=%2d", sig.LengthBit));
 
+  if (sig.IsDoubleSig)
+  {
+    if (sig.Offset != 0)
+    {
+      fwriter->AppendText(PrintF(" Offset= %-18f", sig.Offset));
+    }
+
+    if (sig.Factor != 1)
+    {
+      fwriter->AppendText(PrintF(" Factor= %-15f", sig.Factor));
+    }
+  }
+  else if (sig.IsSimpleSig == false)
+  {
+    // 2 type of signal
+    if (sig.Offset != 0)
+    {
+      fwriter->AppendText(PrintF(" Offset= %-18d", sig.Offset));
+    }
+
+    if (sig.Factor != 1)
+    {
+      fwriter->AppendText(PrintF(" Factor= %-15d", sig.Factor));
+    }
+  }
+
   if (sig.Unit.size() > 0)
   {
-    fwriter->AppendText(PrintF(" Unit:'%-13s'", sig.Unit.c_str()));
-  }
-
-  if (sig.Offset != 0)
-  {
-    fwriter->AppendText(PrintF(" Offset= %-18f", sig.Offset));
-  }
-
-  if (sig.Factor != 1)
-  {
-    fwriter->AppendText(PrintF(" Factor= %-15d", sig.LengthBit));
+    fwriter->AppendText(PrintF(" Unit:'%s'", sig.Unit.c_str()));
   }
 
   fwriter->AppendLine("", 2);

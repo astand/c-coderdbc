@@ -76,6 +76,8 @@ void DbcScanner::ParseMessageInfo(istream& readstrm)
       // create instance for the detected message
       pMsg = new MessageDescriptor_t;
 
+      SetDefualtMessage(pMsg);
+
       if (!lparser.ParseMessageLine(pMsg, sline))
       {
         // the message has invalid format so drop it and wait next one
@@ -199,10 +201,10 @@ void DbcScanner::AddMessage(MessageDescriptor_t* message)
     {
       // sort signals by start bit
       std::sort(message->Signals.begin(), message->Signals.end(),
-        [](const SignalDescriptor_t& a, const SignalDescriptor_t& b) -> bool
-        {
-          return a.StartBit < b.StartBit;
-        });
+                [](const SignalDescriptor_t& a, const SignalDescriptor_t& b) -> bool
+      {
+        return a.StartBit < b.StartBit;
+      });
 
       for (size_t i = 0; i < message->Signals.size(); i++)
       {
