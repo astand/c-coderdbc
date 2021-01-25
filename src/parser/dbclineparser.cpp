@@ -166,7 +166,7 @@ bool DbcLineParser::ParseSignalLine(SignalDescriptor_t* sig, const std::string& 
     // for enabling double conversation the factor or offset
     // substring must have dot ('.') character
     if (valpart[3].find_first_of('.') != std::string::npos ||
-        valpart[4].find_first_of('.') != std::string::npos)
+      valpart[4].find_first_of('.') != std::string::npos)
     {
       sig->IsDoubleSig = true;
     }
@@ -317,7 +317,6 @@ SigType DbcLineParser::GetSigType(SignalDescriptor_t* sig)
       }
     }
   }
-
   else
   {
     // this type definition is simple (without
@@ -325,10 +324,10 @@ SigType DbcLineParser::GetSigType(SignalDescriptor_t* sig)
     // main driver, so to determine type simple
     // operations is needed
     max_v = (uint64_t)(std::pow(2, sig->LengthBit) - 1);
-
-    if (sig->Signed)
+    
+    if (!sig->Signed)
     {
-      is_unsigned = 0;
+      is_unsigned = 1;
     }
 
     for (uint8_t i = 0; i < 4; i++)
