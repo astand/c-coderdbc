@@ -161,12 +161,15 @@ bool DbcLineParser::ParseSignalLine(SignalDescriptor_t* sig, const std::string& 
 
     // get info about factor or offset double nature
     sig->IsDoubleSig = false;
+    sig->IsSimpleSig = false;
 
     // for enabling double conversation the factor or offset
     // substring must have dot ('.') character
     if (valpart[3].find_first_of('.') != std::string::npos ||
         valpart[4].find_first_of('.') != std::string::npos)
+    {
       sig->IsDoubleSig = true;
+    }
 
     //  factor = double;
     //  offset = double;
@@ -193,6 +196,12 @@ bool DbcLineParser::ParseSignalLine(SignalDescriptor_t* sig, const std::string& 
     sig->Signed = (valpart[2].find('-') == -1) ? 0 : 1;
 
     sig->Type = GetSigType(sig);
+
+    // mark all simple signals to make using them easier
+    if (!sig->IsDoubleSig && (sig->Factor == 1) && (sig->Offset == 0))
+    {
+      sig->IsSimpleSig = true;
+    }
   }
 
   if (tailpart.size() == 3)

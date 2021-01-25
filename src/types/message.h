@@ -38,9 +38,20 @@ typedef struct
 
   uint8_t LengthBit;
 
+  // By next two fields any signal can be strictly related to one of
+  // 3 signal type:
+  // 1 double based scaled value (IsDoubleSig == true)
+  // 2 integer based scaled value (IsDoubleSig == false && IsSimpleSig == false)
+  // 3 simple (IsDoubleSig == false && IsSimpleSig == true)
+
   // this flag shows when factor (or offset) is double
   // it is used when *_from_S and _to_S macros is generated
   bool IsDoubleSig;
+
+  // this flag shows if the signal has factor = 1 and offset = 0
+  // to reject any sigfloat or "toS"/"fromS" operations
+  // this only when : IsDoubleSig == true || ((s.Factor != 1) || (s.Offset != 0)
+  bool IsSimpleSig;
 
   double Factor;
 
