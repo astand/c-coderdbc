@@ -182,8 +182,7 @@ std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig, std::vec
     snprintf(workbuff, WBUFF_LEN, "((_d[%d] >> %d) & (%s))", bn, bbc - slen, msk[slen].c_str());
     tosigexpr += workbuff;
 
-    snprintf(workbuff, WBUFF_LEN, "((_m->{%s} & (%s)) << %d)", sig->Name.c_str(), msk[slen].c_str(),
-             bbc - slen);
+    snprintf(workbuff, WBUFF_LEN, "((_m->%s & (%s)) << %d)", sig->Name.c_str(), msk[slen].c_str(), bbc - slen);
     AppendToByteLine(to_bytes[bn], workbuff);
   }
   else if (bbc == slen)

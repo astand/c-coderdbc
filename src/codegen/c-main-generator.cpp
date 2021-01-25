@@ -52,6 +52,9 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
   fwriter->AppendLine("#ifdef __cplusplus\nextern \"C\" {\n#endif", 2);
   fwriter->AppendLine("#include <stdint.h>", 2);
 
+  fwriter->AppendLine("// include current dbc-driver compilation config");
+  fwriter->AppendLine(PrintF("#include \"%s-config.h\"", fsd.drvname.c_str()), 2);
+
   fwriter->AppendLine(PrintF("#ifdef %s", fsd.usemon_def.c_str()));
 
   fwriter->AppendText(
@@ -130,9 +133,9 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
     fwriter->AppendLine(PrintF("#endif // %s", fsd.usebits_def.c_str()), 2);
 
     // start mon1 section
-    fwriter->AppendLine(PrintF("#ifdef %s", fsd.usebits_def.c_str()), 2);
+    fwriter->AppendLine(PrintF("#ifdef %s", fsd.usemon_def.c_str()), 2);
     fwriter->AppendLine("  FrameMonitor_t mon1;", 2);
-    fwriter->AppendLine(PrintF("#endif // %s", fsd.usebits_def.c_str()), 2);
+    fwriter->AppendLine(PrintF("#endif // %s", fsd.usemon_def.c_str()), 2);
     fwriter->AppendLine(PrintF("} %s_t;", m.Name.c_str()), 2);
   }
 
@@ -149,15 +152,13 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
 
     fwriter->AppendLine(PrintF("#ifdef %s", fsd.usesruct_def.c_str()));
 
-    fwriter->AppendLine(
-      PrintF("uint32_t Pack_%s_%s(const %s_t* _m, __CoderDbcCanFrame_t__* cframe);",
-             m.Name.c_str(), fsd.DrvName_orig.c_str(), m.Name.c_str()));
+    fwriter->AppendLine(PrintF("uint32_t Pack_%s_%s(%s_t* _m, __CoderDbcCanFrame_t__* cframe);",
+                               m.Name.c_str(), fsd.DrvName_orig.c_str(), m.Name.c_str()));
 
     fwriter->AppendLine("#else");
 
-    fwriter->AppendLine(
-      PrintF("uint32_t Pack_%s_%s(const %s_t* _m, uint8_t* _d, uint8_t* _len, uint8_t* _ide);",
-             m.Name.c_str(), fsd.DrvName_orig.c_str(), m.Name.c_str()));
+    fwriter->AppendLine(PrintF("uint32_t Pack_%s_%s(%s_t* _m, uint8_t* _d, uint8_t* _len, uint8_t* _ide);",
+                               m.Name.c_str(), fsd.DrvName_orig.c_str(), m.Name.c_str()));
 
     fwriter->AppendLine(PrintF("#endif // %s", fsd.usesruct_def.c_str()), 2);
   }
@@ -169,7 +170,7 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
 
   // 3 step is to print main source file
   // include main header file
-  fwriter->AppendLine(PrintF("#include ""%s""", fsd.core_h.fname.c_str()), 3);
+  fwriter->AppendLine(PrintF("#include \"%s\"", fsd.core_h.fname.c_str()), 3);
 
   // put diagmonitor ifdef selection for including @drv-fmon header
   // with FMon_* signatures to call from unpack function
@@ -181,7 +182,7 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
     "// function signature for CRC calculation\n"
     "// function signature for getting system tick value (100 us step)\n");
 
-  fwriter->AppendLine(PrintF("#include ""%s-fmon.h""", fsd.drvname.c_str()), 2);
+  fwriter->AppendLine(PrintF("#include \"%s-fmon.h\"", fsd.drvname.c_str()), 2);
 
   fwriter->AppendLine(PrintF("#endif // %s", fsd.usemon_def.c_str()), 3);
 
@@ -206,7 +207,7 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
     fwriter->AppendLine(PrintF("#ifdef %s", fsd.usesruct_def.c_str()), 2);
 
     // second function
-    fwriter->AppendLine(PrintF("uint32_t Pack_%s_%s(const %s_t* _m, __CoderDbcCanFrame_t__* cframe)",
+    fwriter->AppendLine(PrintF("uint32_t Pack_%s_%s(%s_t* _m, __CoderDbcCanFrame_t__* cframe)",
                                m.Name.c_str(), fsd.DrvName_orig.c_str(), m.Name.c_str()));
 
     WritePackStructBody(sigprt->sigs_expr[num]);
@@ -214,9 +215,8 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
     fwriter->AppendLine("#else", 2);
 
     // third function
-    fwriter->AppendLine(
-      PrintF("uint32_t Pack_%s_%s(const %s_t* _m, uint8_t* _d, uint8_t* _len, uint8_t* _ide)",
-             m.Name.c_str(), fsd.DrvName_orig.c_str(), m.Name.c_str()));
+    fwriter->AppendLine(PrintF("uint32_t Pack_%s_%s(%s_t* _m, uint8_t* _d, uint8_t* _len, uint8_t* _ide)",
+                               m.Name.c_str(), fsd.DrvName_orig.c_str(), m.Name.c_str()));
 
     WritePackArrayBody(sigprt->sigs_expr[num]);
 
