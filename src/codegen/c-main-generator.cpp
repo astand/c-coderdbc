@@ -48,14 +48,26 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
   });
 
   // 2 step is to print main head file
+  Gen_MainHeader();
+
+  // 3 step is to print main source file
+  Gen_MainSource();
+
+  // 4 step is to pring fmon head file
+
+  // 5 step is to print fmon source file
+}
+
+void CiMainGenerator::Gen_MainHeader()
+{
   fwriter->AppendLine("#pragma once", 2);
   fwriter->AppendLine("#ifdef __cplusplus\nextern \"C\" {\n#endif", 2);
   fwriter->AppendLine("#include <stdint.h>", 2);
 
   fwriter->AppendLine("// include current dbc-driver compilation config");
-  fwriter->AppendLine(PrintF("#include \"%s-config.h\"", fsd.drvname.c_str()), 2);
+  fwriter->AppendLine(PrintF("#include \"%s-config.h\"", fdesc->drvname.c_str()), 2);
 
-  fwriter->AppendLine(PrintF("#ifdef %s", fsd.usemon_def.c_str()));
+  fwriter->AppendLine(PrintF("#ifdef %s", fdesc->usemon_def.c_str()));
 
   fwriter->AppendText(
     "// This file must define:\n"
@@ -66,7 +78,7 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
     "\n"
   );
 
-  fwriter->AppendLine(PrintF("#endif // %s", fsd.usemon_def.c_str()), 3);
+  fwriter->AppendLine(PrintF("#endif // %s", fdesc->usemon_def.c_str()), 3);
 
   for (size_t num = 0; num < sigprt->sigs_expr.size(); num++)
   {
@@ -96,22 +108,21 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
 
       if (!s.IsSimpleSig)
       {
-        fwriter->AppendLine(sigprt->PrintPhysicalToRaw(&s, fsd.DRVNAME));
+        fwriter->AppendText(sigprt->PrintPhysicalToRaw(&s, fdesc->DRVNAME));
       }
 
       if (s.Name.size() > max_sig_name_len)
         max_sig_name_len = s.Name.size();
     }
 
-    // empty line before struct definition
-    fwriter->AppendLine("\n");
+    fwriter->AppendText("\n");
 
     fwriter->AppendLine(PrintF("typedef struct"));
 
-    fwriter->AppendLine("{\n");
+    fwriter->AppendLine("{");
 
     // Write section for bitfielded part
-    fwriter->AppendLine(PrintF("#ifdef %s", fsd.usebits_def.c_str()), 2);
+    fwriter->AppendLine(PrintF("#ifdef %s", fdesc->usebits_def.c_str()), 2);
 
     for (size_t signum = 0; signum < m.Signals.size(); signum++)
     {
@@ -130,12 +141,12 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
       WriteSigStructField(sig, false, max_sig_name_len);
     }
 
-    fwriter->AppendLine(PrintF("#endif // %s", fsd.usebits_def.c_str()), 2);
+    fwriter->AppendLine(PrintF("#endif // %s", fdesc->usebits_def.c_str()), 2);
 
     // start mon1 section
-    fwriter->AppendLine(PrintF("#ifdef %s", fsd.usemon_def.c_str()), 2);
+    fwriter->AppendLine(PrintF("#ifdef %s", fdesc->usemon_def.c_str()), 2);
     fwriter->AppendLine("  FrameMonitor_t mon1;", 2);
-    fwriter->AppendLine(PrintF("#endif // %s", fsd.usemon_def.c_str()), 2);
+    fwriter->AppendLine(PrintF("#endif // %s", fdesc->usemon_def.c_str()), 2);
     fwriter->AppendLine(PrintF("} %s_t;", m.Name.c_str()), 2);
   }
 
@@ -147,33 +158,35 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
     MessageDescriptor_t& m = sigprt->sigs_expr[num]->msg;
 
     fwriter->AppendLine(PrintF("uint32_t Unpack_%s_%s(%s_t* _m, const uint8_t* _d, uint8_t dlc_);",
-                               m.Name.c_str(), fsd.DrvName_orig.c_str(), m.Name.c_str()));
+                               m.Name.c_str(), fdesc->DrvName_orig.c_str(), m.Name.c_str()));
 
-    fwriter->AppendLine(PrintF("#ifdef %s", fsd.usesruct_def.c_str()));
+    fwriter->AppendLine(PrintF("#ifdef %s", fdesc->usesruct_def.c_str()));
 
     fwriter->AppendLine(PrintF("uint32_t Pack_%s_%s(%s_t* _m, __CoderDbcCanFrame_t__* cframe);",
-                               m.Name.c_str(), fsd.DrvName_orig.c_str(), m.Name.c_str()));
+                               m.Name.c_str(), fdesc->DrvName_orig.c_str(), m.Name.c_str()));
 
     fwriter->AppendLine("#else");
 
     fwriter->AppendLine(PrintF("uint32_t Pack_%s_%s(%s_t* _m, uint8_t* _d, uint8_t* _len, uint8_t* _ide);",
-                               m.Name.c_str(), fsd.DrvName_orig.c_str(), m.Name.c_str()));
+                               m.Name.c_str(), fdesc->DrvName_orig.c_str(), m.Name.c_str()));
 
-    fwriter->AppendLine(PrintF("#endif // %s", fsd.usesruct_def.c_str()), 2);
+    fwriter->AppendLine(PrintF("#endif // %s", fdesc->usesruct_def.c_str()), 2);
   }
 
   fwriter->AppendLine("#ifdef __cplusplus\n}\n#endif");
 
   // save fwrite cached text to file
-  fwriter->Flush(fsd.core_h.fpath);
+  fwriter->Flush(fdesc->core_h.fpath);
+}
 
-  // 3 step is to print main source file
+void CiMainGenerator::Gen_MainSource()
+{
   // include main header file
-  fwriter->AppendLine(PrintF("#include \"%s\"", fsd.core_h.fname.c_str()), 3);
+  fwriter->AppendLine(PrintF("#include \"%s\"", fdesc->core_h.fname.c_str()), 3);
 
   // put diagmonitor ifdef selection for including @drv-fmon header
   // with FMon_* signatures to call from unpack function
-  fwriter->AppendLine(PrintF("#ifdef %s", fsd.usemon_def.c_str()));
+  fwriter->AppendLine(PrintF("#ifdef %s", fdesc->usemon_def.c_str()));
 
   fwriter->AppendText(
     "// This file must define:\n"
@@ -181,9 +194,9 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
     "// function signature for CRC calculation\n"
     "// function signature for getting system tick value (100 us step)\n");
 
-  fwriter->AppendLine(PrintF("#include \"%s-fmon.h\"", fsd.drvname.c_str()), 2);
+  fwriter->AppendLine(PrintF("#include \"%s-fmon.h\"", fdesc->drvname.c_str()), 2);
 
-  fwriter->AppendLine(PrintF("#endif // %s", fsd.usemon_def.c_str()), 3);
+  fwriter->AppendLine(PrintF("#endif // %s", fdesc->usemon_def.c_str()), 3);
 
   // for each message 3 functions must be defined - 1 unpack function,
   // 2: pack with raw signature
@@ -195,7 +208,7 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
 
     // first function
     fwriter->AppendLine(PrintF("uint32_t Unpack_%s_%s(%s_t* _m, const uint8_t* _d, uint8_t dlc_)\n{",
-                               m.Name.c_str(), fsd.DrvName_orig.c_str(), m.Name.c_str()));
+                               m.Name.c_str(), fdesc->DrvName_orig.c_str(), m.Name.c_str()));
 
     // put dirt trick to avoid warning about unusing parameter
     // (dlc) when monitora are disabled. trick is better than
@@ -207,11 +220,11 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
     fwriter->AppendLine("}", 2);
 
     // next one is the pack function for using with CANFrame struct
-    fwriter->AppendLine(PrintF("#ifdef %s", fsd.usesruct_def.c_str()), 2);
+    fwriter->AppendLine(PrintF("#ifdef %s", fdesc->usesruct_def.c_str()), 2);
 
     // second function
     fwriter->AppendLine(PrintF("uint32_t Pack_%s_%s(%s_t* _m, __CoderDbcCanFrame_t__* cframe)",
-                               m.Name.c_str(), fsd.DrvName_orig.c_str(), m.Name.c_str()));
+                               m.Name.c_str(), fdesc->DrvName_orig.c_str(), m.Name.c_str()));
 
     WritePackStructBody(sigprt->sigs_expr[num]);
 
@@ -219,17 +232,14 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
 
     // third function
     fwriter->AppendLine(PrintF("uint32_t Pack_%s_%s(%s_t* _m, uint8_t* _d, uint8_t* _len, uint8_t* _ide)",
-                               m.Name.c_str(), fsd.DrvName_orig.c_str(), m.Name.c_str()));
+                               m.Name.c_str(), fdesc->DrvName_orig.c_str(), m.Name.c_str()));
 
     WritePackArrayBody(sigprt->sigs_expr[num]);
 
-    fwriter->AppendLine(PrintF("#endif // %s", fsd.usesruct_def.c_str()), 2);
+    fwriter->AppendLine(PrintF("#endif // %s", fdesc->usesruct_def.c_str()), 2);
   }
 
-  fwriter->Flush(fsd.core_c.fpath);
-  // 4 step is to pring fmon head file
-
-  // 5 step is to print fmon source file
+  fwriter->Flush(fdesc->core_c.fpath);
 }
 
 void CiMainGenerator::WriteSigStructField(const SignalDescriptor_t& sig, bool bits, size_t padwidth)

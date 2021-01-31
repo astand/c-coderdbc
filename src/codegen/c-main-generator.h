@@ -15,6 +15,9 @@ class CiMainGenerator {
 
  private:
 
+  void Gen_MainHeader();
+  void Gen_MainSource();
+
   void WriteSigStructField(const SignalDescriptor_t& sig, bool bitfield, size_t pad);
 
   void WriteUnpackBody(const CiExpr_t* sgs);
