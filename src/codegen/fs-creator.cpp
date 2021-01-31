@@ -4,6 +4,7 @@
 #include <fstream>
 #include <cstdlib>
 #include <filesystem>
+#include <algorithm>
 
 static const int32_t kTmpLen = 1024;
 

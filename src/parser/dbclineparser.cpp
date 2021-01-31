@@ -1,5 +1,7 @@
 #include "dbclineparser.h"
 #include <regex>
+#include <math.h>
+#include <limits.h>
 
 // Message line definitions
 static const std::string regMessage = "[^A-Za-z0-9_.-]";
@@ -166,7 +168,7 @@ bool DbcLineParser::ParseSignalLine(SignalDescriptor_t* sig, const std::string& 
     // for enabling double conversation the factor or offset
     // substring must have dot ('.') character
     if (valpart[3].find_first_of('.') != std::string::npos ||
-      valpart[4].find_first_of('.') != std::string::npos)
+        valpart[4].find_first_of('.') != std::string::npos)
     {
       sig->IsDoubleSig = true;
     }
@@ -324,7 +326,7 @@ SigType DbcLineParser::GetSigType(SignalDescriptor_t* sig)
     // main driver, so to determine type simple
     // operations is needed
     max_v = (uint64_t)(std::pow(2, sig->LengthBit) - 1);
-    
+
     if (!sig->Signed)
     {
       is_unsigned = 1;
