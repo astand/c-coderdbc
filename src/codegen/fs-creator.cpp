@@ -13,10 +13,10 @@ static char _tmpb[kTmpLen];
 std::string str_toupper(std::string s)
 {
   std::transform(s.begin(), s.end(), s.begin(),
-                 [](unsigned char c)
-  {
-    return std::toupper(c);
-  });
+    [](unsigned char c)
+    {
+      return std::toupper(c);
+    });
   return s;
 }
 
@@ -24,10 +24,10 @@ std::string str_toupper(std::string s)
 std::string str_tolower(std::string s)
 {
   std::transform(s.begin(), s.end(), s.begin(),
-                 [](unsigned char c)
-  {
-    return std::tolower(c);
-  });
+    [](unsigned char c)
+    {
+      return std::tolower(c);
+    });
   return s;
 }
 
@@ -89,12 +89,20 @@ bool FsCreator::PrepareDirectory(std::string drvname, std::string basepath, bool
     FS.core_c.fpath = work_dir_path + "/" + FS.core_c.fname;
 
     FS.util_h.dir = work_dir_path;
-    FS.util_h.fname = FS.drvname + "_binutil" + ".h";
+    FS.util_h.fname = FS.drvname + "-binutil" + ".h";
     FS.util_h.fpath = work_dir_path + "/" + FS.util_h.fname;
 
     FS.util_c.dir = work_dir_path;
-    FS.util_c.fname = FS.drvname + "_binutil" + ".c";
+    FS.util_c.fname = FS.drvname + "-binutil" + ".c";
     FS.util_c.fpath = work_dir_path + "/" + FS.util_c.fname;
+
+    FS.fmon_h.dir = work_dir_path;
+    FS.fmon_h.fname = FS.drvname + "-fmon.h";
+    FS.fmon_h.fpath = work_dir_path + "/" + FS.fmon_h.fname;
+
+    FS.fmon_c.dir = work_dir_path;
+    FS.fmon_c.fname = FS.drvname + "-fmon.c";
+    FS.fmon_c.fpath = work_dir_path + "/" + FS.fmon_h.fname;
 
     snprintf(_tmpb, kTmpLen, "%s_USE_BITS_SIGNAL", FS.DRVNAME.c_str());
     FS.usebits_def = _tmpb;

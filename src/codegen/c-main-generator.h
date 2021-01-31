@@ -17,6 +17,7 @@ class CiMainGenerator {
 
   void Gen_MainHeader();
   void Gen_MainSource();
+  void Gen_FMonHeader();
 
   void WriteSigStructField(const SignalDescriptor_t& sig, bool bitfield, size_t pad);
 

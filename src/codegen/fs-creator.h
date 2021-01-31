@@ -19,6 +19,9 @@ typedef struct
   OutFileDescriptor_t util_h;
   OutFileDescriptor_t util_c;
 
+  OutFileDescriptor_t fmon_h;
+  OutFileDescriptor_t fmon_c;
+
   std::string usebits_def;
   std::string usesruct_def;
   std::string usemon_def;

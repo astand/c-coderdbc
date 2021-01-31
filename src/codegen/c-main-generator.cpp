@@ -54,6 +54,7 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
   Gen_MainSource();
 
   // 4 step is to pring fmon head file
+  Gen_FMonHeader();
 
   // 5 step is to print fmon source file
 }
@@ -240,6 +241,38 @@ void CiMainGenerator::Gen_MainSource()
   }
 
   fwriter->Flush(fdesc->core_c.fpath);
+}
+
+void CiMainGenerator::Gen_FMonHeader()
+{
+  fwriter->AppendLine("#pragma once", 2);
+
+  fwriter->AppendLine("#ifdef __cplusplus\nextern \"C\" {\n#endif", 2);
+
+  fwriter->AppendLine(PrintF("#include \"%s-config.h\"", fdesc->drvname.c_str()), 2);
+
+  // put diagmonitor ifdef selection for including @drv-fmon header
+  // with FMon_* signatures to call from unpack function
+  fwriter->AppendLine(PrintF("#ifdef %s", fdesc->usemon_def.c_str()), 2);
+  fwriter->AppendLine("#include \"canmonitorutil.h\"");
+  fwriter->AppendLine("/*\n\
+This file contains the prototypes of all the functions that will be called\n\
+from each Unpack_*name* function to detect DBC related errors\n\
+It is the user responsibility to defined these functions in the\n\
+separated .c file. If it won't be done the linkage error will happen\n*/", 2);
+
+  for (size_t num = 0; num < sigprt->sigs_expr.size(); num++)
+  {
+    auto msg = &(sigprt->sigs_expr[num]->msg);
+    fwriter->AppendLine(PrintF("void FMon_%s_%s(FrameMonitor_t* _mon);",
+                               msg->Name.c_str(), fdesc->drvname.c_str()));
+  }
+
+  fwriter->AppendLine(PrintF("\n#endif // %s", fdesc->usemon_def.c_str()), 2);
+
+  fwriter->AppendLine("#ifdef __cplusplus\n}\n#endif");
+
+  fwriter->Flush(fdesc->fmon_h.fpath);
 }
 
 void CiMainGenerator::WriteSigStructField(const SignalDescriptor_t& sig, bool bits, size_t padwidth)
