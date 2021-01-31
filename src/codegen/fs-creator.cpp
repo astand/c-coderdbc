@@ -13,10 +13,10 @@ static char _tmpb[kTmpLen];
 std::string str_toupper(std::string s)
 {
   std::transform(s.begin(), s.end(), s.begin(),
-    [](unsigned char c)
-    {
-      return std::toupper(c);
-    });
+                 [](unsigned char c)
+  {
+    return std::toupper(c);
+  });
   return s;
 }
 
@@ -24,10 +24,10 @@ std::string str_toupper(std::string s)
 std::string str_tolower(std::string s)
 {
   std::transform(s.begin(), s.end(), s.begin(),
-    [](unsigned char c)
-    {
-      return std::tolower(c);
-    });
+                 [](unsigned char c)
+  {
+    return std::tolower(c);
+  });
   return s;
 }
 
@@ -102,7 +102,7 @@ bool FsCreator::PrepareDirectory(std::string drvname, std::string basepath, bool
 
     FS.fmon_c.dir = work_dir_path;
     FS.fmon_c.fname = FS.drvname + "-fmon.c";
-    FS.fmon_c.fpath = work_dir_path + "/" + FS.fmon_h.fname;
+    FS.fmon_c.fpath = work_dir_path + "/" + FS.fmon_c.fname;
 
     snprintf(_tmpb, kTmpLen, "%s_USE_BITS_SIGNAL", FS.DRVNAME.c_str());
     FS.usebits_def = _tmpb;

@@ -57,6 +57,7 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
   Gen_FMonHeader();
 
   // 5 step is to print fmon source file
+  Gen_FMonSource();
 }
 
 void CiMainGenerator::Gen_MainHeader()
@@ -273,6 +274,30 @@ separated .c file. If it won't be done the linkage error will happen\n*/", 2);
   fwriter->AppendLine("#ifdef __cplusplus\n}\n#endif");
 
   fwriter->Flush(fdesc->fmon_h.fpath);
+}
+
+void CiMainGenerator::Gen_FMonSource()
+{
+  fwriter->AppendLine(PrintF("#include \"%s\"", fdesc->fmon_h.fname.c_str()), 2);
+  // put diagmonitor ifdef selection for including @drv-fmon header
+// with FMon_* signatures to call from unpack function
+  fwriter->AppendLine(PrintF("#ifdef %s", fdesc->usemon_def.c_str()), 2);
+
+  fwriter->AppendLine("/*\n\
+Put the monitor function content here, keep in mind -\n\
+next generation will completely clear all manually added code (!)\n\
+*/\n");
+
+  for (size_t num = 0; num < sigprt->sigs_expr.size(); num++)
+  {
+    auto msg = &(sigprt->sigs_expr[num]->msg);
+    fwriter->AppendLine(PrintF("void FMon_%s_%s(FrameMonitor_t* _mon)\n{\n\}\n",
+                               msg->Name.c_str(), fdesc->drvname.c_str()));
+  }
+
+  fwriter->AppendLine(PrintF("#endif // %s", fdesc->usemon_def.c_str()));
+
+  fwriter->Flush(fdesc->fmon_c.fpath);
 }
 
 void CiMainGenerator::WriteSigStructField(const SignalDescriptor_t& sig, bool bits, size_t padwidth)
