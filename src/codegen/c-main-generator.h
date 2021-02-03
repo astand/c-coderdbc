@@ -25,6 +25,7 @@ class CiMainGenerator {
   void WriteUnpackBody(const CiExpr_t* sgs);
   void WritePackStructBody(const CiExpr_t* sgs);
   void WritePackArrayBody(const CiExpr_t* sgs);
+  void PrintPackCommonText(const std::string& arrtxt, const CiExpr_t* sgs);
 
  private:
   std::vector<std::string> tmpvect;

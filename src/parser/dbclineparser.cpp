@@ -282,7 +282,7 @@ SigType DbcLineParser::GetSigType(SignalDescriptor_t* sig)
     {
       is_unsigned = 1;
 
-      max_v = (uint64_t)(std::pow(2, sig->LengthBit));
+      max_v = (uint64_t)(std::pow(2, sig->LengthBit)) - 1;
 
       max_v *= (int32_t)sig->Factor;
 

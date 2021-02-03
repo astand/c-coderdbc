@@ -36,7 +36,7 @@ DbcScanner::~DbcScanner()
 int32_t DbcScanner::TrimDbcText(istream& readstrm)
 {
   msgs.clear();
-  
+
   readstrm.clear();
   readstrm.seekg(0);
   // Search each message and signals in dbc source data,

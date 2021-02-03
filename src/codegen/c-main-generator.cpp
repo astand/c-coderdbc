@@ -239,7 +239,7 @@ void CiMainGenerator::Gen_MainSource()
     // put dirt trick to avoid warning about unusing parameter
     // (dlc) when monitora are disabled. trick is better than
     // selection different signatures because of external API consistency
-    fwriter->AppendLine("  dlc_ = dlc_;");
+    fwriter->AppendLine("  (void)dlc_;");
 
     WriteUnpackBody(sigprt->sigs_expr[num]);
 
@@ -415,15 +415,17 @@ void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
   {
     auto expr = sgs->to_signals[num];
 
-    fwriter->AppendLine(PrintF("  _m->%s = %s;", sgs->msg.Signals[num].Name.c_str(), expr.c_str()));
+    // for code shortening
+    const char* sname = sgs->msg.Signals[num].Name.c_str();
+
+    fwriter->AppendLine(PrintF("  _m->%s = %s;", sname, expr.c_str()));
 
     // print sigfloat conversion
     if (sgs->msg.Signals[num].IsDoubleSig)
     {
       fwriter->AppendLine(PrintF("\n#ifdef %s", fdesc->usesigfloat_def.c_str()));
-      fwriter->AppendLine(PrintF("  _m->%s_phys = (sigfloat_t)(%s_%s_fromS(_m->%s));",
-                                 sgs->msg.Signals[num].Name.c_str(), fdesc->DRVNAME.c_str(),
-                                 sgs->msg.Signals[num].Name.c_str(), sgs->msg.Signals[num].Name.c_str()));
+      fwriter->AppendLine(PrintF("  _m->%s_phys = (sigfloat_t)(%s_%s_fromS(_m->%s));", sname, fdesc->DRVNAME.c_str(), sname,
+                                 sname));
       fwriter->AppendLine(PrintF("#endif // %s", fdesc->usesigfloat_def.c_str()), 2);
     }
 
@@ -433,9 +435,7 @@ void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
       // for this case conversion fromS is performed to signal itself
       // without (sigfloat_t) type casting
       fwriter->AppendLine(PrintF("\n#ifdef %s", fdesc->usesigfloat_def.c_str()));
-      fwriter->AppendLine(PrintF("  _m->%s = (%s_%s_fromS(_m->%s));",
-                                 sgs->msg.Signals[num].Name.c_str(), fdesc->DRVNAME.c_str(),
-                                 sgs->msg.Signals[num].Name.c_str(), sgs->msg.Signals[num].Name.c_str()));
+      fwriter->AppendLine(PrintF("  _m->%s = (%s_%s_fromS(_m->%s));", sname, fdesc->DRVNAME.c_str(), sname, sname));
       fwriter->AppendLine(PrintF("#endif // %s", fdesc->usesigfloat_def.c_str()), 2);
     }
   }
@@ -474,49 +474,8 @@ void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
 void CiMainGenerator::WritePackStructBody(const CiExpr_t* sgs)
 {
   fwriter->AppendLine("{");
-
-  // pring array content clearin loop
-  fwriter->AppendLine(PrintF("  uint8_t i; for (i = 0; (i < %s_DLC) && (i < 8); cframe->Data[i++] = 0);",
-                             sgs->msg.Name.c_str()), 2);
-
-  // first step is to put code for sigfloat conversion, before
-  // sigint packing to bytes.
-  fwriter->AppendLine(PrintF("#ifdef %s", fdesc->usesigfloat_def.c_str()), 2);
-
-  for (size_t n = 0; n < sgs->to_signals.size(); n++)
-  {
-    if (sgs->msg.Signals[n].IsSimpleSig == false)
-    {
-      if (sgs->msg.Signals[n].IsDoubleSig)
-      {
-        // print toS from *_phys to original named sigint (integer duplicate of signal)
-        fwriter->AppendLine(PrintF("  _m->%s = %s_%s_fromS(_m->%s_phys);",
-                                   sgs->msg.Signals[n].Name.c_str(), fdesc->DRVNAME.c_str(),
-                                   sgs->msg.Signals[n].Name.c_str(), sgs->msg.Signals[n].Name.c_str()));
-      }
-      else
-      {
-        // print toS from original named signal to itself (because this signal
-        // has enough space for scaling by factor and proper sign
-        fwriter->AppendLine(PrintF("  _m->%s = %s_%s_fromS(_m->%s);",
-                                   sgs->msg.Signals[n].Name.c_str(), fdesc->DRVNAME.c_str(),
-                                   sgs->msg.Signals[n].Name.c_str(), sgs->msg.Signals[n].Name.c_str()));
-      }
-    }
-  }
-
-  fwriter->AppendLine(PrintF("\n#endif // %s", fdesc->usesigfloat_def.c_str()), 2);
-
-  for (size_t i = 0; i < sgs->to_bytes.size(); i++)
-  {
-    if (sgs->to_bytes[i].size() < 2)
-      continue;
-
-    fwriter->AppendLine(PrintF("  cframe->Data[%d] |= %s;", i, sgs->to_bytes[i].c_str()));
-  }
-
+  PrintPackCommonText("cframe->Data", sgs);
   fwriter->AppendLine("");
-
   fwriter->AppendLine(PrintF("  cframe->MsgId = %s_CANID;", sgs->msg.Name.c_str()));
   fwriter->AppendLine(PrintF("  cframe->DLC = %s_DLC;", sgs->msg.Name.c_str()));
   fwriter->AppendLine(PrintF("  cframe->IDE = %s_IDE;", sgs->msg.Name.c_str(), 2));
@@ -527,10 +486,30 @@ void CiMainGenerator::WritePackStructBody(const CiExpr_t* sgs)
 void CiMainGenerator::WritePackArrayBody(const CiExpr_t* sgs)
 {
   fwriter->AppendLine("{");
+  PrintPackCommonText("_d", sgs);
+  fwriter->AppendLine("");
+  fwriter->AppendLine(PrintF("  *_len = %s_DLC;", sgs->msg.Name.c_str()));
+  fwriter->AppendLine(PrintF("  *_ide = %s_IDE;", sgs->msg.Name.c_str(), 2));
+  fwriter->AppendLine(PrintF("  return %s_CANID;", sgs->msg.Name.c_str()));
+  fwriter->AppendLine("}", 2);
+}
+
+void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExpr_t* sgs)
+{
+  // this function will print part of pack function
+  // which is differs only by arra var name
 
   // pring array content clearin loop
-  fwriter->AppendLine(PrintF("  uint8_t i; for (i = 0; (i < %s_DLC) && (i < 8); _d[i++] = 0);",
-                             sgs->msg.Name.c_str()), 2);
+  fwriter->AppendLine(PrintF("  uint8_t i; for (i = 0; (i < %s_DLC) && (i < 8); %s[i++] = 0);",
+                             sgs->msg.Name.c_str(), arrtxt.c_str()), 2);
+
+  if (sgs->msg.RollSig != nullptr)
+  {
+    fwriter->AppendLine(PrintF("#ifdef %s", fdesc->useroll_def.c_str()));
+    fwriter->AppendLine(PrintF("  _m->%s = (_m->%s + 1) & (0x%02XU)", sgs->msg.RollSig->Name.c_str(),
+                               sgs->msg.RollSig->Name.c_str(), (1 << sgs->msg.RollSig->LengthBit) - 1));
+    fwriter->AppendLine(PrintF("#ifdef // %s", fdesc->useroll_def.c_str()), 2);
+  }
 
   if (sgs->msg.hasPhys)
   {
@@ -568,13 +547,7 @@ void CiMainGenerator::WritePackArrayBody(const CiExpr_t* sgs)
     if (sgs->to_bytes[i].size() < 2)
       continue;
 
-    fwriter->AppendLine(PrintF("  _d[%d] |= %s;", i, sgs->to_bytes[i].c_str()));
+    fwriter->AppendLine(PrintF("  %s[%d] |= %s;", arrtxt.c_str(), i, sgs->to_bytes[i].c_str()));
   }
 
-  fwriter->AppendLine("");
-
-  fwriter->AppendText(PrintF("  *_len = %s_DLC;", sgs->msg.Name.c_str()));
-  fwriter->AppendLine(PrintF(" *_ide = %s_IDE;", sgs->msg.Name.c_str(), 2));
-  fwriter->AppendLine(PrintF("  return %s_CANID;", sgs->msg.Name.c_str()));
-  fwriter->AppendLine("}", 2);
 }
