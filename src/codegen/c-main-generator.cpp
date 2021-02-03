@@ -461,6 +461,15 @@ void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
     fwriter->AppendLine(PrintF("#ifdef // %s", fdesc->useroll_def.c_str()), 2);
   }
 
+  if (sgs->msg.CsmSig != nullptr)
+  {
+    // Put checksum check function call here
+    fwriter->AppendLine(PrintF("#ifdef %s", fdesc->usecsm_def.c_str()), 2);
+    fwriter->AppendLine(PrintF("  _m->mon1.csm_error = ((uint8_t)GetFrameCRC(_d, %s_DLC, %s_CANID, %s, %d)) != (_m->%s))",
+                               sgs->msg.Name.c_str(), sgs->msg.Name.c_str(), sgs->msg.CsmMethod.c_str(),
+                               sgs->msg.CsmOp, sgs->msg.CsmSig->Name.c_str()), 2);
+    fwriter->AppendLine(PrintF("#endif // %s", fdesc->usecsm_def.c_str()), 2);
+  }
 
   auto Fmon_func = "FMon_" + sgs->msg.Name + "_" + fdesc->drvname;
 
