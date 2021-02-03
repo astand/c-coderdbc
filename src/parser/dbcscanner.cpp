@@ -146,6 +146,13 @@ void DbcScanner::ParseOtherInfo(istream& readstrm)
             {
               // signal has been found, update commnet text
               msg->Signals[i].CommentText = cmmnt.Text;
+
+              // 1 test if signal is rolling
+              if (cmmnt.Text.find("<RollingCounter>") != std::string::npos)
+              {
+                // set the RollSig to generate necessary code
+                msg->RollSig = &msg->Signals[i];
+              }
             }
           }
         }
@@ -244,4 +251,5 @@ void DbcScanner::SetDefualtMessage(MessageDescriptor_t* message)
   message->Signals.clear();
   message->Transmitter = "";
   message->hasPhys = false;
+  message->RollSig = nullptr;
 }

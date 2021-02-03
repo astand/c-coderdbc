@@ -109,6 +109,9 @@ typedef struct
   // flag about having sigfloat fields
   bool hasPhys;
 
+  // pointer to rolling counter signal
+  SignalDescriptor_t* RollSig;
+
   // Message comment
   std::string CommentText;
 

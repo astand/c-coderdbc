@@ -116,6 +116,10 @@ bool FsCreator::PrepareDirectory(std::string drvname, std::string basepath, bool
 
     snprintf(_tmpb, kTmpLen, "%s_USE_CANSTRUCT", FS.DRVNAME.c_str());
     FS.usesruct_def = _tmpb;
+
+    snprintf(_tmpb, kTmpLen, "%s_AUTO_ROLL", FS.DRVNAME.c_str());
+    FS.useroll_def = _tmpb;
+
   }
 
   return ret;

@@ -126,11 +126,28 @@ void CiMainGenerator::Gen_MainHeader()
     // Write section for bitfielded part
     fwriter->AppendLine(PrintF("#ifdef %s", fdesc->usebits_def.c_str()), 2);
 
+    SignalDescriptor_t rollsig;
+
+    if (m.RollSig != nullptr)
+    {
+      // rolling counter is detected
+      rollsig = (*m.RollSig);
+      rollsig.CommentText = "";
+      rollsig.Name += "_expt";
+    }
+
     for (size_t signum = 0; signum < m.Signals.size(); signum++)
     {
       SignalDescriptor_t& sig = m.Signals[signum];
       // Write bit-fielded part
       WriteSigStructField(sig, true, max_sig_name_len);
+    }
+
+    if (m.RollSig != nullptr)
+    {
+      fwriter->AppendLine(PrintF("#ifdef %s", fdesc->useroll_def.c_str()), 2);
+      WriteSigStructField(rollsig, true, max_sig_name_len);
+      fwriter->AppendLine(PrintF("#endif // %s", fdesc->useroll_def.c_str()), 2);
     }
 
     // Write clean part
@@ -141,6 +158,13 @@ void CiMainGenerator::Gen_MainHeader()
       SignalDescriptor_t& sig = m.Signals[signum];
       // Write clean signals
       WriteSigStructField(sig, false, max_sig_name_len);
+    }
+
+    if (m.RollSig != nullptr)
+    {
+      fwriter->AppendLine(PrintF("#ifdef %s", fdesc->useroll_def.c_str()), 2);
+      WriteSigStructField(rollsig, false, max_sig_name_len);
+      fwriter->AppendLine(PrintF("#endif // %s", fdesc->useroll_def.c_str()), 2);
     }
 
     fwriter->AppendLine(PrintF("#endif // %s", fdesc->usebits_def.c_str()), 2);
@@ -422,15 +446,21 @@ void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
 
   fwriter->AppendLine("  // check DLC correctness");
   fwriter->AppendLine(PrintF("  _m->mon1.dlc_error = (dlc_ < %s_DLC);", sgs->msg.Name.c_str()));
-
-
-  // TODO: put CRC and ROLLING COUNTER tests here
-  // 1
-  // 2
-
-
   fwriter->AppendLine("  _m->mon1.last_cycle = GetSysTick();");
   fwriter->AppendLine("  _m->mon1.frame_cnt++;", 2);
+
+  if (sgs->msg.RollSig != nullptr)
+  {
+    // Put rolling monitor here
+    fwriter->AppendLine(PrintF("#ifdef %s", fdesc->useroll_def.c_str()), 2);
+    fwriter->AppendLine(PrintF("  _m->mon1.roll_error = (_m->%s != _m->%s_expt);",
+                               sgs->msg.RollSig->Name.c_str(), sgs->msg.RollSig->Name.c_str()));
+    fwriter->AppendLine(PrintF("  _m->%s_expt = (_m->%s + 1) & (0x%02XU);", sgs->msg.RollSig->Name.c_str(),
+                               sgs->msg.RollSig->Name.c_str(), (1 << sgs->msg.RollSig->LengthBit) - 1), 2);
+    // Put rolling monitor here
+    fwriter->AppendLine(PrintF("#ifdef // %s", fdesc->useroll_def.c_str()), 2);
+  }
+
 
   auto Fmon_func = "FMon_" + sgs->msg.Name + "_" + fdesc->drvname;
 
