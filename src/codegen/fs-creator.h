@@ -27,6 +27,7 @@ typedef struct
   std::string usemon_def;
   std::string usesigfloat_def;
   std::string useroll_def;
+  std::string usecsm_def;
 
 } FsDescriptor_t;
 

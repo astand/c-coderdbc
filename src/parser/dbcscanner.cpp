@@ -144,6 +144,7 @@ void DbcScanner::ParseOtherInfo(istream& readstrm)
           {
             if (cmmnt.SigName == msg->Signals[i].Name)
             {
+              SignalDescriptor_t& sig = msg->Signals[i];
               // signal has been found, update commnet text
               msg->Signals[i].CommentText = cmmnt.Text;
 
@@ -152,6 +153,38 @@ void DbcScanner::ParseOtherInfo(istream& readstrm)
               {
                 // set the RollSig to generate necessary code
                 msg->RollSig = &msg->Signals[i];
+              }
+
+              extern std::vector<std::string> resplit(const std::string & s, const std::string & rgx_str);
+
+              size_t openpos = cmmnt.Text.find('<');
+
+              if (openpos != std::string::npos)
+              {
+                size_t closepos = cmmnt.Text.find('>', openpos);
+
+                if ((closepos != std::string::npos) && (closepos > (openpos + 1)))
+                {
+                  auto substr = cmmnt.Text.substr(openpos + 1, closepos - 1);
+
+                  auto meta = resplit(substr, "(\:)");
+
+                  if (meta.size() == 3 && meta[0] == "Checksum")
+                  {
+                    // the signal can be CSM, but additional settings must be
+                    // checked: size, boundary, signal type
+                    bool boundary_ok = (sig.Order == BitLayout::kIntel) ?
+                                       ((sig.StartBit / 8) == ((sig.StartBit + sig.LengthBit - 1) / 8)) :
+                                       ((sig.StartBit / 8) == ((sig.StartBit - sig.LengthBit + 1) / 8));
+
+                    if (sig.IsSimpleSig && boundary_ok && sig.Signed == false)
+                    {
+                      msg->CsmSig = &sig;
+                      msg->CsmMethod = meta[1];
+                      msg->CsmOp = atoi(meta[2].c_str());
+                    }
+                  }
+                }
               }
             }
           }
@@ -252,4 +285,7 @@ void DbcScanner::SetDefualtMessage(MessageDescriptor_t* message)
   message->Transmitter = "";
   message->hasPhys = false;
   message->RollSig = nullptr;
+  message->CsmSig = nullptr;
+  message->CsmMethod = "";
+  message->CsmOp = 0;
 }

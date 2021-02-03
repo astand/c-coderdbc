@@ -112,6 +112,15 @@ typedef struct
   // pointer to rolling counter signal
   SignalDescriptor_t* RollSig;
 
+  // pointer to checksum signal
+  SignalDescriptor_t* CsmSig;
+
+  // keeps the method or crc algorythm (will be passed to CRC calc function)
+  std::string CsmMethod;
+
+  // option value (will be passed to CRC calc function)
+  uint32_t CsmOp;
+
   // Message comment
   std::string CommentText;
 
