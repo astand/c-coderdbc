@@ -106,6 +106,9 @@ typedef struct
   // List of Message signals
   std::vector<SignalDescriptor_t> Signals;
 
+  // flag about having sigfloat fields
+  bool hasPhys;
+
   // Message comment
   std::string CommentText;
 

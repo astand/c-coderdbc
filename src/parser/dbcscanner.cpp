@@ -97,6 +97,9 @@ void DbcScanner::ParseMessageInfo(istream& readstrm)
       {
         // put successfully parsed  signal to the message signals
         pMsg->Signals.push_back(sig);
+
+        if (sig.IsDoubleSig)
+          pMsg->hasPhys = true;
       }
     }
   }
@@ -240,4 +243,5 @@ void DbcScanner::SetDefualtMessage(MessageDescriptor_t* message)
   message->RecS.clear();
   message->Signals.clear();
   message->Transmitter = "";
+  message->hasPhys = false;
 }

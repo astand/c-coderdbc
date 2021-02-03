@@ -502,33 +502,36 @@ void CiMainGenerator::WritePackArrayBody(const CiExpr_t* sgs)
   fwriter->AppendLine(PrintF("  uint8_t i; for (i = 0; (i < %s_DLC) && (i < 8); _d[i++] = 0);",
                              sgs->msg.Name.c_str()), 2);
 
-  // first step is to put code for sigfloat conversion, before
-  // sigint packing to bytes.
-  fwriter->AppendLine(PrintF("#ifdef %s", fdesc->usesigfloat_def.c_str()), 2);
-
-  for (size_t n = 0; n < sgs->to_signals.size(); n++)
+  if (sgs->msg.hasPhys)
   {
-    if (sgs->msg.Signals[n].IsSimpleSig == false)
+    // first step is to put code for sigfloat conversion, before
+    // sigint packing to bytes.
+    fwriter->AppendLine(PrintF("#ifdef %s", fdesc->usesigfloat_def.c_str()), 2);
+
+    for (size_t n = 0; n < sgs->to_signals.size(); n++)
     {
-      if (sgs->msg.Signals[n].IsDoubleSig)
+      if (sgs->msg.Signals[n].IsSimpleSig == false)
       {
-        // print toS from *_phys to original named sigint (integer duplicate of signal)
-        fwriter->AppendLine(PrintF("  _m->%s = %s_%s_fromS(_m->%s_phys);",
-                                   sgs->msg.Signals[n].Name.c_str(), fdesc->DRVNAME.c_str(),
-                                   sgs->msg.Signals[n].Name.c_str(), sgs->msg.Signals[n].Name.c_str()));
-      }
-      else
-      {
-        // print toS from original named signal to itself (because this signal
-        // has enough space for scaling by factor and proper sign
-        fwriter->AppendLine(PrintF("  _m->%s = %s_%s_fromS(_m->%s);",
-                                   sgs->msg.Signals[n].Name.c_str(), fdesc->DRVNAME.c_str(),
-                                   sgs->msg.Signals[n].Name.c_str(), sgs->msg.Signals[n].Name.c_str()));
+        if (sgs->msg.Signals[n].IsDoubleSig)
+        {
+          // print toS from *_phys to original named sigint (integer duplicate of signal)
+          fwriter->AppendLine(PrintF("  _m->%s = %s_%s_fromS(_m->%s_phys);",
+                                     sgs->msg.Signals[n].Name.c_str(), fdesc->DRVNAME.c_str(),
+                                     sgs->msg.Signals[n].Name.c_str(), sgs->msg.Signals[n].Name.c_str()));
+        }
+        else
+        {
+          // print toS from original named signal to itself (because this signal
+          // has enough space for scaling by factor and proper sign
+          fwriter->AppendLine(PrintF("  _m->%s = %s_%s_fromS(_m->%s);",
+                                     sgs->msg.Signals[n].Name.c_str(), fdesc->DRVNAME.c_str(),
+                                     sgs->msg.Signals[n].Name.c_str(), sgs->msg.Signals[n].Name.c_str()));
+        }
       }
     }
-  }
 
-  fwriter->AppendLine(PrintF("\n#endif // %s", fdesc->usesigfloat_def.c_str()), 2);
+    fwriter->AppendLine(PrintF("\n#endif // %s", fdesc->usesigfloat_def.c_str()), 2);
+  }
 
   for (size_t i = 0; i < sgs->to_bytes.size(); i++)
   {
