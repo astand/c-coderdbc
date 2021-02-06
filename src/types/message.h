@@ -121,6 +121,12 @@ typedef struct
   // option value (will be passed to CRC calc function)
   uint32_t CsmOp;
 
+  // expression to load CSM signal to byte
+  std::string CsmToByteExpr;
+
+  // byte number in payload which keeps CS value
+  uint8_t CsmByteNum;
+
   // Message comment
   std::string CommentText;
 

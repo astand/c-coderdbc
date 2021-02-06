@@ -288,4 +288,5 @@ void DbcScanner::SetDefualtMessage(MessageDescriptor_t* message)
   message->CsmSig = nullptr;
   message->CsmMethod = "";
   message->CsmOp = 0;
+  message->CsmToByteExpr = "";
 }

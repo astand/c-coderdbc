@@ -157,6 +157,23 @@ int32_t CSigPrinter::BuildCConvertExprs(CiExpr_t* msgprinter)
     msgprinter->to_signals.push_back(PrintSignalExpr(&msgprinter->msg.Signals[i], msgprinter->to_bytes));
   }
 
+  if (msgprinter->msg.CsmSig != nullptr)
+  {
+    std::vector<std::string> v(8);
+
+    PrintSignalExpr(msgprinter->msg.CsmSig, v);
+
+    for (uint8_t i = 0; i < v.size() && i < 8; i++)
+    {
+      if (v[i].size() > 0)
+      {
+        msgprinter->msg.CsmToByteExpr = v[i];
+        msgprinter->msg.CsmByteNum = i;
+        break;
+      }
+    }
+  }
+
   return ret;
 }
 

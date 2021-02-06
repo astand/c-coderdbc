@@ -423,7 +423,7 @@ void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
     // print sigfloat conversion
     if (sgs->msg.Signals[num].IsDoubleSig)
     {
-      fwriter->AppendLine(PrintF("\n#ifdef %s", fdesc->usesigfloat_def.c_str()));
+      fwriter->AppendLine(PrintF("#ifdef %s", fdesc->usesigfloat_def.c_str()));
       fwriter->AppendLine(PrintF("  _m->%s_phys = (sigfloat_t)(%s_%s_fromS(_m->%s));", sname, fdesc->DRVNAME.c_str(), sname,
                                  sname));
       fwriter->AppendLine(PrintF("#endif // %s", fdesc->usesigfloat_def.c_str()), 2);
@@ -434,17 +434,18 @@ void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
       // print unpack conversion for non-simple and non-double signals
       // for this case conversion fromS is performed to signal itself
       // without (sigfloat_t) type casting
-      fwriter->AppendLine(PrintF("\n#ifdef %s", fdesc->usesigfloat_def.c_str()));
+      fwriter->AppendLine(PrintF("#ifdef %s", fdesc->usesigfloat_def.c_str()));
       fwriter->AppendLine(PrintF("  _m->%s = (%s_%s_fromS(_m->%s));", sname, fdesc->DRVNAME.c_str(), sname, sname));
       fwriter->AppendLine(PrintF("#endif // %s", fdesc->usesigfloat_def.c_str()), 2);
     }
+    else if (num + 1 == sgs->to_signals.size())
+    {
+      // last signal without phys part, put \n manually
+      fwriter->AppendLine("");
+    }
   }
 
-  fwriter->AppendLine("");
-
   fwriter->AppendLine(PrintF("#ifdef %s", fdesc->usemon_def.c_str()));
-
-  fwriter->AppendLine("  // check DLC correctness");
   fwriter->AppendLine(PrintF("  _m->mon1.dlc_error = (dlc_ < %s_DLC);", sgs->msg.Name.c_str()));
   fwriter->AppendLine("  _m->mon1.last_cycle = GetSysTick();");
   fwriter->AppendLine("  _m->mon1.frame_cnt++;", 2);
@@ -452,11 +453,11 @@ void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
   if (sgs->msg.RollSig != nullptr)
   {
     // Put rolling monitor here
-    fwriter->AppendLine(PrintF("#ifdef %s", fdesc->useroll_def.c_str()), 2);
+    fwriter->AppendLine(PrintF("#ifdef %s", fdesc->useroll_def.c_str()));
     fwriter->AppendLine(PrintF("  _m->mon1.roll_error = (_m->%s != _m->%s_expt);",
                                sgs->msg.RollSig->Name.c_str(), sgs->msg.RollSig->Name.c_str()));
     fwriter->AppendLine(PrintF("  _m->%s_expt = (_m->%s + 1) & (0x%02XU);", sgs->msg.RollSig->Name.c_str(),
-                               sgs->msg.RollSig->Name.c_str(), (1 << sgs->msg.RollSig->LengthBit) - 1), 2);
+                               sgs->msg.RollSig->Name.c_str(), (1 << sgs->msg.RollSig->LengthBit) - 1));
     // Put rolling monitor here
     fwriter->AppendLine(PrintF("#ifdef // %s", fdesc->useroll_def.c_str()), 2);
   }
@@ -464,10 +465,10 @@ void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
   if (sgs->msg.CsmSig != nullptr)
   {
     // Put checksum check function call here
-    fwriter->AppendLine(PrintF("#ifdef %s", fdesc->usecsm_def.c_str()), 2);
+    fwriter->AppendLine(PrintF("#ifdef %s", fdesc->usecsm_def.c_str()));
     fwriter->AppendLine(PrintF("  _m->mon1.csm_error = ((uint8_t)GetFrameCRC(_d, %s_DLC, %s_CANID, %s, %d)) != (_m->%s))",
                                sgs->msg.Name.c_str(), sgs->msg.Name.c_str(), sgs->msg.CsmMethod.c_str(),
-                               sgs->msg.CsmOp, sgs->msg.CsmSig->Name.c_str()), 2);
+                               sgs->msg.CsmOp, sgs->msg.CsmSig->Name.c_str()));
     fwriter->AppendLine(PrintF("#endif // %s", fdesc->usecsm_def.c_str()), 2);
   }
 
@@ -484,7 +485,6 @@ void CiMainGenerator::WritePackStructBody(const CiExpr_t* sgs)
 {
   fwriter->AppendLine("{");
   PrintPackCommonText("cframe->Data", sgs);
-  fwriter->AppendLine("");
   fwriter->AppendLine(PrintF("  cframe->MsgId = %s_CANID;", sgs->msg.Name.c_str()));
   fwriter->AppendLine(PrintF("  cframe->DLC = %s_DLC;", sgs->msg.Name.c_str()));
   fwriter->AppendLine(PrintF("  cframe->IDE = %s_IDE;", sgs->msg.Name.c_str(), 2));
@@ -496,7 +496,6 @@ void CiMainGenerator::WritePackArrayBody(const CiExpr_t* sgs)
 {
   fwriter->AppendLine("{");
   PrintPackCommonText("_d", sgs);
-  fwriter->AppendLine("");
   fwriter->AppendLine(PrintF("  *_len = %s_DLC;", sgs->msg.Name.c_str()));
   fwriter->AppendLine(PrintF("  *_ide = %s_IDE;", sgs->msg.Name.c_str(), 2));
   fwriter->AppendLine(PrintF("  return %s_CANID;", sgs->msg.Name.c_str()));
@@ -520,11 +519,19 @@ void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExp
     fwriter->AppendLine(PrintF("#ifdef // %s", fdesc->useroll_def.c_str()), 2);
   }
 
+  if (sgs->msg.CsmSig != nullptr)
+  {
+    // code for clearing checksum
+    fwriter->AppendLine(PrintF("#ifdef %s", fdesc->usecsm_def.c_str()));
+    fwriter->AppendLine(PrintF("  _m->%s = 0U;", sgs->msg.CsmSig->Name.c_str()));
+    fwriter->AppendLine(PrintF("#endif // %s", fdesc->usecsm_def.c_str()), 2);
+  }
+
   if (sgs->msg.hasPhys)
   {
     // first step is to put code for sigfloat conversion, before
     // sigint packing to bytes.
-    fwriter->AppendLine(PrintF("#ifdef %s", fdesc->usesigfloat_def.c_str()), 2);
+    fwriter->AppendLine(PrintF("#ifdef %s", fdesc->usesigfloat_def.c_str()));
 
     for (size_t n = 0; n < sgs->to_signals.size(); n++)
     {
@@ -548,7 +555,7 @@ void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExp
       }
     }
 
-    fwriter->AppendLine(PrintF("\n#endif // %s", fdesc->usesigfloat_def.c_str()), 2);
+    fwriter->AppendLine(PrintF("#endif // %s", fdesc->usesigfloat_def.c_str()), 2);
   }
 
   for (size_t i = 0; i < sgs->to_bytes.size(); i++)
@@ -559,4 +566,19 @@ void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExp
     fwriter->AppendLine(PrintF("  %s[%d] |= %s;", arrtxt.c_str(), i, sgs->to_bytes[i].c_str()));
   }
 
+  fwriter->AppendLine("");
+
+  if (sgs->msg.CsmSig != nullptr)
+  {
+    // code for getting checksum value and putting it in array
+    fwriter->AppendLine(PrintF("#ifdef %s", fdesc->usecsm_def.c_str()));
+
+    fwriter->AppendLine(PrintF("  _m->%s = ((uint8_t)GetFrameCRC(_d, %s_DLC, %s_CANID, %s, %d));",
+                               sgs->msg.CsmSig->Name.c_str(), sgs->msg.Name.c_str(),
+                               sgs->msg.Name.c_str(), sgs->msg.CsmMethod.c_str(), sgs->msg.CsmOp));
+
+    fwriter->AppendLine(PrintF("  %s[%d] = %s;", arrtxt.c_str(), sgs->msg.CsmByteNum, sgs->msg.CsmToByteExpr.c_str()));
+
+    fwriter->AppendLine(PrintF("#endif // %s", fdesc->usecsm_def.c_str()), 2);
+  }
 }
