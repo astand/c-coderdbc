@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <math.h>
 
-#define MAX_LINE 256
+#define MAX_LINE 4096
 
 char line[MAX_LINE] = { 0 };
 
@@ -98,7 +98,7 @@ void DbcScanner::ParseMessageInfo(istream& readstrm)
         // put successfully parsed  signal to the message signals
         pMsg->Signals.push_back(sig);
 
-        if (sig.IsDoubleSig)
+        if (sig.IsDoubleSig || sig.IsSimpleSig != true)
           pMsg->hasPhys = true;
       }
     }
