@@ -123,6 +123,11 @@ void DbcScanner::ParseOtherInfo(istream& readstrm)
 
     sline = line;
 
+    if (sline.size() > 0 && sline.back() < ' ')
+    {
+      sline.erase(sline.size() - 1, 1);
+    }
+
     if (lparser.ParseCommentLine(&cmmnt, sline))
     {
       uint32_t found_msg_id = cmmnt.MsgId;
