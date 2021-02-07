@@ -377,12 +377,12 @@ void CiMainGenerator::WriteSigStructField(const SignalDescriptor_t& sig, bool bi
     // 2 type of signal
     if (sig.Offset != 0)
     {
-      fwriter->AppendText(PrintF(" Offset= %-18d", sig.Offset));
+      fwriter->AppendText(PrintF(" Offset= %-18d", (int)sig.Offset));
     }
 
     if (sig.Factor != 1)
     {
-      fwriter->AppendText(PrintF(" Factor= %-15d", sig.Factor));
+      fwriter->AppendText(PrintF(" Factor= %-15d", (int)sig.Factor));
     }
   }
 
