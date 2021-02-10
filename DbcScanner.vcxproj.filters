@@ -51,6 +51,9 @@
     <ClInclude Include="src\helpers\formatter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\codegen\c-util-generator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\parser\dbclineparser.cpp">
@@ -72,6 +75,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\helpers\formatter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\codegen\c-util-generator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

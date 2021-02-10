@@ -2,6 +2,7 @@
 
 #include "types/message.h"
 #include "fs-creator.h"
+#include "filewriter.h"
 
 class CiUtilGenerator {
  public:
@@ -18,7 +19,8 @@ class CiUtilGenerator {
   // - function to Unpack incoming frame to dedicated RX message struct field
   // - optional (through define in global "dbccodeconf.h") variable allocation in source files
   //
-  void Generate(std::vector<MessageDescriptor_t*>& msgs, const FsDescriptor_t& fsd, const MsgsClassification& groups);
+  void Generate(std::vector<MessageDescriptor_t*>& msgs, const FsDescriptor_t& fsd,
+    const MsgsClassification& groups, const std::string& drvname);
 
  private:
   void PrintHeader();
@@ -29,6 +31,12 @@ class CiUtilGenerator {
   std::vector<MessageDescriptor_t*> tx;
   std::vector<MessageDescriptor_t*> rx;
   std::vector<MessageDescriptor_t*> both;
+
+  // to file writer
+  FileWriter* tof;
+
+  std::string code_drvname;
+  std::string file_drvname;
 
   const FsDescriptor_t* fdesc;
 };

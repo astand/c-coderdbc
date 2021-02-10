@@ -1,6 +1,5 @@
 #include "formatter.h"
-#include <cstdlib>
-#include <fstream>
+#include <algorithm>
 
 static const size_t kMaxWorkArrLength = 4096;
 
@@ -24,7 +23,7 @@ const char* StrPrint(const char* format, ...)
   va_start(args, format);
 
   vsnprintf(work_buff, kMaxWorkArrLength, format, args);
-  
+
   va_end(args);
   return work_buff;
 }
@@ -37,4 +36,24 @@ std::string PrintType(uint8_t id)
   }
 
   return "";
+}
+
+std::string str_toupper(std::string s)
+{
+  std::transform(s.begin(), s.end(), s.begin(),
+    [](unsigned char c)
+  {
+    return std::toupper(c);
+  });
+  return s;
+}
+
+std::string str_tolower(std::string s)
+{
+  std::transform(s.begin(), s.end(), s.begin(),
+    [](unsigned char c)
+  {
+    return std::tolower(c);
+  });
+  return s;
 }

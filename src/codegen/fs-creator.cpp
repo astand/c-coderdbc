@@ -1,36 +1,11 @@
-#include "fs-creator.h"
 #include <sys/stat.h>
-#include <iostream>
-#include <fstream>
-#include <cstdlib>
 #include <filesystem>
-#include <algorithm>
+#include "fs-creator.h"
+#include "helpers/formatter.h"
 
 static const int32_t kTmpLen = 1024;
 
 static char _tmpb[kTmpLen];
-
-
-std::string str_toupper(std::string s)
-{
-  std::transform(s.begin(), s.end(), s.begin(),
-                 [](unsigned char c)
-  {
-    return std::toupper(c);
-  });
-  return s;
-}
-
-
-std::string str_tolower(std::string s)
-{
-  std::transform(s.begin(), s.end(), s.begin(),
-                 [](unsigned char c)
-  {
-    return std::tolower(c);
-  });
-  return s;
-}
 
 FsCreator::FsCreator()
 {
@@ -79,7 +54,6 @@ bool FsCreator::PrepareDirectory(std::string drvname, std::string basepath, bool
     FS.DrvName_orig = drvname;
     FS.DRVNAME = str_toupper(drvname);
     FS.drvname = str_tolower(drvname);
-
 
     FS.core_h.dir = work_dir_path;
     FS.core_h.fname = FS.drvname + ".h";
