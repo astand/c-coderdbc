@@ -131,3 +131,14 @@ typedef struct
   std::string CommentText;
 
 } MessageDescriptor_t;
+
+typedef struct
+{
+  std::vector<uint32_t> Rx;
+
+  std::vector<uint32_t> Tx;
+
+  std::vector<uint32_t> Both;
+
+} MsgsClassification;
+
