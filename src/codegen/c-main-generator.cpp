@@ -11,8 +11,6 @@
 
 #include "c-main-generator.h"
 
-static const size_t kMaxDirNum = 1000;
-
 CiMainGenerator::CiMainGenerator()
 {
   sigprt = new CSigPrinter;
@@ -29,7 +27,7 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
   fdesc = &fsd;
 
   std::sort(sigprt->sigs_expr.begin(), sigprt->sigs_expr.end(),
-            [](const CiExpr_t* a, const CiExpr_t* b) -> bool
+    [](const CiExpr_t* a, const CiExpr_t* b) -> bool
   {
     return a->msg.MsgID < b->msg.MsgID;
   });
@@ -171,17 +169,17 @@ void CiMainGenerator::Gen_MainHeader()
     MessageDescriptor_t& m = sigprt->sigs_expr[num]->msg;
 
     fwriter->AppendLine(StrPrint("uint32_t Unpack_%s_%s(%s_t* _m, const uint8_t* _d, uint8_t dlc_);",
-                                 m.Name.c_str(), fdesc->DrvName_orig.c_str(), m.Name.c_str()));
+        m.Name.c_str(), fdesc->DrvName_orig.c_str(), m.Name.c_str()));
 
     fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usesruct_def.c_str()));
 
     fwriter->AppendLine(StrPrint("uint32_t Pack_%s_%s(%s_t* _m, __CoderDbcCanFrame_t__* cframe);",
-                                 m.Name.c_str(), fdesc->DrvName_orig.c_str(), m.Name.c_str()));
+        m.Name.c_str(), fdesc->DrvName_orig.c_str(), m.Name.c_str()));
 
     fwriter->AppendLine("#else");
 
     fwriter->AppendLine(StrPrint("uint32_t Pack_%s_%s(%s_t* _m, uint8_t* _d, uint8_t* _len, uint8_t* _ide);",
-                                 m.Name.c_str(), fdesc->DrvName_orig.c_str(), m.Name.c_str()));
+        m.Name.c_str(), fdesc->DrvName_orig.c_str(), m.Name.c_str()));
 
     fwriter->AppendLine(StrPrint("#endif // %s", fdesc->usesruct_def.c_str()), 2);
   }
@@ -221,7 +219,7 @@ void CiMainGenerator::Gen_MainSource()
 
     // first function
     fwriter->AppendLine(StrPrint("uint32_t Unpack_%s_%s(%s_t* _m, const uint8_t* _d, uint8_t dlc_)\n{",
-                                 m.Name.c_str(), fdesc->DrvName_orig.c_str(), m.Name.c_str()));
+        m.Name.c_str(), fdesc->DrvName_orig.c_str(), m.Name.c_str()));
 
     // put dirt trick to avoid warning about unusing parameter
     // (dlc) when monitora are disabled. trick is better than
@@ -237,7 +235,7 @@ void CiMainGenerator::Gen_MainSource()
 
     // second function
     fwriter->AppendLine(StrPrint("uint32_t Pack_%s_%s(%s_t* _m, __CoderDbcCanFrame_t__* cframe)",
-                                 m.Name.c_str(), fdesc->DrvName_orig.c_str(), m.Name.c_str()));
+        m.Name.c_str(), fdesc->DrvName_orig.c_str(), m.Name.c_str()));
 
     WritePackStructBody(sigprt->sigs_expr[num]);
 
@@ -245,7 +243,7 @@ void CiMainGenerator::Gen_MainSource()
 
     // third function
     fwriter->AppendLine(StrPrint("uint32_t Pack_%s_%s(%s_t* _m, uint8_t* _d, uint8_t* _len, uint8_t* _ide)",
-                                 m.Name.c_str(), fdesc->DrvName_orig.c_str(), m.Name.c_str()));
+        m.Name.c_str(), fdesc->DrvName_orig.c_str(), m.Name.c_str()));
 
     WritePackArrayBody(sigprt->sigs_expr[num]);
 
@@ -277,7 +275,7 @@ separated .c file. If it won't be done the linkage error will happen\n*/", 2);
   {
     auto msg = &(sigprt->sigs_expr[num]->msg);
     fwriter->AppendLine(StrPrint("void FMon_%s_%s(FrameMonitor_t* _mon);",
-                                 msg->Name.c_str(), fdesc->drvname.c_str()));
+        msg->Name.c_str(), fdesc->drvname.c_str()));
   }
 
   fwriter->AppendLine(StrPrint("\n#endif // %s", fdesc->usemon_def.c_str()), 2);
@@ -302,8 +300,8 @@ next generation will completely clear all manually added code (!)\n\
   for (size_t num = 0; num < sigprt->sigs_expr.size(); num++)
   {
     auto msg = &(sigprt->sigs_expr[num]->msg);
-    fwriter->AppendLine(StrPrint("void FMon_%s_%s(FrameMonitor_t* _mon)\n{\n\}\n",
-                                 msg->Name.c_str(), fdesc->drvname.c_str()));
+    fwriter->AppendLine(StrPrint("void FMon_%s_%s(FrameMonitor_t* _mon)\n{\n}\n",
+        msg->Name.c_str(), fdesc->drvname.c_str()));
   }
 
   fwriter->AppendLine(StrPrint("#endif // %s", fdesc->usemon_def.c_str()));
@@ -412,7 +410,7 @@ void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
     {
       fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usesigfloat_def.c_str()));
       fwriter->AppendLine(StrPrint("  _m->%s_phys = (sigfloat_t)(%s_%s_fromS(_m->%s));", sname, fdesc->DRVNAME.c_str(), sname,
-                                   sname));
+          sname));
       fwriter->AppendLine(StrPrint("#endif // %s", fdesc->usesigfloat_def.c_str()), 2);
     }
 
@@ -442,9 +440,9 @@ void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
     // Put rolling monitor here
     fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->useroll_def.c_str()));
     fwriter->AppendLine(StrPrint("  _m->mon1.roll_error = (_m->%s != _m->%s_expt);",
-                                 sgs->msg.RollSig->Name.c_str(), sgs->msg.RollSig->Name.c_str()));
+        sgs->msg.RollSig->Name.c_str(), sgs->msg.RollSig->Name.c_str()));
     fwriter->AppendLine(StrPrint("  _m->%s_expt = (_m->%s + 1) & (0x%02XU);", sgs->msg.RollSig->Name.c_str(),
-                                 sgs->msg.RollSig->Name.c_str(), (1 << sgs->msg.RollSig->LengthBit) - 1));
+        sgs->msg.RollSig->Name.c_str(), (1 << sgs->msg.RollSig->LengthBit) - 1));
     // Put rolling monitor here
     fwriter->AppendLine(StrPrint("#ifdef // %s", fdesc->useroll_def.c_str()), 2);
   }
@@ -454,8 +452,8 @@ void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
     // Put checksum check function call here
     fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usecsm_def.c_str()));
     fwriter->AppendLine(StrPrint("  _m->mon1.csm_error = ((uint8_t)GetFrameCRC(_d, %s_DLC, %s_CANID, %s, %d)) != (_m->%s))",
-                                 sgs->msg.Name.c_str(), sgs->msg.Name.c_str(), sgs->msg.CsmMethod.c_str(),
-                                 sgs->msg.CsmOp, sgs->msg.CsmSig->Name.c_str()));
+        sgs->msg.Name.c_str(), sgs->msg.Name.c_str(), sgs->msg.CsmMethod.c_str(),
+        sgs->msg.CsmOp, sgs->msg.CsmSig->Name.c_str()));
     fwriter->AppendLine(StrPrint("#endif // %s", fdesc->usecsm_def.c_str()), 2);
   }
 
@@ -496,13 +494,13 @@ void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExp
 
   // pring array content clearin loop
   fwriter->AppendLine(StrPrint("  uint8_t i; for (i = 0; (i < %s_DLC) && (i < 8); %s[i++] = 0);",
-                               sgs->msg.Name.c_str(), arrtxt.c_str()), 2);
+      sgs->msg.Name.c_str(), arrtxt.c_str()), 2);
 
   if (sgs->msg.RollSig != nullptr)
   {
     fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->useroll_def.c_str()));
     fwriter->AppendLine(StrPrint("  _m->%s = (_m->%s + 1) & (0x%02XU)", sgs->msg.RollSig->Name.c_str(),
-                                 sgs->msg.RollSig->Name.c_str(), (1 << sgs->msg.RollSig->LengthBit) - 1));
+        sgs->msg.RollSig->Name.c_str(), (1 << sgs->msg.RollSig->LengthBit) - 1));
     fwriter->AppendLine(StrPrint("#ifdef // %s", fdesc->useroll_def.c_str()), 2);
   }
 
@@ -528,16 +526,16 @@ void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExp
         {
           // print toS from *_phys to original named sigint (integer duplicate of signal)
           fwriter->AppendLine(StrPrint("  _m->%s = %s_%s_fromS(_m->%s_phys);",
-                                       sgs->msg.Signals[n].Name.c_str(), fdesc->DRVNAME.c_str(),
-                                       sgs->msg.Signals[n].Name.c_str(), sgs->msg.Signals[n].Name.c_str()));
+              sgs->msg.Signals[n].Name.c_str(), fdesc->DRVNAME.c_str(),
+              sgs->msg.Signals[n].Name.c_str(), sgs->msg.Signals[n].Name.c_str()));
         }
         else
         {
           // print toS from original named signal to itself (because this signal
           // has enough space for scaling by factor and proper sign
           fwriter->AppendLine(StrPrint("  _m->%s = %s_%s_fromS(_m->%s);",
-                                       sgs->msg.Signals[n].Name.c_str(), fdesc->DRVNAME.c_str(),
-                                       sgs->msg.Signals[n].Name.c_str(), sgs->msg.Signals[n].Name.c_str()));
+              sgs->msg.Signals[n].Name.c_str(), fdesc->DRVNAME.c_str(),
+              sgs->msg.Signals[n].Name.c_str(), sgs->msg.Signals[n].Name.c_str()));
         }
       }
     }
@@ -561,8 +559,8 @@ void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExp
     fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usecsm_def.c_str()));
 
     fwriter->AppendLine(StrPrint("  _m->%s = ((uint8_t)GetFrameCRC(_d, %s_DLC, %s_CANID, %s, %d));",
-                                 sgs->msg.CsmSig->Name.c_str(), sgs->msg.Name.c_str(),
-                                 sgs->msg.Name.c_str(), sgs->msg.CsmMethod.c_str(), sgs->msg.CsmOp));
+        sgs->msg.CsmSig->Name.c_str(), sgs->msg.Name.c_str(),
+        sgs->msg.Name.c_str(), sgs->msg.CsmMethod.c_str(), sgs->msg.CsmOp));
 
     fwriter->AppendLine(StrPrint("  %s[%d] = %s;", arrtxt.c_str(), sgs->msg.CsmByteNum, sgs->msg.CsmToByteExpr.c_str()));
 

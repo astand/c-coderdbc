@@ -18,7 +18,7 @@ static const std::string kRegCommMain = "\"";
 static const std::string kRegCommMeta = "[ ]+";
 
 // This reg splits line to parts (for attributes)
-static const std::string kRegAttrMain = "[^A-Za-z0-9_\.]+";
+static const std::string kRegAttrMain = "[^A-Za-z0-9_\\.]+";
 
 static const std::string kRegValTable = "\"";
 
@@ -37,8 +37,6 @@ static uint64_t __maxsignedvals[] =
   INT_MAX,
   LLONG_MAX
 };
-
-static int __typeslen[] = { 8, 16, 32, 64 };
 
 std::vector<std::string> resplit(const std::string& s, const std::string& rgx_str)
 {
@@ -168,7 +166,7 @@ bool DbcLineParser::ParseSignalLine(SignalDescriptor_t* sig, const std::string& 
     // for enabling double conversation the factor or offset
     // substring must have dot ('.') character
     if (valpart[3].find_first_of('.') != std::string::npos ||
-        valpart[4].find_first_of('.') != std::string::npos)
+      valpart[4].find_first_of('.') != std::string::npos)
     {
       sig->IsDoubleSig = true;
     }
@@ -190,12 +188,12 @@ bool DbcLineParser::ParseSignalLine(SignalDescriptor_t* sig, const std::string& 
 
     //The signal_size specifies the size of the signal in bits
     //   byte_order = '0' | '1'; (*0 = little endian, 1 = big endian*)
-    sig->Order = (valpart[2].find('1') == -1) ? BitLayout::kMotorolla : BitLayout::kIntel;
+    sig->Order = (valpart[2].find('1') == std::string::npos) ? BitLayout::kMotorolla : BitLayout::kIntel;
 
     //The byte_format is 0 if the signal's byte order is Intel (little endian) or 1 if the byte
     //order is Motorola(big endian).
     //   value_type = '+' | '-'; (*+= unsigned, -=signed*)
-    sig->Signed = (valpart[2].find('-') == -1) ? 0 : 1;
+    sig->Signed = (valpart[2].find('-') == std::string::npos) ? 0 : 1;
 
     sig->Type = GetSigType(sig);
 
@@ -231,8 +229,6 @@ bool DbcLineParser::ParseSignalLine(SignalDescriptor_t* sig, const std::string& 
 SigType DbcLineParser::GetSigType(SignalDescriptor_t* sig)
 {
   SigType ret = SigType::u64;
-
-  auto len = sig->LengthBit;
 
   uint8_t is_unsigned = 0;
 

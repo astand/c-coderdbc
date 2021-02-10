@@ -130,8 +130,6 @@ void DbcScanner::ParseOtherInfo(istream& readstrm)
 
     if (lparser.ParseCommentLine(&cmmnt, sline))
     {
-      uint32_t found_msg_id = cmmnt.MsgId;
-
       // update message comment field
       auto msg = find_message(msgs, cmmnt.MsgId);
 
@@ -172,15 +170,15 @@ void DbcScanner::ParseOtherInfo(istream& readstrm)
                 {
                   auto substr = cmmnt.Text.substr(openpos + 1, closepos - 1);
 
-                  auto meta = resplit(substr, "(\:)");
+                  auto meta = resplit(substr, "(\\:)");
 
                   if (meta.size() == 3 && meta[0] == "Checksum")
                   {
                     // the signal can be CSM, but additional settings must be
                     // checked: size, boundary, signal type
                     bool boundary_ok = (sig.Order == BitLayout::kIntel) ?
-                                       ((sig.StartBit / 8) == ((sig.StartBit + sig.LengthBit - 1) / 8)) :
-                                       ((sig.StartBit / 8) == ((sig.StartBit - sig.LengthBit + 1) / 8));
+                      ((sig.StartBit / 8) == ((sig.StartBit + sig.LengthBit - 1) / 8)) :
+                      ((sig.StartBit / 8) == ((sig.StartBit - sig.LengthBit + 1) / 8));
 
                     if (sig.IsSimpleSig && boundary_ok && sig.Signed == false)
                     {
@@ -199,8 +197,6 @@ void DbcScanner::ParseOtherInfo(istream& readstrm)
 
     if (lparser.ParseValTableLine(&cmmnt, sline))
     {
-      uint32_t found_msg_id = cmmnt.MsgId;
-
       // update message comment field
       auto msg = find_message(msgs, cmmnt.MsgId);
 
@@ -251,7 +247,7 @@ void DbcScanner::AddMessage(MessageDescriptor_t* message)
     {
       // sort signals by start bit
       std::sort(message->Signals.begin(), message->Signals.end(),
-                [](const SignalDescriptor_t& a, const SignalDescriptor_t& b) -> bool
+        [](const SignalDescriptor_t& a, const SignalDescriptor_t& b) -> bool
       {
         return a.StartBit < b.StartBit;
       });

@@ -11,7 +11,7 @@ FsCreator::FsCreator()
 {
 }
 
-bool FsCreator::PrepareDirectory(std::string drvname, std::string basepath, bool rw)
+bool FsCreator::PrepareDirectory(std::string drvname, std::string basepath, bool)
 {
   bool ret = false;
 
