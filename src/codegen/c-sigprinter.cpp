@@ -61,7 +61,7 @@ std::string CSigPrinter::PrintPhysicalToRaw(const SignalDescriptor_t* sig, const
     retstr += StrPrint("#define %s_%s_CovFactor (%d)\n", drvname.c_str(), sig->Name.c_str(), (int32_t)sig->Factor);
 
   retstr += StrPrint("#define %s_%s_toS(x) ( (%s) ", drvname.c_str(), sig->Name.c_str(),
-                     PrintType((uint8_t)sig->Type).c_str());
+      PrintType((uint8_t)sig->Type).c_str());
 
   if (sig->IsDoubleSig)
   {
@@ -112,15 +112,6 @@ std::string CSigPrinter::PrintPhysicalToRaw(const SignalDescriptor_t* sig, const
   }
 
   return retstr;
-}
-
-// This function determines what type will have struct
-// field for the @signal. It saves the <stdint> name
-std::string CSigPrinter::GetSignalType(const SignalDescriptor_t& signal)
-{
-  std::string ret = "";
-
-  return ret;
 }
 
 int32_t CSigPrinter::BuildCConvertExprs(CiExpr_t* msgprinter)
@@ -183,7 +174,7 @@ std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig, std::vec
   std::string tosigexpr;
 
   uint16_t startb = (uint16_t)((sig->Order == BitLayout::kIntel) ?
-                               (sig->StartBit + (sig->LengthBit - 1)) : (sig->StartBit));
+      (sig->StartBit + (sig->LengthBit - 1)) : (sig->StartBit));
 
   if (startb > 63)
     startb = 63;
@@ -225,7 +216,7 @@ std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig, std::vec
     tosigexpr += workbuff;
 
     snprintf(workbuff, WBUFF_LEN, "((_m->%s >> %d) & (%s))", sig->Name.c_str(), slen,
-             msk[bbc].c_str());
+      msk[bbc].c_str());
     AppendToByteLine(to_bytes[bn], workbuff);
 
     while ((slen - 8) >= 0)
@@ -271,7 +262,7 @@ std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig, std::vec
       tosigexpr += workbuff;
 
       snprintf(workbuff, WBUFF_LEN, "((_m->%s & (%s)) << %d)", sig->Name.c_str(), msk[slen].c_str(),
-               8 - slen);
+        8 - slen);
       AppendToByteLine(to_bytes[bn], workbuff);
     }
   }

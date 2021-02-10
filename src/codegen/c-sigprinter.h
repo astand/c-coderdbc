@@ -16,8 +16,6 @@ class CSigPrinter {
   std::vector<CiExpr_t*> sigs_expr;
 
  private:
-  std::string GetSignalType(const SignalDescriptor_t& signal);
-
   int32_t BuildCConvertExprs(CiExpr_t* msg);
 
   std::string PrintSignalExpr(const SignalDescriptor_t* sig, std::vector<std::string>& to_bytes);
