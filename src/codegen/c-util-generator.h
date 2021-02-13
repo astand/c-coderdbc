@@ -3,6 +3,7 @@
 #include "types/message.h"
 #include "fs-creator.h"
 #include "filewriter.h"
+#include "conditional-tree.h"
 
 class CiUtilGenerator {
  public:
@@ -25,6 +26,8 @@ class CiUtilGenerator {
  private:
   void PrintHeader();
   void PrintSource();
+  ConditionalTree_t* FillTreeLevel(std::vector<MessageDescriptor_t*>& msgs,
+    int32_t l, int32_t h, bool started = false);
 
  private:
 
@@ -39,4 +42,7 @@ class CiUtilGenerator {
   std::string file_drvname;
 
   const FsDescriptor_t* fdesc;
+  ConditionalTree* condtree;
+
+  bool treestarted;
 };

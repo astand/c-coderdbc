@@ -14,6 +14,7 @@ CiUtilGenerator::CiUtilGenerator()
 {
   Clear();
   tof = new FileWriter;
+  condtree = new ConditionalTree;
 }
 
 void CiUtilGenerator::Clear()
@@ -84,10 +85,11 @@ void CiUtilGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
 
   fdesc = &fsd;
 
+  // print header for util code
   PrintHeader();
 
+  // print main source for util code
   PrintSource();
-
 }
 
 void CiUtilGenerator::PrintHeader()
@@ -169,4 +171,105 @@ void CiUtilGenerator::PrintHeader()
 
 void CiUtilGenerator::PrintSource()
 {
+  tof->AppendLine(StrPrint("#include \"%s\"", fdesc->util_h.fname.c_str()), 2);
+
+  // optional RX and TX struct allocations
+  if (rx.size() > 0 || tx.size() > 0)
+  {
+    tof->AppendLine(StrPrint("#ifdef __DEF_%s__", fdesc->DRVNAME.c_str()), 2);
+
+    if (rx.size() > 0)
+    {
+      tof->AppendLine(StrPrint("%s_rx_t %s_rx;", fdesc->drvname.c_str(), fdesc->drvname.c_str()), 2);
+    }
+
+    if (tx.size() > 0)
+    {
+      tof->AppendLine(StrPrint("%s_tx_t %s_tx;", fdesc->drvname.c_str(), fdesc->drvname.c_str()), 2);
+    }
+
+    tof->AppendLine(StrPrint("#endif // __DEF_%s__", fdesc->DRVNAME.c_str()), 2);
+  }
+
+  if (rx.size() > 0)
+  {
+    // tree will be created inside (in dynamic memory) so this
+    // scope is responsible for deletion these resources
+    // tree is the struct tree-view which is used to execute
+    // binary search on FrameID for selecting unpacking function
+    auto tree = FillTreeLevel(rx, 0, rx.size());
+
+    tof->AppendLine(StrPrint("uint32_t %s_Receive(%s_rx_t* _m, const uint8_t* _d, uint32_t _id, uint8_t dlc_)",
+        fdesc->drvname.c_str(), fdesc->drvname.c_str()));
+
+    tof->AppendLine("{");
+    tof->AppendLine(" uint32_t recid = 0;");
+
+    // put tree-view struct on code (in treestr variable)
+    std::string treestr;
+    condtree->Clear();
+    tof->AppendLine(condtree->WriteCode(tree, treestr, 1));
+
+    tof->AppendLine(" return recid;");
+    tof->AppendLine("}", 2);
+
+    // clear tree after using
+    condtree->DeleteTree(tree);
+  }
+
+  tof->Flush(fdesc->util_c.fpath);
+}
+
+ConditionalTree_t* CiUtilGenerator::FillTreeLevel(std::vector<MessageDescriptor_t*>& list,
+  int32_t l,
+  int32_t h,
+  bool started)
+{
+  int32_t span = h - l;
+  int32_t lowhalf = span / 2;
+  int32_t highhalf = span - lowhalf;
+
+  treestarted = started;
+
+  if (h < 1)
+  {
+    return nullptr;
+  }
+
+  ConditionalTree_t* ret = new ConditionalTree_t;
+
+  if (!treestarted && h == 1)
+  {
+    ret->Type = ConditionalType::Cond;
+    auto msg = list[l];
+    ret->ConditionExpresion = StrPrint("_id == 0x%XU", msg->MsgID);
+    ret->High = new ConditionalTree_t;
+    ret->Type = ConditionalType::Express;
+    ret->UtilCodeBody = StrPrint("recid = Unpack_%s_%s(&(_m->%s), _d, dlc_);",
+        msg->Name.c_str(), code_drvname.c_str(), msg->Name.c_str());
+    return ret;
+  }
+
+  if (span > 1)
+  {
+    ret->Type = ConditionalType::Cond;
+
+    if (lowhalf > 1)
+      ret->ConditionExpresion = StrPrint("(_id >= 0x%XU) && (_id < 0x%XU)", list[l]->MsgID, list[(l + lowhalf)]->MsgID);
+    else
+      ret->ConditionExpresion = StrPrint("_id == 0x%XU", list[l]->MsgID);
+
+    ret->High = FillTreeLevel(list, l, l + lowhalf, true);
+    ret->Low = FillTreeLevel(list, l + lowhalf, h, true);
+  }
+  else
+  {
+    ret->Type = ConditionalType::Express;
+    auto msg = list[l];
+    ret->ConditionExpresion = StrPrint("_id == 0x%XU", msg->MsgID);
+    ret->UtilCodeBody = StrPrint("recid = Unpack_%s_%s(&(_m->%s), _d, dlc_);",
+        msg->Name.c_str(), code_drvname.c_str(), msg->Name.c_str());
+  }
+
+  return ret;
 }
