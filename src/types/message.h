@@ -13,6 +13,13 @@ enum class BitLayout
   kMotorolla
 };
 
+enum class MultiplexType
+{
+  kNone,
+  kMaster,
+  kMulValue
+};
+
 enum class SigType
 {
   i8 = 0,
@@ -76,6 +83,8 @@ typedef struct
   std::string CommentText;
 
   std::string ValueText;
+
+  MultiplexType Multiplex;
 
 } SignalDescriptor_t;
 

@@ -322,6 +322,15 @@ void CiMainGenerator::WriteSigStructField(const SignalDescriptor_t& sig, bool bi
     fwriter->AppendLine("  // " + std::regex_replace(sig.ValueText, std::regex("\n"), "\n  // "));
   }
 
+  if (sig.Multiplex == MultiplexType::kMulValue)
+  {
+    fwriter->AppendLine("  // multiplex variable");
+  }
+  else if (sig.Multiplex == MultiplexType::kMaster)
+  {
+    fwriter->AppendLine("  // MULTIPLEX master signal");
+  }
+
   std::string dtype = "";
 
   dtype += "  " + PrintType((int)sig.Type) + " " + sig.Name;

@@ -153,11 +153,25 @@ bool DbcLineParser::ParseSignalLine(SignalDescriptor_t* sig, const std::string& 
   // split middle part on dedicated values
   auto valpart = resplit(trim(tailpart[0]), kRegSigReceivers, -1);
 
-  halfs = resplit(halfs[0], kRegSigSplit0, -1);
+  halfs = resplit(halfs[0], kRegValTable, 0);
 
-  if (halfs.size() > 1)
+  if (halfs.size() >= 2)
   {
-    sig->Name = halfs[halfs.size() - 1];
+    sig->Name = halfs[1];
+    sig->Multiplex = MultiplexType::kNone;
+
+    if (halfs.size() == 3)
+    {
+      // Multiplex signal, put additional comment
+      if (halfs[2] == "M")
+      {
+        sig->Multiplex = MultiplexType::kMaster;
+      }
+      else
+      {
+        sig->Multiplex = MultiplexType::kMulValue;
+      }
+    }
   }
   else
   {
