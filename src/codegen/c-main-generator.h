@@ -17,6 +17,7 @@ class CiMainGenerator {
 
   void Gen_MainHeader();
   void Gen_MainSource();
+  void Gen_ConfigHeader();
   void Gen_FMonHeader();
   void Gen_FMonSource();
 

@@ -43,6 +43,9 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
 
   // 5 step is to print fmon source file
   Gen_FMonSource();
+
+  // 6 step is to print template for drv-config.h
+  Gen_ConfigHeader();
 }
 
 void CiMainGenerator::Gen_MainHeader()
@@ -254,6 +257,73 @@ void CiMainGenerator::Gen_MainSource()
   fwriter->Flush(fdesc->core_c.fpath);
 }
 
+void CiMainGenerator::Gen_ConfigHeader()
+{
+  fwriter->AppendLine("#pragma once", 2);
+
+  fwriter->AppendLine("/* include common dbccode configurations */");
+  fwriter->AppendLine("#include \"dbccodeconf.h\"", 3);
+  fwriter->AppendLine("/* ----------------------------------------------------------------------------------- */");
+  fwriter->AppendLine("/* To enable using messaged typedefs based on bit-fields");
+  fwriter->AppendLine("   uncomment define below. (Note(!): bit-feild was not tested");
+  fwriter->AppendLine("   properly, so using is up to user). */",2 );
+  fwriter->AppendLine(StrPrint("// #define %s", fdesc->usebits_def.c_str()), 3);
+  fwriter->AppendLine("/* ----------------------------------------------------------------------------------- */");
+  fwriter->AppendLine("/* By default signature of pack function intakes a few simple typed params");
+  fwriter->AppendLine("   for loading data, len, etc. To enable specific struct based signature");
+  fwriter->AppendLine("   uncomment define below. */", 2);
+  fwriter->AppendLine(StrPrint("// #define %s", fdesc->usesruct_def.c_str()), 3);
+  fwriter->AppendLine("/* ----------------------------------------------------------------------------------- */");
+  fwriter->AppendLine("/* To enable phys values handling uncomment define below. It will:");
+  fwriter->AppendLine("   - adds additional members to message struct with name extension *_phys");
+  fwriter->AppendLine("   which have user defined type @sigfloat_t (must be defined by user in");
+  fwriter->AppendLine("   dbccodeconf.h)");
+  fwriter->AppendLine("   - in unpack function these signal will be loaded by the converted ");
+  fwriter->AppendLine("   value (with factor and offset)");
+  fwriter->AppendLine("   - in pack function the CAN frame signal values will be loaded from");
+  fwriter->AppendLine("   *_phys value with factor and offset conversion. */", 2);
+  fwriter->AppendLine(StrPrint("// #define %s", fdesc->usesigfloat_def.c_str()), 3);
+
+  fwriter->AppendLine("/* ----------------------------------------------------------------------------------- */");
+  fwriter->AppendLine("/* To enable monitor functions uncomment define below.");
+  fwriter->AppendLine("/* (Note(!): the \"canmonitorutil.h\" must be accessed in include path):");
+  fwriter->AppendLine("   It will:");
+  fwriter->AppendLine("   - bring to message struct special monitor member @mon1 ");
+  fwriter->AppendLine("   - calling function FMon_*** function inside unpack function ");
+  fwriter->AppendLine("   which is empty by default and must be filled by user code");
+  fwriter->AppendLine("   to check if any fault state detected. */", 2);
+  fwriter->AppendLine(StrPrint("// #define %s", fdesc->usemon_def.c_str()), 3);
+
+  fwriter->AppendLine(StrPrint("/* When monitor using is enabled (%s)", fdesc->usemon_def.c_str()));
+  fwriter->AppendLine("   and define below uncommented, additional signal will be added");
+  fwriter->AppendLine("   to message struct. ***_expt - expected rolling counter, to ");
+  fwriter->AppendLine("   perform monitoring rolling counter sequence automatically. */", 2);
+  fwriter->AppendLine(StrPrint("// #define %s", fdesc->useroll_def.c_str()), 3);
+
+  fwriter->AppendLine("/* ----------------------------------------------------------------------------------- */");
+  fwriter->AppendLine(StrPrint("/* When monitor using is enabled (%s)", fdesc->usemon_def.c_str()));
+  fwriter->AppendLine("   and define below uncommented, checksum calculation in unpack");
+  fwriter->AppendLine("   function will be performed. in pack function checksum signal will");
+  fwriter->AppendLine("   be calculated automatically too. ", 2);
+  fwriter->AppendLine("   The signal that can be selected as checksum must have in comment substring with next format:");
+  fwriter->AppendLine("   <Checksum:XOR8:3> where:");
+  fwriter->AppendLine("   - Checksum : constant marker word");
+  fwriter->AppendLine("   - XOR8 : type of method, this text will be passed to GetFrameHash function as is,");
+  fwriter->AppendLine("   so the best use case is to pre-define enum collection which have value from this position");
+  fwriter->AppendLine("   - 3 : optional value that will be passed to GetFrameHash as integer value", 2);
+  fwriter->AppendLine("   To this case user must define specific function", 2);
+  fwriter->AppendLine("   function: uint8_t GetFrameHash(data_ptr, len, msgid, type, option)", 2);
+  fwriter->AppendLine("   where:");
+  fwriter->AppendLine("   - data_ptr : pointer to payload");
+  fwriter->AppendLine("   - len : message dlc or payload len");
+  fwriter->AppendLine("   - msgid : CAN Message ID");
+  fwriter->AppendLine("   - type : method of algorythm");
+  fwriter->AppendLine("   - option : optional integer param */", 2);
+  fwriter->AppendLine(StrPrint("// #define %s", fdesc->usecsm_def.c_str()), 2);
+
+  fwriter->Flush(fdesc->core_c.dir + '/' + fdesc->drvname + "-config.h");
+}
+
 void CiMainGenerator::Gen_FMonHeader()
 {
   fwriter->AppendLine("#pragma once", 2);
@@ -461,7 +531,8 @@ void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
   {
     // Put checksum check function call here
     fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usecsm_def.c_str()));
-    fwriter->AppendLine(StrPrint("  _m->mon1.csm_error = ((uint8_t)GetFrameCRC(_d, %s_DLC, %s_CANID, %s, %d)) != (_m->%s))",
+    fwriter->AppendLine(
+      StrPrint("  _m->mon1.csm_error = ((uint8_t)GetFrameHash(_d, %s_DLC, %s_CANID, %s, %d)) != (_m->%s))",
         sgs->msg.Name.c_str(), sgs->msg.Name.c_str(), sgs->msg.CsmMethod.c_str(),
         sgs->msg.CsmOp, sgs->msg.CsmSig->Name.c_str()));
     fwriter->AppendLine(StrPrint("#endif // %s", fdesc->usecsm_def.c_str()), 2);
