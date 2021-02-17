@@ -72,6 +72,12 @@ void CiMainGenerator::Gen_MainHeader()
     // write message typedef s and additional expressions
     MessageDescriptor_t& m = sigprt->sigs_expr[num]->msg;
 
+    if (m.CommentText.size() > 0)
+    {
+      // replace all '\n' on "\n //" for c code comment text
+      fwriter->AppendLine("// " + std::regex_replace(m.CommentText, std::regex("\n"), "\n// "));
+    }
+
     fwriter->AppendLine(StrPrint("// def @%s CAN Message (%-4d %#x)", m.Name.c_str(), m.MsgID, m.MsgID));
     fwriter->AppendLine(StrPrint("#define %s_IDE (%uU)", m.Name.c_str(), m.IsExt));
     fwriter->AppendLine(StrPrint("#define %s_DLC (%uU)", m.Name.c_str(), m.DLC));
@@ -80,11 +86,6 @@ void CiMainGenerator::Gen_MainHeader()
     if (m.Cycle > 0)
     {
       fwriter->AppendLine(StrPrint("#define %s_CYC (%dU)", m.Name.c_str(), m.Cycle));
-    }
-
-    if (m.CommentText.size() > 0)
-    {
-      fwriter->AppendLine("// -- " + m.CommentText);
     }
 
     size_t max_sig_name_len = 27;
@@ -525,7 +526,7 @@ void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExp
         if (sgs->msg.Signals[n].IsDoubleSig)
         {
           // print toS from *_phys to original named sigint (integer duplicate of signal)
-          fwriter->AppendLine(StrPrint("  _m->%s = %s_%s_fromS(_m->%s_phys);",
+          fwriter->AppendLine(StrPrint("  _m->%s = %s_%s_toS(_m->%s_phys);",
               sgs->msg.Signals[n].Name.c_str(), fdesc->DRVNAME.c_str(),
               sgs->msg.Signals[n].Name.c_str(), sgs->msg.Signals[n].Name.c_str()));
         }
@@ -533,7 +534,7 @@ void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExp
         {
           // print toS from original named signal to itself (because this signal
           // has enough space for scaling by factor and proper sign
-          fwriter->AppendLine(StrPrint("  _m->%s = %s_%s_fromS(_m->%s);",
+          fwriter->AppendLine(StrPrint("  _m->%s = %s_%s_toS(_m->%s);",
               sgs->msg.Signals[n].Name.c_str(), fdesc->DRVNAME.c_str(),
               sgs->msg.Signals[n].Name.c_str(), sgs->msg.Signals[n].Name.c_str()));
         }
@@ -558,7 +559,7 @@ void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExp
     // code for getting checksum value and putting it in array
     fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usecsm_def.c_str()));
 
-    fwriter->AppendLine(StrPrint("  _m->%s = ((uint8_t)GetFrameCRC(_d, %s_DLC, %s_CANID, %s, %d));",
+    fwriter->AppendLine(StrPrint("  _m->%s = ((uint8_t)GetFrameHash(_d, %s_DLC, %s_CANID, %s, %d));",
         sgs->msg.CsmSig->Name.c_str(), sgs->msg.Name.c_str(),
         sgs->msg.Name.c_str(), sgs->msg.CsmMethod.c_str(), sgs->msg.CsmOp));
 
