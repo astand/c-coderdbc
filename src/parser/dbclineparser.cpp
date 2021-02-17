@@ -20,7 +20,13 @@ static const std::string kRegCommMeta = "[ ]+";
 // This reg splits line to parts (for attributes)
 static const std::string kRegAttrMain = "[^A-Za-z0-9_\\.]+";
 
-static const std::string kRegValTable = "\"";
+// Regex template to split string by spaces BUT NOT what inside quotes OR apostrophes
+// [^\s"']+|"([^"]*)"|'([^']*)'
+
+// Reges template to split string by spaces BUT NOT what inside quotes
+// [^\s"]+|"([^"]*)"
+
+static const std::string kRegValTable = "[^\\s\"]+|\"([^\"]*)\"";
 
 static uint64_t __maxunsigvalues[] =
 {
@@ -38,7 +44,7 @@ static uint64_t __maxsignedvals[] =
   LLONG_MAX
 };
 
-//* @param __submatch  
+//* @param __submatch
 // - -1 each enumerated subexpression does NOT
 // match the regular expression (aka field
 // splitting)
@@ -475,33 +481,25 @@ bool DbcLineParser::ParseValTableLine(Comment_t* comm, const std::string& line)
     // check if the current line is last
     if (valueline.size() > 0 && line.back() == ';')
     {
-      // split all line by quote char
+      // split all items by spaces and inside quotes.
+      // after this step proper value items will have count >= 5
+      // last item will be ';' and number of items will be even
       auto items = resplit(valueline, kRegValTable, 0);
 
-      if (items.size() >= 2)
+      if ((items.size() >= 5) && (items.back() == ";") && (items.size() % 2 == 0))
       {
-        // split first part by spaces, the last item will have first value key
-        auto meta = resplit(items[0], kRegCommMeta, -1);
+        comm->MsgId = (clear_msgid(atoi(items[1].c_str())));
+        comm->SigName = items[2];
+        comm->Text = "";
 
-        if (meta.size() == 4)
+        for (size_t valpair = 5; valpair < (items.size() - 1); valpair += 2)
         {
-          // ok, set items[0] -> meta[3] (set value key as first @items element)
-          items[0] = meta[3];
-
-          comm->MsgId = (clear_msgid(atoi(meta[1].c_str())));
-
-          comm->SigName = meta[2];
-          // Load value table params to container
-          comm->Text = "";
-
-          for (size_t valpair = 0; valpair < (items.size() / 2); valpair++)
-          {
-            comm->Text += items[valpair * 2 + 0] + " : " + items[valpair * 2 + 1] + '\n';
-          }
-
-          // value table params were parse successfully
-          ret = true;
+          comm->Text += " " + items[valpair + 0] + " : ";
+          comm->Text += items[valpair + 1] + '\n';
         }
+
+        // value table params were parse successfully
+        ret = true;
       }
     }
   }
