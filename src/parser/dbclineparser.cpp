@@ -38,11 +38,20 @@ static uint64_t __maxsignedvals[] =
   LLONG_MAX
 };
 
-std::vector<std::string> resplit(const std::string& s, const std::string& rgx_str)
+//* @param __submatch  
+// - -1 each enumerated subexpression does NOT
+// match the regular expression (aka field
+// splitting)
+// - 0 the entire string matching the
+// subexpression is returned for each match
+// within the text.
+// - >0 enumerates only the indicated
+// subexpression from a match within the text.
+std::vector<std::string> resplit(const std::string& s, const std::string& rgx_str, int32_t submatch)
 {
   std::vector<std::string> elems;
   std::regex rgx(rgx_str);
-  std::sregex_token_iterator iter(s.begin(), s.end(), rgx, -1);
+  std::sregex_token_iterator iter(s.begin(), s.end(), rgx, submatch);
   std::sregex_token_iterator end;
 
   while (iter != end)
@@ -92,7 +101,7 @@ bool DbcLineParser::IsMessageLine(const std::string& line)
 bool DbcLineParser::ParseMessageLine(MessageDescriptor_t* msg, const std::string& line)
 {
   // Parse DBC message line
-  auto items = resplit(line, regMessage);
+  auto items = resplit(line, regMessage, -1);
 
   if (items.size() < 5)
     return false;
@@ -127,18 +136,18 @@ bool DbcLineParser::IsSignalLine(const std::string& line)
 bool DbcLineParser::ParseSignalLine(SignalDescriptor_t* sig, const std::string& line)
 {
   // split line in two parts
-  auto halfs = resplit(line, kRegSigSplit1);
+  auto halfs = resplit(line, kRegSigSplit1, -1);
 
   if (halfs.size() < 2)
     return false;
 
   // split tail
-  auto tailpart = resplit(halfs[1], kregSigSplit2);
+  auto tailpart = resplit(halfs[1], kregSigSplit2, -1);
 
   // split middle part on dedicated values
-  auto valpart = resplit(trim(tailpart[0]), kRegSigReceivers);
+  auto valpart = resplit(trim(tailpart[0]), kRegSigReceivers, -1);
 
-  halfs = resplit(halfs[0], kRegSigSplit0);
+  halfs = resplit(halfs[0], kRegSigSplit0, -1);
 
   if (halfs.size() > 1)
   {
@@ -210,7 +219,7 @@ bool DbcLineParser::ParseSignalLine(SignalDescriptor_t* sig, const std::string& 
     // part 2 is the measure unit
     sig->Unit = tailpart[1];
     // part 3 is the list of RX modules
-    auto recs = resplit(trim(tailpart[2]), kRegSigReceivers);
+    auto recs = resplit(trim(tailpart[2]), kRegSigReceivers, -1);
 
     for (size_t i = 0; i < recs.size(); i++)
     {
@@ -365,12 +374,12 @@ bool DbcLineParser::ParseCommentLine(Comment_t* cm, const std::string& line)
       cm->ca_target = CommentTarget::Undefined;
 
       // comment line must have 3 part: meta, text, semicolon
-      auto items = resplit(commentline, kRegCommMain);
+      auto items = resplit(commentline, kRegCommMain, -1);
 
       if (items.size() == 3)
       {
         // part 1 (meta) contains service fields
-        auto meta = resplit(items[0], kRegCommMeta);
+        auto meta = resplit(items[0], kRegCommMeta, -1);
 
         if (meta.size() >= 3)
         {
@@ -429,7 +438,7 @@ bool DbcLineParser::ParseAttributeLine(AttributeDescriptor_t* attr, const std::s
     {
       attr->Type = AttributeType::Undefined;
       // raw line is ready
-      auto items = resplit(attribline, kRegAttrMain);
+      auto items = resplit(attribline, kRegAttrMain, -1);
 
       if (items.size() > 4 && items[1] == "GenMsgCycleTime" && items[2] == "BO_")
       {
@@ -467,12 +476,12 @@ bool DbcLineParser::ParseValTableLine(Comment_t* comm, const std::string& line)
     if (valueline.size() > 0 && line.back() == ';')
     {
       // split all line by quote char
-      auto items = resplit(valueline, kRegValTable);
+      auto items = resplit(valueline, kRegValTable, 0);
 
       if (items.size() >= 2)
       {
         // split first part by spaces, the last item will have first value key
-        auto meta = resplit(items[0], kRegCommMeta);
+        auto meta = resplit(items[0], kRegCommMeta, -1);
 
         if (meta.size() == 4)
         {
@@ -487,8 +496,7 @@ bool DbcLineParser::ParseValTableLine(Comment_t* comm, const std::string& line)
 
           for (size_t valpair = 0; valpair < (items.size() / 2); valpair++)
           {
-            comm->Text += items[valpair * 2 + 0] + " : ";
-            comm->Text += items[valpair * 2 + 1] + "\n";
+            comm->Text += items[valpair * 2 + 0] + " : " + items[valpair * 2 + 1] + '\n';
           }
 
           // value table params were parse successfully

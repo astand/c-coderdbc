@@ -158,7 +158,7 @@ void DbcScanner::ParseOtherInfo(istream& readstrm)
                 msg->RollSig = &msg->Signals[i];
               }
 
-              extern std::vector<std::string> resplit(const std::string & s, const std::string & rgx_str);
+              extern std::vector<std::string> resplit(const std::string & s, const std::string & rgx_str, int32_t submatch);
 
               size_t openpos = cmmnt.Text.find('<');
 
@@ -170,7 +170,7 @@ void DbcScanner::ParseOtherInfo(istream& readstrm)
                 {
                   auto substr = cmmnt.Text.substr(openpos + 1, closepos - 1);
 
-                  auto meta = resplit(substr, "(\\:)");
+                  auto meta = resplit(substr, "(\\:)", -1);
 
                   if (meta.size() == 3 && meta[0] == "Checksum")
                   {
