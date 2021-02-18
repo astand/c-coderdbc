@@ -266,7 +266,7 @@ void CiMainGenerator::Gen_ConfigHeader()
   fwriter->AppendLine("/* ----------------------------------------------------------------------------------- */");
   fwriter->AppendLine("/* To enable using messaged typedefs based on bit-fields");
   fwriter->AppendLine("   uncomment define below. (Note(!): bit-feild was not tested");
-  fwriter->AppendLine("   properly, so using is up to user). */",2 );
+  fwriter->AppendLine("   properly, so using is up to user). */", 2 );
   fwriter->AppendLine(StrPrint("// #define %s", fdesc->usebits_def.c_str()), 3);
   fwriter->AppendLine("/* ----------------------------------------------------------------------------------- */");
   fwriter->AppendLine("/* By default signature of pack function intakes a few simple typed params");
@@ -524,7 +524,7 @@ void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
     fwriter->AppendLine(StrPrint("  _m->%s_expt = (_m->%s + 1) & (0x%02XU);", sgs->msg.RollSig->Name.c_str(),
         sgs->msg.RollSig->Name.c_str(), (1 << sgs->msg.RollSig->LengthBit) - 1));
     // Put rolling monitor here
-    fwriter->AppendLine(StrPrint("#ifdef // %s", fdesc->useroll_def.c_str()), 2);
+    fwriter->AppendLine(StrPrint("#endif // %s", fdesc->useroll_def.c_str()), 2);
   }
 
   if (sgs->msg.CsmSig != nullptr)
@@ -580,9 +580,9 @@ void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExp
   if (sgs->msg.RollSig != nullptr)
   {
     fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->useroll_def.c_str()));
-    fwriter->AppendLine(StrPrint("  _m->%s = (_m->%s + 1) & (0x%02XU)", sgs->msg.RollSig->Name.c_str(),
+    fwriter->AppendLine(StrPrint("  _m->%s = (_m->%s + 1) & (0x%02XU);", sgs->msg.RollSig->Name.c_str(),
         sgs->msg.RollSig->Name.c_str(), (1 << sgs->msg.RollSig->LengthBit) - 1));
-    fwriter->AppendLine(StrPrint("#ifdef // %s", fdesc->useroll_def.c_str()), 2);
+    fwriter->AppendLine(StrPrint("#endif // %s", fdesc->useroll_def.c_str()), 2);
   }
 
   if (sgs->msg.CsmSig != nullptr)
