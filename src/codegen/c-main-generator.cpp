@@ -512,7 +512,7 @@ void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
 
   fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usemon_def.c_str()));
   fwriter->AppendLine(StrPrint("  _m->mon1.dlc_error = (dlc_ < %s_DLC);", sgs->msg.Name.c_str()));
-  fwriter->AppendLine("  _m->mon1.last_cycle = GetSysTick();");
+  fwriter->AppendLine("  _m->mon1.last_cycle = GetSystemTick();");
   fwriter->AppendLine("  _m->mon1.frame_cnt++;", 2);
 
   if (sgs->msg.RollSig != nullptr)
