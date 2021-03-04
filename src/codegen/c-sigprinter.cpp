@@ -173,6 +173,12 @@ std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig, std::vec
   // value for collecting expression (to_signal)
   std::string tosigexpr;
 
+  if (to_bytes.size() == 0)
+  {
+    // return empty line is bytes count somehow equals 0
+    return "Error in DBC file !!!! Dlc of this message must be greater.";
+  }
+
   uint16_t startb = (uint16_t)((sig->Order == BitLayout::kIntel) ?
       (sig->StartBit + (sig->LengthBit - 1)) : (sig->StartBit));
 
@@ -180,6 +186,14 @@ std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig, std::vec
     startb = 63;
 
   int32_t bn = startb / 8;
+
+  if (to_bytes.size() < bn)
+  {
+    // DLC from message doesn't fit to signal layout
+    // make code uncomplilable
+    to_bytes[0] = "Error in DBC file !!!! Dlc of this message must be greater.";
+    return to_bytes[0];
+  }
 
   // set valid to_byte prefix
   int32_t bbc = (startb % 8) + 1;
@@ -215,8 +229,7 @@ std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig, std::vec
     snprintf(workbuff, WBUFF_LEN, "(%s(_d[%d] & (%s)) << %d)", t64.c_str(), bn, msk[bbc].c_str(), slen);
     tosigexpr += workbuff;
 
-    snprintf(workbuff, WBUFF_LEN, "((_m->%s >> %d) & (%s))", sig->Name.c_str(), slen,
-      msk[bbc].c_str());
+    snprintf(workbuff, WBUFF_LEN, "((_m->%s >> %d) & (%s))", sig->Name.c_str(), slen, msk[bbc].c_str());
     AppendToByteLine(to_bytes[bn], workbuff);
 
     while ((slen - 8) >= 0)
@@ -226,6 +239,14 @@ std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig, std::vec
       slen -= 8;
 
       bn = ShiftByte(sig, bn);
+
+      if (to_bytes.size() < bn)
+      {
+        // DLC from message doesn't fit to signal layout
+        // make code uncomplilable
+        to_bytes[0] = "Error in DBC file !!!! Dlc of this message must be greater.";
+        return to_bytes[0];
+      }
 
       tosigexpr += " | ";
 
