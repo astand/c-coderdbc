@@ -62,8 +62,8 @@ void CiMainGenerator::Gen_MainHeader()
   fwriter->AppendText(
     "// This file must define:\n"
     "// base monitor struct\n"
-    "// function signature for CRC calculation\n"
-    "// function signature for getting system tick value (100 us step)\n"
+    "// function signature for HASH calculation: (@GetFrameHash)\n"
+    "// function signature for getting system tick value: (@GetSystemTick)\n"
     "#include \"canmonitorutil.h\"\n"
     "\n"
   );
@@ -204,10 +204,8 @@ void CiMainGenerator::Gen_MainSource()
   fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usemon_def.c_str()));
 
   fwriter->AppendText(
-    "// This file must define:\n"
-    "// base monitor struct\n"
-    "// function signature for CRC calculation\n"
-    "// function signature for getting system tick value (100 us step)\n");
+    "// Function prototypes to be called each time CAN frame is unpacked\n"
+    "// FMon function may detect RC, CRC or DLC violation \n");
 
   fwriter->AppendLine(StrPrint("#include \"%s-fmon.h\"", fdesc->drvname.c_str()), 2);
 
