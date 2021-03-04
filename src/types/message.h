@@ -37,7 +37,8 @@ typedef struct
 {
   // Signal name
   std::string Name;
-
+  // Signal float name
+  std::string NameFloat;
   // Unit
   std::string Unit;
 

@@ -231,6 +231,15 @@ bool DbcLineParser::ParseSignalLine(SignalDescriptor_t* sig, const std::string& 
     {
       sig->IsSimpleSig = true;
     }
+
+    if (!sig->IsSimpleSig)
+    {
+      // For this case the name of signal must be marked specially
+      // to pay attention that if SIGFLOAT is enabled, this signal
+      // must behave as ReadOnly (_ro)
+      sig->NameFloat = sig->Name + "_phys";
+      sig->Name += "_ro";
+    }
   }
 
   if (tailpart.size() == 3)

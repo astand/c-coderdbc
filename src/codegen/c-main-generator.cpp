@@ -456,19 +456,26 @@ void CiMainGenerator::WriteSigStructField(const SignalDescriptor_t& sig, bool bi
 
   fwriter->AppendLine("", 2);
 
-  if (sig.IsDoubleSig)
+  if (!sig.IsSimpleSig)
   {
     // this code only required be d-signals (floating point values based)
     // it placed additional signals to struct for conversion
     // to/from physical values. For non-simple and non-double signal
     // there is no necessity to create addition fields
     // @sigfloat_t must be typedefed by user (e.g. double / float)
+
+    // UPD: from this commit, all non-Simple signals has it's
+    // own 'shadow' (_phys) copies, the problem with intermediate type (not simpe and
+    // not double) is that the x = ***_toS(x) takes place in each Pack_* call
+    // the signals which are not changing from Pack_* to Pack_* will change its values (!)
     fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usesigfloat_def.c_str()));
 
-    fwriter->AppendLine(StrPrint("  sigfloat_t %s_phys;", sig.Name.c_str()));
+    if (sig.IsDoubleSig)
+      fwriter->AppendLine(StrPrint("  sigfloat_t %s;", sig.NameFloat.c_str()));
+    else
+      fwriter->AppendLine(StrPrint("  %s %s;", PrintType((int)sig.Type).c_str(), sig.NameFloat.c_str()));
 
     fwriter->AppendLine(StrPrint("#endif // %s", fdesc->usesigfloat_def.c_str()), 2);
-
   }
 }
 
@@ -484,23 +491,14 @@ void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
     fwriter->AppendLine(StrPrint("  _m->%s = %s;", sname, expr.c_str()));
 
     // print sigfloat conversion
-    if (sgs->msg.Signals[num].IsDoubleSig)
+    if (!sgs->msg.Signals[num].IsSimpleSig)
     {
       fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usesigfloat_def.c_str()));
-      fwriter->AppendLine(StrPrint("  _m->%s_phys = (sigfloat_t)(%s_%s_fromS(_m->%s));", sname, fdesc->DRVNAME.c_str(), sname,
-          sname));
+      fwriter->AppendLine(StrPrint("  _m->%s = (sigfloat_t)(%s_%s_fromS(_m->%s));",
+          sgs->msg.Signals[num].NameFloat.c_str(), fdesc->DRVNAME.c_str(), sname, sname));
       fwriter->AppendLine(StrPrint("#endif // %s", fdesc->usesigfloat_def.c_str()), 2);
     }
 
-    else if (!sgs->msg.Signals[num].IsSimpleSig)
-    {
-      // print unpack conversion for non-simple and non-double signals
-      // for this case conversion fromS is performed to signal itself
-      // without (sigfloat_t) type casting
-      fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usesigfloat_def.c_str()));
-      fwriter->AppendLine(StrPrint("  _m->%s = (%s_%s_fromS(_m->%s));", sname, fdesc->DRVNAME.c_str(), sname, sname));
-      fwriter->AppendLine(StrPrint("#endif // %s", fdesc->usesigfloat_def.c_str()), 2);
-    }
     else if (num + 1 == sgs->to_signals.size())
     {
       // last signal without phys part, put \n manually
@@ -604,9 +602,9 @@ void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExp
         if (sgs->msg.Signals[n].IsDoubleSig)
         {
           // print toS from *_phys to original named sigint (integer duplicate of signal)
-          fwriter->AppendLine(StrPrint("  _m->%s = %s_%s_toS(_m->%s_phys);",
+          fwriter->AppendLine(StrPrint("  _m->%s = %s_%s_toS(_m->%s);",
               sgs->msg.Signals[n].Name.c_str(), fdesc->DRVNAME.c_str(),
-              sgs->msg.Signals[n].Name.c_str(), sgs->msg.Signals[n].Name.c_str()));
+              sgs->msg.Signals[n].Name.c_str(), sgs->msg.Signals[n].NameFloat.c_str()));
         }
         else
         {
