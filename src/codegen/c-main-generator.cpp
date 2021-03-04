@@ -272,10 +272,17 @@ void CiMainGenerator::Gen_ConfigHeader()
   fwriter->AppendLine("   uncomment define below. */", 2);
   fwriter->AppendLine(StrPrint("// #define %s", fdesc->usesruct_def.c_str()), 3);
   fwriter->AppendLine("/* ----------------------------------------------------------------------------------- */");
-  fwriter->AppendLine("/* To enable phys values handling uncomment define below. It will:");
+  fwriter->AppendLine("/* All signal's names which have factor != 1 and offset != 0 will be added");
+  fwriter->AppendLine("   *_ro postfix, to pay attention in the clinet code, that these signals will be");
+  fwriter->AppendLine("   overwritten by *_phys value if definition below uncommented (!)");
+  fwriter->AppendLine("");
+  fwriter->AppendLine("    To enable phys values handling uncomment define below. It will:");
   fwriter->AppendLine("   - adds additional members to message struct with name extension *_phys");
-  fwriter->AppendLine("   which have user defined type @sigfloat_t (must be defined by user in");
+  fwriter->AppendLine("   which have either:");
+  fwriter->AppendLine("   1. user defined type @sigfloat_t (must be defined by user in");
   fwriter->AppendLine("   dbccodeconf.h)");
+  fwriter->AppendLine("   2. the same type as signal has (for the case when niether factor nor offset");
+  fwriter->AppendLine("   are not real based) ");
   fwriter->AppendLine("   - in unpack function these signal will be loaded by the converted ");
   fwriter->AppendLine("   value (with factor and offset)");
   fwriter->AppendLine("   - in pack function the CAN frame signal values will be loaded from");
@@ -284,7 +291,7 @@ void CiMainGenerator::Gen_ConfigHeader()
 
   fwriter->AppendLine("/* ----------------------------------------------------------------------------------- */");
   fwriter->AppendLine("/* To enable monitor functions uncomment define below.");
-  fwriter->AppendLine("/* (Note(!): the \"canmonitorutil.h\" must be accessed in include path):");
+  fwriter->AppendLine("   (Note(!) that the \"canmonitorutil.h\" must be accessed in include path):");
   fwriter->AppendLine("   It will:");
   fwriter->AppendLine("   - bring to message struct special monitor member @mon1 ");
   fwriter->AppendLine("   - calling function FMon_*** function inside unpack function ");
