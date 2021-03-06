@@ -501,8 +501,19 @@ void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
     if (!sgs->msg.Signals[num].IsSimpleSig)
     {
       fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usesigfloat_def.c_str()));
-      fwriter->AppendLine(StrPrint("  _m->%s = (sigfloat_t)(%s_%s_fromS(_m->%s));",
-          sgs->msg.Signals[num].NameFloat.c_str(), fdesc->DRVNAME.c_str(), sname, sname));
+
+      if (sgs->msg.Signals[num].IsDoubleSig)
+      {
+        // for double signals (sigfloat_t) type cast
+        fwriter->AppendLine(StrPrint("  _m->%s = (sigfloat_t)(%s_%s_fromS(_m->%s));",
+            sgs->msg.Signals[num].NameFloat.c_str(), fdesc->DRVNAME.c_str(), sname, sname));
+      }
+      else
+      {
+        fwriter->AppendLine(StrPrint("  _m->%s = %s_%s_fromS(_m->%s);",
+            sgs->msg.Signals[num].NameFloat.c_str(), fdesc->DRVNAME.c_str(), sname, sname));
+      }
+
       fwriter->AppendLine(StrPrint("#endif // %s", fdesc->usesigfloat_def.c_str()), 2);
     }
 
@@ -606,21 +617,10 @@ void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExp
     {
       if (sgs->msg.Signals[n].IsSimpleSig == false)
       {
-        if (sgs->msg.Signals[n].IsDoubleSig)
-        {
-          // print toS from *_phys to original named sigint (integer duplicate of signal)
-          fwriter->AppendLine(StrPrint("  _m->%s = %s_%s_toS(_m->%s);",
-              sgs->msg.Signals[n].Name.c_str(), fdesc->DRVNAME.c_str(),
-              sgs->msg.Signals[n].Name.c_str(), sgs->msg.Signals[n].NameFloat.c_str()));
-        }
-        else
-        {
-          // print toS from original named signal to itself (because this signal
-          // has enough space for scaling by factor and proper sign
-          fwriter->AppendLine(StrPrint("  _m->%s = %s_%s_toS(_m->%s);",
-              sgs->msg.Signals[n].Name.c_str(), fdesc->DRVNAME.c_str(),
-              sgs->msg.Signals[n].Name.c_str(), sgs->msg.Signals[n].Name.c_str()));
-        }
+        // print toS from *_phys to original named sigint (integer duplicate of signal)
+        fwriter->AppendLine(StrPrint("  _m->%s = %s_%s_toS(_m->%s);",
+            sgs->msg.Signals[n].Name.c_str(), fdesc->DRVNAME.c_str(),
+            sgs->msg.Signals[n].Name.c_str(), sgs->msg.Signals[n].NameFloat.c_str()));
       }
     }
 
