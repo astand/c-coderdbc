@@ -1,6 +1,7 @@
 #include "dbcscanner.h"
 #include <algorithm>
 #include <math.h>
+#include "../helpers/formatter.h"
 
 #define MAX_LINE 4096
 
@@ -67,7 +68,7 @@ void DbcScanner::ParseMessageInfo(istream& readstrm)
   {
     readstrm.getline(line, MAX_LINE);
 
-    sline = line;
+    sline = str_trim(line);
 
     // New message line has been found
     if (lparser.IsMessageLine(sline))
@@ -121,12 +122,7 @@ void DbcScanner::ParseOtherInfo(istream& readstrm)
   {
     readstrm.getline(line, MAX_LINE);
 
-    sline = line;
-
-    if (sline.size() > 0 && sline.back() < ' ')
-    {
-      sline.erase(sline.size() - 1, 1);
-    }
+    sline = str_trim(line);
 
     if (lparser.ParseCommentLine(&cmmnt, sline))
     {

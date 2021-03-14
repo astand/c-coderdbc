@@ -57,3 +57,31 @@ std::string str_tolower(std::string s)
   });
   return s;
 }
+
+std::string str_trim(std::string s)
+{
+  size_t passed = 0;
+
+  if (s.empty())
+    return s + '\n';
+
+  passed = 0;
+
+  while (passed < s.size())
+  {
+    if (s[s.size() - passed - 1] > ' ')
+    {
+      break;
+    }
+
+    ++passed;
+  }
+
+  if (passed != 0)
+  {
+    // remove tail with non-printable values
+    s.erase(s.size() - passed, passed);
+  }
+
+  return s;
+}
