@@ -207,7 +207,7 @@ bool DbcLineParser::ParseSignalLine(SignalDescriptor_t* sig, const std::string& 
     //  physical_value = raw_value * factor + offset
     //  raw_value = (physical_value - offset) / factor
     std::setlocale(LC_ALL, "en_US.UTF-8");
-    
+
     sig->Factor = atof(valpart[3].c_str());
     sig->Offset = atof(valpart[4].c_str());
 
@@ -526,6 +526,8 @@ bool DbcLineParser::ParseValTableLine(Comment_t* comm, const std::string& line)
         // value table params were parse successfully
         ret = true;
       }
+
+      valueline.clear();
     }
   }
 
