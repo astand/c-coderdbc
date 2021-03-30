@@ -546,7 +546,7 @@ void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
     // Put checksum check function call here
     fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usecsm_def.c_str()));
     fwriter->AppendLine(
-      StrPrint("  _m->mon1.csm_error = ((uint8_t)GetFrameHash(_d, %s_DLC, %s_CANID, %s, %d)) != (_m->%s))",
+      StrPrint("  _m->mon1.csm_error = (((uint8_t)GetFrameHash(_d, %s_DLC, %s_CANID, %s, %d)) != (_m->%s));",
         sgs->msg.Name.c_str(), sgs->msg.Name.c_str(), sgs->msg.CsmMethod.c_str(),
         sgs->msg.CsmOp, sgs->msg.CsmSig->Name.c_str()));
     fwriter->AppendLine(StrPrint("#endif // %s", fdesc->usecsm_def.c_str()), 2);
@@ -642,8 +642,8 @@ void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExp
     // code for getting checksum value and putting it in array
     fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usecsm_def.c_str()));
 
-    fwriter->AppendLine(StrPrint("  _m->%s = ((uint8_t)GetFrameHash(_d, %s_DLC, %s_CANID, %s, %d));",
-        sgs->msg.CsmSig->Name.c_str(), sgs->msg.Name.c_str(),
+    fwriter->AppendLine(StrPrint("  _m->%s = ((uint8_t)GetFrameHash(%s, %s_DLC, %s_CANID, %s, %d));",
+        sgs->msg.CsmSig->Name.c_str(), arrtxt.c_str(), sgs->msg.Name.c_str(),
         sgs->msg.Name.c_str(), sgs->msg.CsmMethod.c_str(), sgs->msg.CsmOp));
 
     fwriter->AppendLine(StrPrint("  %s[%d] = %s;", arrtxt.c_str(), sgs->msg.CsmByteNum, sgs->msg.CsmToByteExpr.c_str()));
