@@ -511,13 +511,13 @@ bool DbcLineParser::ParseValTableLine(Comment_t* comm, const std::string& line)
       // last item will be ';' and number of items will be even
       auto items = resplit(valueline, kRegValTable, 0);
 
-      if ((items.size() >= 5) && (items.back() == ";") && (items.size() % 2 == 0))
+      if ((items.size() >= 3) && (items.back() == ";") && (items.size() % 2 == 0))
       {
         comm->MsgId = (clear_msgid(atoi(items[1].c_str())));
         comm->SigName = items[2];
         comm->Text = "";
 
-        for (size_t valpair = 5; valpair < (items.size() - 1); valpair += 2)
+        for (size_t valpair = 3; valpair < (items.size() - 1); valpair += 2)
         {
           comm->Text += " " + items[valpair + 0] + " : ";
           comm->Text += items[valpair + 1] + '\n';
