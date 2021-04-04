@@ -50,6 +50,13 @@ void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const Fs
 
 void CiMainGenerator::Gen_MainHeader()
 {
+  // write comment start text
+  if (fdesc->start_info.size() > 0)
+  {
+    // replace all '\n' on "\n //" for c code comment text
+    fwriter->AppendLine("// " + std::regex_replace(fdesc->start_info, std::regex("\n"), "\n// "));
+  }
+
   fwriter->AppendLine("#pragma once", 2);
   fwriter->AppendLine("#ifdef __cplusplus\nextern \"C\" {\n#endif", 2);
   fwriter->AppendLine("#include <stdint.h>", 2);
@@ -196,6 +203,12 @@ void CiMainGenerator::Gen_MainHeader()
 
 void CiMainGenerator::Gen_MainSource()
 {
+  if (fdesc->start_info.size() > 0)
+  {
+    // replace all '\n' on "\n //" for c code comment text
+    fwriter->AppendLine("// " + std::regex_replace(fdesc->start_info, std::regex("\n"), "\n// "));
+  }
+
   // include main header file
   fwriter->AppendLine(StrPrint("#include \"%s\"", fdesc->core_h.fname.c_str()), 3);
 
@@ -257,6 +270,12 @@ void CiMainGenerator::Gen_MainSource()
 
 void CiMainGenerator::Gen_ConfigHeader()
 {
+  if (fdesc->start_info.size() > 0)
+  {
+    // replace all '\n' on "\n //" for c code comment text
+    fwriter->AppendLine("// " + std::regex_replace(fdesc->start_info, std::regex("\n"), "\n// "));
+  }
+
   fwriter->AppendLine("#pragma once", 2);
 
   fwriter->AppendLine("/* include common dbccode configurations */");
@@ -331,6 +350,12 @@ void CiMainGenerator::Gen_ConfigHeader()
 
 void CiMainGenerator::Gen_FMonHeader()
 {
+  if (fdesc->start_info.size() > 0)
+  {
+    // replace all '\n' on "\n //" for c code comment text
+    fwriter->AppendLine("// " + std::regex_replace(fdesc->start_info, std::regex("\n"), "\n// "));
+  }
+
   fwriter->AppendLine("#pragma once", 2);
 
   fwriter->AppendLine("#ifdef __cplusplus\nextern \"C\" {\n#endif", 2);
@@ -363,6 +388,12 @@ separated .c file. If it won't be done the linkage error will happen\n*/", 2);
 
 void CiMainGenerator::Gen_FMonSource()
 {
+  if (fdesc->start_info.size() > 0)
+  {
+    // replace all '\n' on "\n //" for c code comment text
+    fwriter->AppendLine("// " + std::regex_replace(fdesc->start_info, std::regex("\n"), "\n// "));
+  }
+
   fwriter->AppendLine(StrPrint("#include \"%s\"", fdesc->fmon_h.fname.c_str()), 2);
   // put diagmonitor ifdef selection for including @drv-fmon header
 // with FMon_* signatures to call from unpack function
@@ -376,7 +407,7 @@ next generation will completely clear all manually added code (!)\n\
   for (size_t num = 0; num < sigprt->sigs_expr.size(); num++)
   {
     auto msg = &(sigprt->sigs_expr[num]->msg);
-    fwriter->AppendLine(StrPrint("void FMon_%s_%s(FrameMonitor_t* _mon)\n{\n}\n",
+    fwriter->AppendLine(StrPrint("void FMon_%s_%s(FrameMonitor_t* _mon)\n{\n  (void)_mon;\n}\n",
         msg->Name.c_str(), fdesc->drvname.c_str()));
   }
 

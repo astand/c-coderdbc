@@ -1,6 +1,7 @@
 #include "c-util-generator.h"
 #include "helpers/formatter.h"
 #include <algorithm>
+#include <regex>
 
 static const std::string openguard = "#ifdef __cplusplus\n\
 extern \"C\" {\n\
@@ -96,6 +97,11 @@ void CiUtilGenerator::PrintHeader()
 {
   tof->Flush();
 
+  if (fdesc->start_info.size() > 0)
+  {
+    tof->AppendLine("// " + std::regex_replace(fdesc->start_info, std::regex("\n"), "\n// "));
+  }
+
   tof->AppendLine("#pragma once", 2);
 
   tof->AppendLine(openguard.c_str(), 2);
@@ -171,6 +177,11 @@ void CiUtilGenerator::PrintHeader()
 
 void CiUtilGenerator::PrintSource()
 {
+  if (fdesc->start_info.size() > 0)
+  {
+    tof->AppendLine("// " + std::regex_replace(fdesc->start_info, std::regex("\n"), "\n// "));
+  }
+
   tof->AppendLine(StrPrint("#include \"%s\"", fdesc->util_h.fname.c_str()), 2);
 
   // optional RX and TX struct allocations

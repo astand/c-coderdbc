@@ -28,6 +28,8 @@ typedef struct
   std::string usesigfloat_def;
   std::string useroll_def;
   std::string usecsm_def;
+  // inforamtion to be placed at the start of each source file
+  std::string start_info;
 
 } FsDescriptor_t;
 
@@ -40,7 +42,7 @@ class FsCreator {
  public:
   FsCreator();
 
-  bool PrepareDirectory(std::string drvname, std::string basepath, bool rw);
+  bool PrepareDirectory(std::string drvname, std::string basepath, bool rw, std::string& info);
 
   FsDescriptor_t FS;
 
