@@ -20,7 +20,7 @@ class CiUtilGenerator {
   // - function to Unpack incoming frame to dedicated RX message struct field
   // - optional (through define in global "dbccodeconf.h") variable allocation in source files
   //
-  void Generate(std::vector<MessageDescriptor_t*>& msgs, const FsDescriptor_t& fsd,
+  void Generate(DbcMessageList_t& dlist, const FsDescriptor_t& fsd,
     const MsgsClassification& groups, const std::string& drvname);
 
  private:
@@ -43,6 +43,7 @@ class CiUtilGenerator {
 
   const FsDescriptor_t* fdesc;
   ConditionalTree* condtree;
+  const DbcMessageList_t* p_dlist;
 
   bool treestarted;
 };

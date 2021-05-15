@@ -27,16 +27,18 @@ void CiUtilGenerator::Clear()
 }
 
 
-void CiUtilGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const FsDescriptor_t& fsd,
+void CiUtilGenerator::Generate(DbcMessageList_t& dlist, const FsDescriptor_t& fsd,
   const MsgsClassification& groups, const std::string& drvname)
 {
   Clear();
+
+  p_dlist = &dlist;
 
   code_drvname = drvname;
   file_drvname = str_tolower(drvname);
 
   // 1 step is to prepare vectors of message's groups
-  for (auto m : msgs)
+  for (auto m : dlist.msgs)
   {
     auto v = std::find_if(groups.Both.begin(), groups.Both.end(), [&](const uint32_t& msgid)
     {
@@ -108,8 +110,15 @@ void CiUtilGenerator::PrintHeader()
 
   // include common dbc code config header
   tof->AppendLine("#include \"dbccodeconf.h\"", 2);
+
   // include c-main driver header
   tof->AppendLine(StrPrint("#include \"%s.h\"", file_drvname.c_str()), 2);
+
+  // put version info macros
+  tof->AppendLine("// This version definition comes from main driver version and");
+  tof->AppendLine("// can be compared in user code space for strict compatibility test");
+  tof->AppendLine(StrPrint("#define %s (%uU)", fdesc->verhigh_def.c_str(), p_dlist->ver.hi));
+  tof->AppendLine(StrPrint("#define %s (%uU)", fdesc->verlow_def.c_str(), p_dlist->ver.low), 2);
 
   if (rx.size() == 0)
   {
@@ -238,7 +247,6 @@ ConditionalTree_t* CiUtilGenerator::FillTreeLevel(std::vector<MessageDescriptor_
 {
   int32_t span = h - l;
   int32_t lowhalf = span / 2;
-  int32_t highhalf = span - lowhalf;
 
   treestarted = started;
 

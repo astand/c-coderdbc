@@ -28,6 +28,11 @@ typedef struct
   std::string usesigfloat_def;
   std::string useroll_def;
   std::string usecsm_def;
+
+  // for dbc version info
+  std::string verhigh_def;
+  std::string verlow_def;
+
   // inforamtion to be placed at the start of each source file
   std::string start_info;
 

@@ -185,7 +185,7 @@ std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig, std::vec
   if (startb > 63)
     startb = 63;
 
-  int32_t bn = startb / 8;
+  uint32_t bn = (startb / 8);
 
   if (to_bytes.size() < bn)
   {

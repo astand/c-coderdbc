@@ -152,3 +152,14 @@ typedef struct
 
 } MsgsClassification;
 
+typedef struct
+{
+  uint32_t hi;
+  uint32_t low;
+} DbcFileVersion_t;
+
+typedef struct
+{
+  std::vector<MessageDescriptor_t*> msgs;
+  DbcFileVersion_t ver;
+} DbcMessageList_t;

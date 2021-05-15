@@ -1,4 +1,5 @@
 #include "dbcscanner.h"
+#include <cstring>
 #include <algorithm>
 #include <math.h>
 #include "../helpers/formatter.h"
@@ -36,7 +37,8 @@ DbcScanner::~DbcScanner()
 
 int32_t DbcScanner::TrimDbcText(istream& readstrm)
 {
-  msgs.clear();
+  dblist.msgs.clear();
+  dblist.ver.hi = dblist.ver.low = 0;
 
   readstrm.clear();
   readstrm.seekg(0);
@@ -69,6 +71,8 @@ void DbcScanner::ParseMessageInfo(istream& readstrm)
     readstrm.getline(line, MAX_LINE);
 
     sline = str_trim(line);
+
+    FindVersion(sline);
 
     // New message line has been found
     if (lparser.IsMessageLine(sline))
@@ -127,7 +131,7 @@ void DbcScanner::ParseOtherInfo(istream& readstrm)
     if (lparser.ParseCommentLine(&cmmnt, sline))
     {
       // update message comment field
-      auto msg = find_message(msgs, cmmnt.MsgId);
+      auto msg = find_message(dblist.msgs, cmmnt.MsgId);
 
       if (msg != nullptr)
       {
@@ -194,7 +198,7 @@ void DbcScanner::ParseOtherInfo(istream& readstrm)
     if (lparser.ParseValTableLine(&cmmnt, sline))
     {
       // update message comment field
-      auto msg = find_message(msgs, cmmnt.MsgId);
+      auto msg = find_message(dblist.msgs, cmmnt.MsgId);
 
       if (msg != nullptr)
       {
@@ -220,7 +224,7 @@ void DbcScanner::ParseOtherInfo(istream& readstrm)
 
     if (lparser.ParseAttributeLine(&attr, sline))
     {
-      auto msg = find_message(msgs, attr.MsgId);
+      auto msg = find_message(dblist.msgs, attr.MsgId);
 
       if (msg != nullptr)
       {
@@ -264,7 +268,7 @@ void DbcScanner::AddMessage(MessageDescriptor_t* message)
     }
 
     // save pointer on message
-    msgs.push_back(message);
+    dblist.msgs.push_back(message);
   }
 }
 
@@ -286,4 +290,24 @@ void DbcScanner::SetDefualtMessage(MessageDescriptor_t* message)
   message->CsmMethod = "";
   message->CsmOp = 0;
   message->CsmToByteExpr = "";
+}
+
+
+void DbcScanner::FindVersion(const std::string& instr)
+{
+  // try to find version string which looks like: VERSION "x.x"
+  uint32_t h = 0, l = 0;
+  char marker[8];
+
+  if (instr[0] != 'V' && instr[1] != 'E')
+    return;
+
+  int32_t ret = std::sscanf(instr.c_str(), "%8s \"%u.%u\"", marker, &h, &l);
+
+  if ((ret == 3) && (std::strcmp(marker, "VERSION") == 0))
+  {
+    // versions have been found, save numeric values
+    dblist.ver.hi = h;
+    dblist.ver.low = l;
+  }
 }

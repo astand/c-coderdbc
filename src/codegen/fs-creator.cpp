@@ -97,6 +97,12 @@ bool FsCreator::PrepareDirectory(std::string drvname, std::string basepath, bool
     snprintf(_tmpb, kTmpLen, "%s_AUTO_CSM", FS.DRVNAME.c_str());
     FS.usecsm_def = _tmpb;
 
+    snprintf(_tmpb, kTmpLen, "VER_%s_MAJ", FS.DRVNAME.c_str());
+    FS.verhigh_def = _tmpb;
+
+    snprintf(_tmpb, kTmpLen, "VER_%s_MIN", FS.DRVNAME.c_str());
+    FS.verlow_def = _tmpb;
+
     // load start info to fdescriptor
     FS.start_info.clear();
 

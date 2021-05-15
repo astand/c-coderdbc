@@ -17,10 +17,11 @@ CiMainGenerator::CiMainGenerator()
   fwriter = new FileWriter;
 }
 
-void CiMainGenerator::Generate(std::vector<MessageDescriptor_t*>& msgs, const FsDescriptor_t& fsd)
+void CiMainGenerator::Generate(DbcMessageList_t& dlist, const FsDescriptor_t& fsd)
 {
+  p_dlist = &dlist;
   // Load income messages to sig printer
-  sigprt->LoadMessages(msgs);
+  sigprt->LoadMessages(dlist.msgs);
 
   // save pointer to output file descriptor struct to
   // enable using this information inside class member functions
@@ -60,6 +61,10 @@ void CiMainGenerator::Gen_MainHeader()
   fwriter->AppendLine("#pragma once", 2);
   fwriter->AppendLine("#ifdef __cplusplus\nextern \"C\" {\n#endif", 2);
   fwriter->AppendLine("#include <stdint.h>", 2);
+
+  fwriter->AppendLine("// DBC file version");
+  fwriter->AppendLine(StrPrint("#define %s (%uU)", fdesc->verhigh_def.c_str(), p_dlist->ver.hi));
+  fwriter->AppendLine(StrPrint("#define %s (%uU)", fdesc->verlow_def.c_str(), p_dlist->ver.low), 2);
 
   fwriter->AppendLine("// include current dbc-driver compilation config");
   fwriter->AppendLine(StrPrint("#include \"%s-config.h\"", fdesc->drvname.c_str()), 2);
@@ -359,6 +364,10 @@ void CiMainGenerator::Gen_FMonHeader()
   fwriter->AppendLine("#pragma once", 2);
 
   fwriter->AppendLine("#ifdef __cplusplus\nextern \"C\" {\n#endif", 2);
+
+  fwriter->AppendLine("// DBC file version");
+  fwriter->AppendLine(StrPrint("#define %s_FMON (%uU)", fdesc->verhigh_def.c_str(), p_dlist->ver.hi));
+  fwriter->AppendLine(StrPrint("#define %s_FMON (%uU)", fdesc->verlow_def.c_str(), p_dlist->ver.low), 2);
 
   fwriter->AppendLine(StrPrint("#include \"%s-config.h\"", fdesc->drvname.c_str()), 2);
 

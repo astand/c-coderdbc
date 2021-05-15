@@ -13,7 +13,7 @@ class DbcScanner {
   DbcScanner();
   ~DbcScanner();
 
-  std::vector<MessageDescriptor_t*> msgs;
+  DbcMessageList_t dblist;
 
   // Trim makes dbc source data analyze and returns count of
   // found CAN messages.
@@ -23,10 +23,9 @@ class DbcScanner {
 
   void ParseMessageInfo(istream& instrm);
   void ParseOtherInfo(istream& instrm);
-
   void AddMessage(MessageDescriptor_t* message);
-
   void SetDefualtMessage(MessageDescriptor_t* message);
+  void FindVersion(const std::string& instr);
 
  private:
 
