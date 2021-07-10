@@ -1,4 +1,5 @@
 #include "dbclineparser.h"
+#include <clocale>
 #include <regex>
 #include <math.h>
 #include <limits.h>
