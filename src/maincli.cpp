@@ -9,6 +9,15 @@
 
 #define GEN_UTIL_CODE
 
+const char* helptext =
+  "welcome to dbccoder v1.1.\n\n"
+  "author: Andrey Astakhov (https://github.com/astand)\n\n"
+  "to use utility you need to provide 3 arguments:\n\n"
+  "1. dbc file path\n"
+  "2. directory for generated source codegen\n"
+  "3. prefix (driver name) which will be used in driver elements naming\n\n"
+  "Example: ./dbccoder /home/user/docs/driveshaft.dbc /home/user/docs/gen/ drivedb\n\n";
+
 DbcScanner* scanner;
 CiMainGenerator* cigen;
 CiUtilGenerator* ciugen;
@@ -25,12 +34,7 @@ int main(int argc, char* argv[])
   ciugen = new CiUtilGenerator;
   fscreator = new FsCreator;
 
-  bool numberLines = false;    // Default is no line numbers.
-
   if (argc == 4)
-    numberLines = true;
-
-  if (numberLines)
   {
     std::ifstream reader;
     // copy dbc file name to string variable
@@ -69,10 +73,7 @@ int main(int argc, char* argv[])
 
 #if defined (GEN_UTIL_CODE)
 
-
-    // test utility generation
-
-    ret = fscreator->PrepareDirectory(dbc_driver_name.c_str() , (source_files_out_path).c_str(), true, info);
+    ret = fscreator->PrepareDirectory(dbc_driver_name.c_str(), (source_files_out_path).c_str(), true, info);
 
     MsgsClassification groups;
 
@@ -91,8 +92,6 @@ int main(int argc, char* argv[])
   }
   else
   {
-    std::cout << "Argument list is bad." << std::endl;
+    std::cout << helptext;
   }
-
-  std::cout << "Finished... Press any key." << std::endl;
 }
