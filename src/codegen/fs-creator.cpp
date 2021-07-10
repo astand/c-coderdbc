@@ -11,7 +11,7 @@ FsCreator::FsCreator()
 {
 }
 
-bool FsCreator::PrepareDirectory(std::string drvname, std::string basepath, bool, std::string& strinfo)
+bool FsCreator::PrepareDirectory(std::string drvname, std::string basepath, bool rw, std::string& strinfo)
 {
   bool ret = false;
 
@@ -20,30 +20,47 @@ bool FsCreator::PrepareDirectory(std::string drvname, std::string basepath, bool
 
   std::string work_dir_path;
 
-  for (int32_t dirnum = 0; dirnum < 1000; dirnum++)
+  if (rw)
   {
-    snprintf(_tmpb, kTmpLen, "%03d", dirnum);
-    work_dir_path = basepath + "/" + _tmpb;
+    work_dir_path = basepath;
+    ret = true;
 
+    // for this case check only if directory exists
     if (stat(work_dir_path.c_str(), &info) != 0)
-    {
-      if (std::filesystem::create_directory(work_dir_path))
-      {
-        ret = true;
-        break;
-      }
-    }
-    else if (info.st_mode & S_IFDIR)
-    {
-      // directory exists, try next num
-      continue;
-    }
-    else
     {
       if (std::filesystem::create_directory(work_dir_path) != 0)
       {
         ret = false;
-        break;
+      }
+    }
+  }
+  else
+  {
+    for (int32_t dirnum = 0; dirnum < 1000; dirnum++)
+    {
+      snprintf(_tmpb, kTmpLen, "%03d", dirnum);
+      work_dir_path = basepath + "/" + _tmpb;
+
+      if (stat(work_dir_path.c_str(), &info) != 0)
+      {
+        if (std::filesystem::create_directory(work_dir_path))
+        {
+          ret = true;
+          break;
+        }
+      }
+      else if (info.st_mode & S_IFDIR)
+      {
+        // directory exists, try next num
+        continue;
+      }
+      else
+      {
+        if (std::filesystem::create_directory(work_dir_path) != 0)
+        {
+          ret = false;
+          break;
+        }
       }
     }
   }
