@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(dbccoder-cli LANGUAGES CXX)
+project(coderdbc-cli LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_executable(dbccoder
+add_executable(coderdbc
     ${CMAKE_CURRENT_SOURCE_DIR}/codegen/c-main-generator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/codegen/c-util-generator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/codegen/conditional-tree.cpp
