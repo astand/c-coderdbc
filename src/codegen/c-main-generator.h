@@ -20,6 +20,8 @@ class CiMainGenerator {
   void Gen_ConfigHeader();
   void Gen_FMonHeader();
   void Gen_FMonSource();
+  void Gen_CanMonUtil();
+  void Gen_DbcCodeConf();
 
   void WriteSigStructField(const SignalDescriptor_t& sig, bool bitfield, size_t pad);
 
