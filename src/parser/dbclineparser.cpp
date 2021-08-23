@@ -117,7 +117,7 @@ bool DbcLineParser::ParseMessageLine(MessageDescriptor_t* msg, const std::string
 
   msg->Name = items[2];
 
-  msg->MsgID = static_cast<uint32_t>(atoi(items[1].c_str()));
+  msg->MsgID = static_cast<uint32_t>(_atoi64(items[1].c_str()));
 
   msg->DLC = atoi(items[4].c_str());
 
