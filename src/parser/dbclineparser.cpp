@@ -186,8 +186,8 @@ bool DbcLineParser::ParseSignalLine(SignalDescriptor_t* sig, const std::string& 
   }
   else
   {
-    sig->StartBit = atoi(valpart[0].c_str());
-    sig->LengthBit = atoi(valpart[1].c_str());
+    sig->StartBit = _atoi64(valpart[0].c_str());
+    sig->LengthBit = _atoi64(valpart[1].c_str());
 
     // get info about factor or offset double nature
     sig->IsDoubleSig = false;
@@ -514,9 +514,11 @@ bool DbcLineParser::ParseValTableLine(Comment_t* comm, const std::string& line)
 
       if ((items.size() >= 3) && (items.back() == ";") && (items.size() % 2 == 0))
       {
-        comm->MsgId = (clear_msgid(atoi(items[1].c_str())));
+        comm->MsgId = (clear_msgid(_atoi64(items[1].c_str())));
         comm->SigName = items[2];
         comm->Text = "";
+        comm->ca_target = CommentTarget::Signal;
+
 
         for (size_t valpair = 3; valpair < (items.size() - 1); valpair += 2)
         {
