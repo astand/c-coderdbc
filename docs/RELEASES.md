@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v1.5 - 2021-08-26
+### Fixed
+- Fixed 'atoi' with Extended ID on Windows OS ([@shevu](https://github.com/shevu))
+- Fixed issue with parsing value table values ([@shevu](https://github.com/shevu))
+- Fixed issue with frames where signals goes out of DLC range
+
+
 ## v1.4 - 2021-07-13
 ### Fixed
 - Removed default into "this is test"

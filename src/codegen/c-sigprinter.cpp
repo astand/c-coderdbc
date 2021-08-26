@@ -187,7 +187,7 @@ std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig, std::vec
 
   uint32_t bn = (startb / 8);
 
-  if (to_bytes.size() < bn)
+  if (to_bytes.size() <= bn)
   {
     // DLC from message doesn't fit to signal layout
     // make code uncomplilable
