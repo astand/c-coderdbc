@@ -263,8 +263,8 @@ ConditionalTree_t* CiUtilGenerator::FillTreeLevel(std::vector<MessageDescriptor_
     auto msg = list[l];
     ret->ConditionExpresion = StrPrint("_id == 0x%XU", msg->MsgID);
     ret->High = new ConditionalTree_t;
-    ret->Type = ConditionalType::Express;
-    ret->UtilCodeBody = StrPrint("recid = Unpack_%s_%s(&(_m->%s), _d, dlc_);",
+    ret->High->Type = ConditionalType::Single;
+    ret->High->UtilCodeBody = StrPrint("recid = Unpack_%s_%s(&(_m->%s), _d, dlc_);",
         msg->Name.c_str(), code_drvname.c_str(), msg->Name.c_str());
     return ret;
   }
