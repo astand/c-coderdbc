@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v1.7 2021-10-10
+### Fixed
+- Potential issue when node is only Receiver (presumably will be skipped in node-util struct)
+
+### Added
+- Support multiple transmitters on single frame (for --node-utils generation variant)
+
 ## v1.6 2021-09-09
 ### Added
 - 4th CLI param '--node-utils' for generation pairs of binutil for each 
