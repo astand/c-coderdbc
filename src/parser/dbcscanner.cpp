@@ -108,7 +108,37 @@ void DbcScanner::ParseMessageInfo(istream& readstrm)
         pMsg->Signals.push_back(sig);
 
         if (sig.IsDoubleSig || sig.IsSimpleSig != true)
+        {
           pMsg->hasPhys = true;
+        }
+      }
+    }
+
+    std::vector<std::string> tx_nodes;
+    tx_nodes.clear();
+
+    uint32_t msgid = lparser.ParseMultiTrans(tx_nodes, sline);
+
+    if (msgid != 0)
+    {
+      // In this place no messages will captured after,
+      // so put temp pMsg as last message and null it
+      AddMessage(pMsg);
+      pMsg = nullptr;
+
+      // Multi TXs line detected, expand information
+      auto msg = find_message(dblist.msgs, msgid);
+
+      if (msg != nullptr)
+      {
+        for (size_t i = 0; i < tx_nodes.size(); i++)
+        {
+          if (std::find(msg->TranS.begin(), msg->TranS.end(), tx_nodes[i]) == msg->TranS.end())
+          {
+            // add another one RX node
+            msg->TranS.push_back(tx_nodes[i]);
+          }
+        }
       }
     }
   }
@@ -287,7 +317,7 @@ void DbcScanner::SetDefualtMessage(MessageDescriptor_t* message)
   message->Name = "";
   message->RecS.clear();
   message->Signals.clear();
-  message->Transmitter = "";
+  message->TranS.clear();
   message->hasPhys = false;
   message->RollSig = nullptr;
   message->CsmSig = nullptr;

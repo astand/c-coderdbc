@@ -108,7 +108,7 @@ typedef struct
   uint32_t Cycle;
 
   // Name of transmitter ECU
-  std::string Transmitter;
+  std::vector<std::string> TranS;
 
   // List of ECUs to receive frame
   std::vector<std::string> RecS;

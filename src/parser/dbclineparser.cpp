@@ -20,6 +20,7 @@ static const std::string kRegCommMeta = "[ ]+";
 
 // This reg splits line to parts (for attributes)
 static const std::string kRegAttrMain = "[^A-Za-z0-9_\\.]+";
+static const std::string kTransmittersList = "[^a-zA-Z_0-9]+";
 
 // Regex template to split string by spaces BUT NOT what inside quotes OR apostrophes
 // [^\s"']+|"([^"]*)"|'([^']*)'
@@ -117,7 +118,12 @@ bool DbcLineParser::ParseMessageLine(MessageDescriptor_t* msg, const std::string
     return false;
   }
 
-  msg->Transmitter = (items.size() >= 6) ? (items[5]) : ("");
+  std::string txname = (items.size() >= 6) ? (items[5]) : ("");
+
+  if (txname.size() > 1)
+  {
+    msg->TranS.push_back(txname);
+  }
 
   msg->Name = items[2];
 
@@ -136,6 +142,29 @@ bool DbcLineParser::ParseMessageLine(MessageDescriptor_t* msg, const std::string
 
   return true;
 }
+
+uint32_t DbcLineParser::ParseMultiTrans(std::vector<std::string>& outnodes, std::string& line)
+{
+  uint32_t ret = 0;
+
+  auto chunks = resplit(line, kTransmittersList, -1);
+
+  if (chunks.size() >= 3 && chunks[0] == "BO_TX_BU_")
+  {
+    ret = clear_msgid(atoll(chunks[1].c_str()));
+
+    if (ret != 0)
+    {
+      for (size_t i = 2; i < chunks.size(); i++)
+      {
+        outnodes.push_back(chunks[i]);
+      }
+    }
+  }
+
+  return ret;
+}
+
 
 bool DbcLineParser::IsSignalLine(const std::string& line)
 {

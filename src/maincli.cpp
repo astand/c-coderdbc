@@ -98,13 +98,15 @@ int main(int argc, char* argv[])
         // iterate all messages and collect All nodes assign to at least one message
         auto m = scanner->dblist.msgs[num];
 
-        // test transmitter
-        std::string nodename = m->Transmitter;
-        bool found = (std::find(nodes.begin(), nodes.end(), nodename) != nodes.end());
-
-        if (!found)
+        for (size_t txs = 0; txs < m->TranS.size(); txs++)
         {
-          nodes.push_back(nodename);
+          std::string tx_node_name = m->TranS[txs];
+
+          if (std::find(nodes.begin(), nodes.end(), tx_node_name) == nodes.end())
+          {
+            // New node name. put it in the node collection
+            nodes.push_back(tx_node_name);
+          }
         }
 
         for (size_t recs = 0; recs < m->RecS.size(); recs++)
@@ -133,18 +135,20 @@ int main(int argc, char* argv[])
         {
           auto m = scanner->dblist.msgs[i];
 
-          if (m->Transmitter.compare(nodes[node]) == 0)
+          bool found = (std::find(m->TranS.begin(), m->TranS.end(), nodes[node]) != m->TranS.end());
+
+          if (found)
           {
+            // Message is in Tx array of current node
             groups.Tx.push_back(m->MsgID);
           }
-          else
-          {
-            bool found = (std::find(m->RecS.begin(), m->RecS.end(), nodes[node]) != m->RecS.end());
 
-            if (found)
-            {
-              groups.Rx.push_back(m->MsgID);
-            }
+          found = (std::find(m->RecS.begin(), m->RecS.end(), nodes[node]) != m->RecS.end());
+
+          if (found)
+          {
+            // Message is in Rx array of current node
+            groups.Rx.push_back(m->MsgID);
           }
         }
 

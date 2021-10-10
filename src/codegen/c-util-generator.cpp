@@ -61,7 +61,6 @@ void CiUtilGenerator::Generate(DbcMessageList_t& dlist, const FsDescriptor_t& fs
     if (v != std::end(groups.Rx))
     {
       rx.push_back(m);
-      continue;
     }
 
     v = std::find_if(groups.Tx.begin(), groups.Tx.end(), [&](const uint32_t& msgid)
@@ -72,7 +71,6 @@ void CiUtilGenerator::Generate(DbcMessageList_t& dlist, const FsDescriptor_t& fs
     if (v != std::end(groups.Tx))
     {
       tx.push_back(m);
-      continue;
     }
   }
 

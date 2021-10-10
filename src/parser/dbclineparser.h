@@ -68,6 +68,15 @@ class DbcLineParser {
   // and load result to attr ValueStr, return true if parsed ok
   bool ParseValTableLine(Comment_t* cm, const std::string& line);
 
+  /**
+   * @brief tries to find string with information about frame which has
+   * multiple TX nodes
+   * @param outnodes vector to load names of TX nodes
+   * @param str line to parse from DBC file
+   * @retval MsgId if parsed successfully or zero
+   */
+  uint32_t ParseMultiTrans(std::vector<std::string>& outnodes, std::string& str);
+
  private:
   // defines the type for the message struct member
   SigType GetSigType(SignalDescriptor_t* sig);
