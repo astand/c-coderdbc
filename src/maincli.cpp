@@ -109,12 +109,13 @@ int main(int argc, char* argv[])
 
         for (size_t recs = 0; recs < m->RecS.size(); recs++)
         {
-          // test all recs
-          found = (std::find(nodes.begin(), nodes.end(), nodename) != nodes.end());
+          std::string rx_node_name = m->RecS[recs];
 
-          if (!found)
+          // test all recs
+          if (std::find(nodes.begin(), nodes.end(), rx_node_name) == nodes.end())
           {
-            nodes.push_back(nodename);
+            // New node name, put it in the node collection
+            nodes.push_back(rx_node_name);
           }
         }
       }
