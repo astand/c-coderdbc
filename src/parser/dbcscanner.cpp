@@ -13,15 +13,19 @@ MessageDescriptor_t* find_message(vector<MessageDescriptor_t*> msgs, uint32_t ID
   MessageDescriptor_t* ret = nullptr;
 
   if (msgs.size() == 0)
+  {
     return ret;
+  }
 
   for (size_t i = 0; i < msgs.size(); i++)
   {
     ret = msgs[i];
 
     if (ret->MsgID == ID)
+    {
       // Frame found
       break;
+    }
   }
 
   return ret;
@@ -300,7 +304,9 @@ void DbcScanner::FindVersion(const std::string& instr)
   char marker[9];
 
   if (instr[0] != 'V' && instr[1] != 'E')
+  {
     return;
+  }
 
   int32_t ret = std::sscanf(instr.c_str(), "%8s \"%u.%u\"", marker, &h, &l);
 

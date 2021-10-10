@@ -100,7 +100,9 @@ DbcLineParser::DbcLineParser()
 bool DbcLineParser::IsMessageLine(const std::string& line)
 {
   if (line.find(MessageLineStart) == 0)
+  {
     return true;
+  }
 
   return false;
 }
@@ -111,7 +113,9 @@ bool DbcLineParser::ParseMessageLine(MessageDescriptor_t* msg, const std::string
   auto items = resplit(line, regMessage, -1);
 
   if (items.size() < 5)
+  {
     return false;
+  }
 
   msg->Transmitter = (items.size() >= 6) ? (items[5]) : ("");
 
@@ -146,7 +150,9 @@ bool DbcLineParser::ParseSignalLine(SignalDescriptor_t* sig, const std::string& 
   auto halfs = resplit(line, kRegSigSplit1, -1);
 
   if (halfs.size() < 2)
+  {
     return false;
+  }
 
   // split tail
   auto tailpart = resplit(halfs[1], kregSigSplit2, -1);
