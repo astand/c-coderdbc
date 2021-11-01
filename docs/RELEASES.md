@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v1.7 2021-11-01
+### Fixed
+- Issue #6. Incorrect checksum signal assigning.
+
+
 ## v1.7 2021-10-10
 ### Fixed
 - Potential issue when node is only Receiver (presumably will be skipped in node-util struct)
