@@ -229,7 +229,7 @@ void CiMainGenerator::Gen_MainSource()
 
   fwriter->AppendText(
     "// Function prototypes to be called each time CAN frame is unpacked\n"
-    "// FMon function may detect RC, CRC or DLC violation \n");
+    "// FMon function may detect RC, CRC or DLC violation\n");
 
   fwriter->AppendLine(StrPrint("#include \"%s-fmon.h\"", fdesc->drvname.c_str()), 2);
 
@@ -387,7 +387,7 @@ void CiMainGenerator::Gen_ConfigHeader()
   fwriter->AppendLine("  and loaded to payload");
   fwriter->AppendLine("");
   fwriter->AppendLine("  In unpack function checksum signal is checked with calculated.");
-  fwriter->AppendLine("  (result may be tested in dedicated Fmon_*** function).");
+  fwriter->AppendLine("  (result may be tested in dedicated Fmon_*** function). */");
   fwriter->AppendLine("");
   fwriter->AppendLine(StrPrint("/* #define %s */", fdesc->usecsm_def.c_str()), 2);
 
@@ -728,7 +728,7 @@ void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
 
   fwriter->AppendLine(StrPrint("#endif // %s", fdesc->usemon_def.c_str()), 2);
 
-  fwriter->AppendLine(StrPrint(" return %s_CANID;", sgs->msg.Name.c_str()));
+  fwriter->AppendLine(StrPrint("  return %s_CANID;", sgs->msg.Name.c_str()));
 }
 
 void CiMainGenerator::WritePackStructBody(const CiExpr_t* sgs)
