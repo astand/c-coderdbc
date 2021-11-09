@@ -44,8 +44,9 @@
       
      ecudb.c / ecudb.h                             (1) RO / lib
 
-    Main driver which has all dbc frames structs / pack functions / unpack functions these source
-    files preferably to place in lib level directory because they are RO using model and can be 
+    Main driver which has all dbc frames structs / pack functions / unpack functions these 
+    source files preferably to place in lib level directory because they are RO using model
+    and can be 
     shared among few separated projects.
 
       ecudb-fmon.h                                 (2) RO / lib
@@ -88,7 +89,7 @@
 
   ## "--node-utils" option
 
-    If your matrix has strict routing setup, where each CAN device (node) has defined collection 
-    of TX frames as well as defined collection of RX frames the "--node-utils" option may be used.
-    In this mode all the nodes defined in CAN matrix will be handled as specific ECU and 
-    for each of these specific ECUs dedicated "***-binutil.c/h" pair of source code will be generated
+  If your matrix has strict routing setup, where each CAN device (node) has defined collection 
+  of TX frames as well as defined collection of RX frames the "--node-utils" option may be used.
+  In this mode all the nodes defined in CAN matrix will be handled as specific ECU and 
+  for each of these specific ECUs dedicated "***-binutil.c/h" pair of source code will be generated
