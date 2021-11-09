@@ -63,7 +63,9 @@ std::string str_trim(std::string s)
   size_t passed = 0;
 
   if (s.empty())
+  {
     return s + '\n';
+  }
 
   passed = 0;
 

@@ -272,9 +272,13 @@ ConditionalTree_t* CiUtilGenerator::FillTreeLevel(std::vector<MessageDescriptor_
     ret->Type = ConditionalType::Cond;
 
     if (lowhalf > 1)
+    {
       ret->ConditionExpresion = StrPrint("(_id >= 0x%XU) && (_id < 0x%XU)", list[l]->MsgID, list[(l + lowhalf)]->MsgID);
+    }
     else
+    {
       ret->ConditionExpresion = StrPrint("_id == 0x%XU", list[l]->MsgID);
+    }
 
     ret->High = FillTreeLevel(list, l, l + lowhalf, true);
     ret->Low = FillTreeLevel(list, l + lowhalf, h, true);

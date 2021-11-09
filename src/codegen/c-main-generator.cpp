@@ -121,7 +121,9 @@ void CiMainGenerator::Gen_MainHeader()
       }
 
       if (s.Name.size() > max_sig_name_len)
+      {
         max_sig_name_len = s.Name.size();
+      }
     }
 
     fwriter->AppendText("\n");
@@ -648,9 +650,13 @@ void CiMainGenerator::WriteSigStructField(const SignalDescriptor_t& sig, bool bi
     fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usesigfloat_def.c_str()));
 
     if (sig.IsDoubleSig)
+    {
       fwriter->AppendLine(StrPrint("  sigfloat_t %s;", sig.NameFloat.c_str()));
+    }
     else
+    {
       fwriter->AppendLine(StrPrint("  %s %s;", PrintType((int)sig.Type).c_str(), sig.NameFloat.c_str()));
+    }
 
     fwriter->AppendLine(StrPrint("#endif // %s", fdesc->usesigfloat_def.c_str()), 2);
   }
@@ -800,7 +806,9 @@ void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExp
   for (size_t i = 0; i < sgs->to_bytes.size(); i++)
   {
     if (sgs->to_bytes[i].size() < 2)
+    {
       continue;
+    }
 
     fwriter->AppendLine(StrPrint("  %s[%d] |= %s;", arrtxt.c_str(), i, sgs->to_bytes[i].c_str()));
   }
