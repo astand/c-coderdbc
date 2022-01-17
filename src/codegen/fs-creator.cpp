@@ -7,6 +7,12 @@ static const int32_t kTmpLen = 1024;
 
 static char _tmpb[kTmpLen];
 
+static const char* kLibDir = "/lib";
+static const char* kUsrDir = "/usr";
+static const char* kIncDir = "/inc";
+static const char* kConfDir = "/conf";
+static const char* kUtilDir = "/butl";
+
 FsCreator::FsCreator()
 {
 }
@@ -36,10 +42,12 @@ bool FsCreator::PrepareDirectory(std::string drvname, std::string basepath, bool
   }
   else
   {
+    std::string separator = basepath.at(basepath.size() - 1) == '/' ? "" : "/";
+
     for (int32_t dirnum = 0; dirnum < 1000; dirnum++)
     {
       snprintf(_tmpb, kTmpLen, "%03d", dirnum);
-      work_dir_path = basepath + "/" + _tmpb;
+      work_dir_path = basepath + separator + _tmpb;
 
       if (stat(work_dir_path.c_str(), &info) != 0)
       {
@@ -63,9 +71,44 @@ bool FsCreator::PrepareDirectory(std::string drvname, std::string basepath, bool
         }
       }
     }
+
+    FS.libdir = work_dir_path + kLibDir;
+
+    if (std::filesystem::create_directory(FS.libdir))
+    {
+      // ret = false;
+    }
+
+    FS.usrdir = work_dir_path + kUsrDir;
+
+    if (std::filesystem::create_directory(FS.usrdir))
+    {
+      // ret = false;
+    }
+
+    FS.incdir = work_dir_path + kIncDir;
+
+    if (std::filesystem::create_directory(FS.incdir))
+    {
+      // ret = false;
+    }
+
+    FS.confdir = work_dir_path + kConfDir;
+
+    if (std::filesystem::create_directory(FS.confdir))
+    {
+      // ret = false;
+    }
+
+    FS.utildir = work_dir_path + kUtilDir;
+
+    if (std::filesystem::create_directory(FS.utildir))
+    {
+      // ret = false;
+    }
   }
 
-  if (ret)
+  if (true)
   {
     // directory valid and exists, set all the values
     FS.DrvName_orig = drvname;
@@ -74,11 +117,11 @@ bool FsCreator::PrepareDirectory(std::string drvname, std::string basepath, bool
 
     FS.core_h.dir = work_dir_path;
     FS.core_h.fname = FS.drvname + ".h";
-    FS.core_h.fpath = work_dir_path + "/" + FS.core_h.fname;
+    FS.core_h.fpath = FS.libdir + "/" + FS.core_h.fname;
 
     FS.core_c.dir = work_dir_path;
     FS.core_c.fname = FS.drvname + ".c";
-    FS.core_c.fpath = work_dir_path + "/" + FS.core_c.fname;
+    FS.core_c.fpath = FS.libdir + "/" + FS.core_c.fname;
 
     FS.util_h.dir = work_dir_path;
     FS.util_h.fname = FS.drvname + "-binutil" + ".h";
@@ -90,11 +133,11 @@ bool FsCreator::PrepareDirectory(std::string drvname, std::string basepath, bool
 
     FS.fmon_h.dir = work_dir_path;
     FS.fmon_h.fname = FS.drvname + "-fmon.h";
-    FS.fmon_h.fpath = work_dir_path + "/" + FS.fmon_h.fname;
+    FS.fmon_h.fpath = FS.libdir + "/" + FS.fmon_h.fname;
 
     FS.fmon_c.dir = work_dir_path;
     FS.fmon_c.fname = FS.drvname + "-fmon.c";
-    FS.fmon_c.fpath = work_dir_path + "/" + FS.fmon_c.fname;
+    FS.fmon_c.fpath = FS.usrdir + "/" + FS.fmon_c.fname;
 
     snprintf(_tmpb, kTmpLen, "%s_USE_BITS_SIGNAL", FS.DRVNAME.c_str());
     FS.usebits_def = _tmpb;
@@ -130,4 +173,43 @@ bool FsCreator::PrepareDirectory(std::string drvname, std::string basepath, bool
   }
 
   return ret;
+}
+
+std::string FsCreator::CreateSubDir(std::string basepath, std::string sub, bool rw)
+{
+  std::string ret = basepath;
+  struct stat info;
+
+  if (basepath.size() == 0 || sub.size() == 0)
+  {
+    return "";
+  }
+
+  if (basepath.at(basepath.size() - 1) != '/')
+  {
+    basepath.append("/");
+  }
+
+  basepath.append(sub);
+
+  bool ok = true;
+
+  if (stat(basepath.c_str(), &info) != 0 && rw)
+  {
+    // directory already exists and rewrite option is requested
+    ok = std::filesystem::remove(basepath);
+  }
+
+  if (!ok)
+  {
+    // error on removing directory
+    return "";
+  }
+
+  if (std::filesystem::create_directory(basepath) != 0)
+  {
+    ret = "";
+  }
+
+  return basepath;
 }

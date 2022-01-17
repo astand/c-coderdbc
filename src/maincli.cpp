@@ -72,7 +72,8 @@ int main(int argc, char* argv[])
 
     std::string info("");
 
-    auto ret = fscreator->PrepareDirectory(dbc_driver_name.c_str(), source_files_out_path.c_str(), true, info);
+    // create main destination directory
+    auto ret = fscreator->PrepareDirectory(dbc_driver_name.c_str(), source_files_out_path.c_str(), false, info);
 
     if (ret)
     {
@@ -127,7 +128,7 @@ int main(int argc, char* argv[])
       {
         std::string util_name = nodes[node] + "_" + dbc_driver_name;
 
-        ret = fscreator->PrepareDirectory(util_name.c_str(), source_files_out_path.c_str(), true, info);
+        ret = fscreator->PrepareDirectory(util_name.c_str(), fscreator->FS.utildir.c_str(), true, info);
 
         MsgsClassification groups;
 
