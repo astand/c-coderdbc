@@ -128,7 +128,14 @@ int main(int argc, char* argv[])
       {
         std::string util_name = nodes[node] + "_" + dbc_driver_name;
 
-        ret = fscreator->PrepareDirectory(util_name.c_str(), fscreator->FS.utildir.c_str(), true, info);
+        fscreator->FS.util_c.dir = fscreator->FS.utildir;
+        fscreator->FS.util_h.dir = fscreator->FS.utildir;
+
+        fscreator->FS.util_h.fname = util_name + ".h";
+        fscreator->FS.util_h.fpath = fscreator->FS.utildir + "/" + fscreator->FS.util_h.fname;
+
+        fscreator->FS.util_c.fname = util_name + ".c";
+        fscreator->FS.util_c.fpath = fscreator->FS.utildir + "/" + fscreator->FS.util_c.fname;
 
         MsgsClassification groups;
 
@@ -161,8 +168,6 @@ int main(int argc, char* argv[])
     }
     else
     {
-      ret = fscreator->PrepareDirectory(dbc_driver_name.c_str(), (source_files_out_path).c_str(), true, info);
-
       MsgsClassification groups;
 
       for (size_t i = 0; i < scanner->dblist.msgs.size(); i++)

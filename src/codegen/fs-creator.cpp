@@ -71,41 +71,41 @@ bool FsCreator::PrepareDirectory(std::string drvname, std::string basepath, bool
         }
       }
     }
+  }
 
-    FS.libdir = work_dir_path + kLibDir;
+  FS.libdir = work_dir_path + kLibDir;
 
-    if (std::filesystem::create_directory(FS.libdir))
-    {
-      // ret = false;
-    }
+  if (std::filesystem::create_directory(FS.libdir))
+  {
+    // ret = false;
+  }
 
-    FS.usrdir = work_dir_path + kUsrDir;
+  FS.usrdir = work_dir_path + kUsrDir;
 
-    if (std::filesystem::create_directory(FS.usrdir))
-    {
-      // ret = false;
-    }
+  if (std::filesystem::create_directory(FS.usrdir))
+  {
+    // ret = false;
+  }
 
-    FS.incdir = work_dir_path + kIncDir;
+  FS.incdir = work_dir_path + kIncDir;
 
-    if (std::filesystem::create_directory(FS.incdir))
-    {
-      // ret = false;
-    }
+  if (std::filesystem::create_directory(FS.incdir))
+  {
+    // ret = false;
+  }
 
-    FS.confdir = work_dir_path + kConfDir;
+  FS.confdir = work_dir_path + kConfDir;
 
-    if (std::filesystem::create_directory(FS.confdir))
-    {
-      // ret = false;
-    }
+  if (std::filesystem::create_directory(FS.confdir))
+  {
+    // ret = false;
+  }
 
-    FS.utildir = work_dir_path + kUtilDir;
+  FS.utildir = work_dir_path + kUtilDir;
 
-    if (std::filesystem::create_directory(FS.utildir))
-    {
-      // ret = false;
-    }
+  if (std::filesystem::create_directory(FS.utildir))
+  {
+    // ret = false;
   }
 
   if (true)
@@ -125,11 +125,11 @@ bool FsCreator::PrepareDirectory(std::string drvname, std::string basepath, bool
 
     FS.util_h.dir = work_dir_path;
     FS.util_h.fname = FS.drvname + "-binutil" + ".h";
-    FS.util_h.fpath = work_dir_path + "/" + FS.util_h.fname;
+    FS.util_h.fpath = FS.utildir + "/" + FS.util_h.fname;
 
     FS.util_c.dir = work_dir_path;
     FS.util_c.fname = FS.drvname + "-binutil" + ".c";
-    FS.util_c.fpath = work_dir_path + "/" + FS.util_c.fname;
+    FS.util_c.fpath = FS.utildir + "/" + FS.util_c.fname;
 
     FS.fmon_h.dir = work_dir_path;
     FS.fmon_h.fname = FS.drvname + "-fmon.h";
