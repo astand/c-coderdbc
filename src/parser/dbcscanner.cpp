@@ -4,7 +4,7 @@
 #include <math.h>
 #include "../helpers/formatter.h"
 
-#define MAX_LINE 4096
+#define MAX_LINE 4096 * 4
 
 char line[MAX_LINE] = { 0 };
 
