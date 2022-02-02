@@ -3,6 +3,7 @@
 #include <fstream>
 #include <filesystem>
 #include <algorithm>
+#include <stdlib.h>
 #include "parser/dbcscanner.h"
 #include "codegen/c-main-generator.h"
 #include "codegen/c-util-generator.h"
@@ -16,17 +17,6 @@
 
 char verstr[128] = {0};
 
-const char* helptext =
-  "https://github.com/astand/c-coderdbc        (project source code)\n\n"
-  "https://coderdbc.com                        (web application)\n\n"
-  "To use utility you need to provide 3 arguments:\n\n"
-  "1. dbc file path\n"
-  "2. directory for generated source files (existable)\n"
-  "3. prefix (driver name) which will be used for naming dirver parts\n"
-  "4. (optional) --node-utils will generate specific pairs of binutils drivers for each node"
-  "   which is either transmitter or receiver of at least one frame from dbc.\n\n"
-  "Usage example:\n\n./dbccoder /home/user/docs/driveshaft.dbc /home/user/docs/gen/ drivedb --node-utils\n\n";
-
 DbcScanner* scanner;
 CiMainGenerator* cigen;
 CiUtilGenerator* ciugen;
@@ -36,27 +26,117 @@ std::string source_files_out_path;
 std::string dbc_file_path;
 std::string dbc_driver_name;
 
+typedef struct
+{
+  std::string arg;
+  std::string param;
+} ParamPair_t;
+
+void PrintUsage();
+
+std::vector<ParamPair_t> getoptions(int argc, char** argv)
+{
+  std::vector<ParamPair_t> ret;
+
+  ParamPair_t pair;
+
+  if (argc <= 0)
+  {
+    return ret;
+  }
+
+  for (int i = 0; i < argc; i++)
+  {
+    // key found (must start with '-' (e.g. '-dbc'))
+    if (argv[i][0] == '-')
+    {
+      pair.arg = std::string(argv[i]);
+      pair.param.clear();
+
+      if (i + 1 < argc && argv[i + 1][0] != '-')
+      {
+        // key param
+        pair.param = std::string(argv[i + 1]);
+        // unlooped i incremention
+        ++i;
+      }
+
+      ret.push_back(pair);
+    }
+  }
+
+  return ret;
+}
+
 int main(int argc, char* argv[])
 {
-  scanner = new DbcScanner;
-  cigen = new CiMainGenerator;
-  ciugen = new CiUtilGenerator;
-  fscreator = new FsCreator;
+  const std::string arg_ops = "dbc:out:rxnodes:rw";
 
-  std::snprintf(verstr, 128, "\nDbccoder v%u.%u\n\n", CODEGEN_LIB_VERSION_MAJ, CODEGEN_LIB_VERSION_MIN);
-  std::cout << verstr;
+  bool err = false;
+  bool dbc_ok = false;
+  bool path_ok = false;
+  bool drvname_ok = false;
+  bool rewrite_src = false;
+  bool gen_nodeutils = false;
+  bool help = false;
 
-  if (argc >= MIN_ARGC_NUM)
+  std::vector<ParamPair_t> opts = getoptions(argc, argv);
+
+  if (opts.size() < 3)
   {
-    std::ifstream reader;
-    // copy dbc file name to string variable
-    dbc_file_path = argv[1];
-    source_files_out_path = argv[2];
-    dbc_driver_name = argv[3];
+    PrintUsage();
+  }
 
-    std::cout << "dbc file : " << argv[1] << std::endl;
-    std::cout << "gen path : " << argv[2] << std::endl;
-    std::cout << "drv name : " << argv[3] << std::endl;
+  for (size_t i = 0; i < opts.size(); i++)
+  {
+    if (opts[i].arg == "-dbc")
+    {
+      dbc_file_path = opts[i].param;
+      dbc_ok = true;
+    }
+    else if (opts[i].arg == "-out")
+    {
+      source_files_out_path = opts[i].param;
+      path_ok = true;
+    }
+    else if (opts[i].arg == "-drvname")
+    {
+      dbc_driver_name = opts[i].param;
+      drvname_ok = true;
+    }
+    else if (opts[i].arg == "-rw")
+    {
+      rewrite_src = true;
+    }
+    else if (opts[i].arg == "-nodeutils")
+    {
+      gen_nodeutils = true;
+    }
+    else if (opts[i].arg == "-help")
+    {
+      help = true;
+    }
+  }
+
+  if (help)
+  {
+    PrintUsage();
+    return 0;
+  }
+
+  if (drvname_ok && path_ok && dbc_ok)
+  {
+
+    scanner = new DbcScanner;
+    cigen = new CiMainGenerator;
+    ciugen = new CiUtilGenerator;
+    fscreator = new FsCreator;
+
+    std::ifstream reader;
+
+    std::cout << "dbc file : " << dbc_file_path << std::endl;
+    std::cout << "gen path : " << source_files_out_path << std::endl;
+    std::cout << "drv name : " << dbc_driver_name << std::endl;
 
     if (std::filesystem::exists(dbc_file_path) == false)
     {
@@ -73,7 +153,7 @@ int main(int argc, char* argv[])
     std::string info("");
 
     // create main destination directory
-    auto ret = fscreator->PrepareDirectory(dbc_driver_name.c_str(), source_files_out_path.c_str(), false, info);
+    auto ret = fscreator->PrepareDirectory(dbc_driver_name.c_str(), source_files_out_path.c_str(), rewrite_src, info);
 
     if (ret)
     {
@@ -86,11 +166,9 @@ int main(int argc, char* argv[])
 
 #if defined (GEN_UTIL_CODE)
 
-    std::string node_util = "--node-utils";
-
     // check if option --node-utils is requested, when requested binutil generation
     // wiil be performed on each node from DBC file in accordance to its RX / TX subscription
-    if (argc == MAX_ARGC_NUM && node_util.compare(argv[4]) == 0)
+    if (gen_nodeutils)
     {
       std::vector<std::string> nodes;
 
@@ -186,6 +264,38 @@ int main(int argc, char* argv[])
   }
   else
   {
-    std::cout << helptext;
+    PrintUsage();
   }
+}
+
+void PrintUsage()
+{
+  std::cout << "C-CoderDbc v" << CODEGEN_LIB_VERSION_MAJ << "." << CODEGEN_LIB_VERSION_MIN << std::endl << std::endl;
+  std::cout << "Project source code:\thttps://github.com/astand/c-coderdbc\t\t" << std::endl;
+  std::cout << "Free web application:\thttps://coderdbc.com" << std::endl;
+  std::cout << std::endl;
+  std::cout << "Usage rules." << std::endl;
+  std::cout << "To use code generator you need to provide three obligatory arguments:" << std::endl;
+
+  std::cout << "   -dbc\t\t path to dbc file" << std::endl;
+  std::cout << "   -out\t\t directory for generated source files." << std::endl;
+  std::cout << "   \t\t (directory have to be created in advance)" << std::endl;
+  std::cout << "   -drvname\t driver name - will be used for naming driver parts" << std::endl;
+  std::cout << std::endl;
+  std::cout << "Optional parameters:" << std::endl;
+  std::cout << "   -nodeutils\t will generate specific pairs of binutils drivers for each node" << std::endl;
+  std::cout << "   -rw\t\t by default each new generation with previously used params" << std::endl;
+  std::cout << "   \t\t will create new directory with source files (000, 001, 002, ... etc)" << std::endl;
+  std::cout << "   \t\t '-rw' option enables rewriting: all source files previously generated" << std::endl;
+  std::cout << "   \t\t will be replaced by new ones." << std::endl;
+  std::cout << std::endl;
+
+  std::cout << "Examples:" << std::endl;
+  std::cout << std::endl;
+
+  std::cout <<
+    "./dbccoder -dbc /home/user/docs/driveshaft.dbc -out /home/user/docs/gen/ -drvname drivedb -nodeutils -rw" << std::endl;
+
+  std::cout << "./dbccoder -dbc /home/user/docs/driveshaft.dbc -out /home/user/docs/gen/ -drvname drivedb" << std::endl;
+  std::cout << std::endl;
 }
