@@ -82,11 +82,6 @@ int main(int argc, char* argv[])
 
   std::vector<ParamPair_t> opts = getoptions(argc, argv);
 
-  if (opts.size() < 3)
-  {
-    PrintUsage();
-  }
-
   for (size_t i = 0; i < opts.size(); i++)
   {
     if (opts[i].arg == "-dbc")
@@ -270,32 +265,31 @@ int main(int argc, char* argv[])
 
 void PrintUsage()
 {
-  std::cout << "C-CoderDbc v" << CODEGEN_LIB_VERSION_MAJ << "." << CODEGEN_LIB_VERSION_MIN << std::endl << std::endl;
-  std::cout << "Project source code:\thttps://github.com/astand/c-coderdbc\t\t" << std::endl;
-  std::cout << "Free web application:\thttps://coderdbc.com" << std::endl;
+  std::cout << "coderdbc v" << CODEGEN_LIB_VERSION_MAJ << "." << CODEGEN_LIB_VERSION_MIN << std::endl << std::endl;
+  std::cout << "project source code:\thttps://github.com/astand/c-coderdbc\t\t" << std::endl;
+  std::cout << "free web application:\thttps://coderdbc.com" << std::endl;
   std::cout << std::endl;
-  std::cout << "Usage rules." << std::endl;
-  std::cout << "To use code generator you need to provide three obligatory arguments:" << std::endl;
+  std::cout << "required parameters:" << std::endl;
 
   std::cout << "   -dbc\t\t path to dbc file" << std::endl;
-  std::cout << "   -out\t\t directory for generated source files." << std::endl;
-  std::cout << "   \t\t (directory have to be created in advance)" << std::endl;
+  std::cout << "   -out\t\t directory for generated source files (must be pre-created)" << std::endl;
   std::cout << "   -drvname\t driver name - will be used for naming driver parts" << std::endl;
   std::cout << std::endl;
-  std::cout << "Optional parameters:" << std::endl;
+  std::cout << "optional parameters:" << std::endl;
   std::cout << "   -nodeutils\t will generate specific pairs of binutils drivers for each node" << std::endl;
   std::cout << "   -rw\t\t by default each new generation with previously used params" << std::endl;
-  std::cout << "   \t\t will create new directory with source files (000, 001, 002, ... etc)" << std::endl;
+  std::cout << "   \t\t will create new sud-directory with source files (000, 001, ... etc)" << std::endl;
   std::cout << "   \t\t '-rw' option enables rewriting: all source files previously generated" << std::endl;
-  std::cout << "   \t\t will be replaced by new ones." << std::endl;
+  std::cout << "   \t\t will be replaced by new ones" << std::endl;
   std::cout << std::endl;
 
-  std::cout << "Examples:" << std::endl;
+  std::cout << "examples:" << std::endl;
   std::cout << std::endl;
 
   std::cout <<
     "./dbccoder -dbc /home/user/docs/driveshaft.dbc -out /home/user/docs/gen/ -drvname drivedb -nodeutils -rw" << std::endl;
 
+  std::cout << "./dbccoder -dbc /home/user/docs/driveshaft.dbc -out /home/user/docs/gen/ -drvname drivedb -nodeutils" << std::endl;
   std::cout << "./dbccoder -dbc /home/user/docs/driveshaft.dbc -out /home/user/docs/gen/ -drvname drivedb" << std::endl;
   std::cout << std::endl;
 }
