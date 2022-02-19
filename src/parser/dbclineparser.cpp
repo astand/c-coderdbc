@@ -320,7 +320,7 @@ SigType DbcLineParser::GetSigType(SignalDescriptor_t* sig)
   if (sig->Signed)
   {
     addon = 1;
-    max_abs = static_cast<int64_t>( (std::pow(2, sig->LengthBit - 1) - 1) );
+    max_abs = static_cast<int64_t>((std::pow(2, sig->LengthBit - 1) - 1));
     min_abs = (max_abs + 1) * -1;
 
     for (size_t i = 0; i < 4; i++)
@@ -335,7 +335,7 @@ SigType DbcLineParser::GetSigType(SignalDescriptor_t* sig)
   }
   else
   {
-    max_abs = static_cast<int64_t>( (std::pow(2, sig->LengthBit) - 1) );
+    max_abs = static_cast<int64_t>((std::pow(2, sig->LengthBit) - 1));
     min_abs = 0;
 
     for (size_t i = 0; i < 4; i++)

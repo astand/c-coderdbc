@@ -11,6 +11,19 @@
 
 #include "c-main-generator.h"
 
+const char* ext_sig_func_name = "__ext_sig__";
+
+const char* extend_func_body =
+  "// To compile this function you need to typedef 'bitext_t' and 'ubitext_t'\n"
+  "// globally in @dbccodeconf.h or locally in 'dbcdrvname'-config.h\n"
+  "// Type selection may affect common performance. Most useful types are:\n"
+  "// bitext_t : int64_t and ubitext_t : uint64_t\n"
+  "static bitext_t %s( ubitext_t val, uint8_t bits )\n"
+  "{\n"
+  "  ubitext_t const m = 1u << (bits - 1);\n"
+  "  return (val ^ m) - m;\n"
+  "}\n";
+
 CiMainGenerator::CiMainGenerator()
 {
   sigprt = new CSigPrinter;
@@ -236,6 +249,8 @@ void CiMainGenerator::Gen_MainSource()
   fwriter->AppendLine(StrPrint("#include \"%s-fmon.h\"", fdesc->drvname.c_str()), 2);
 
   fwriter->AppendLine(StrPrint("#endif // %s", fdesc->usemon_def.c_str()), 3);
+
+  fwriter->AppendLine(StrPrint(extend_func_body, ext_sig_func_name), 1);
 
   // for each message 3 functions must be defined - 1 unpack function,
   // 2: pack with raw signature
@@ -672,7 +687,15 @@ void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
     // for code shortening
     const char* sname = sgs->msg.Signals[num].Name.c_str();
 
-    fwriter->AppendLine(StrPrint("  _m->%s = %s;", sname, expr.c_str()));
+    if (sgs->msg.Signals[num].Signed)
+    {
+      fwriter->AppendLine(StrPrint("  _m->%s = %s(( %s ), %d);",
+          sname, ext_sig_func_name, expr.c_str(), (int32_t)sgs->msg.Signals[num].LengthBit));
+    }
+    else
+    {
+      fwriter->AppendLine(StrPrint("  _m->%s = %s;", sname, expr.c_str()));
+    }
 
     // print sigfloat conversion
     if (!sgs->msg.Signals[num].IsSimpleSig)
