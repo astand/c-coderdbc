@@ -581,7 +581,7 @@ void CiMainGenerator::WriteSigStructField(const SignalDescriptor_t& sig, bool bi
 
   std::string dtype = "";
 
-  dtype += "  " + PrintType((int)sig.Type) + " " + sig.Name;
+  dtype += "  " + PrintType((int)sig.TypeRo) + " " + sig.Name;
 
   if (bits && (sig.LengthBit < 8))
   {
@@ -656,7 +656,7 @@ void CiMainGenerator::WriteSigStructField(const SignalDescriptor_t& sig, bool bi
     }
     else
     {
-      fwriter->AppendLine(StrPrint("  %s %s;", PrintType((int)sig.Type).c_str(), sig.NameFloat.c_str()));
+      fwriter->AppendLine(StrPrint("  %s %s;", PrintType((int)sig.TypePhys).c_str(), sig.NameFloat.c_str()));
     }
 
     fwriter->AppendLine(StrPrint("#endif // %s", fdesc->usesigfloat_def.c_str()), 2);

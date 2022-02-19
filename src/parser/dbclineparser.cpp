@@ -262,7 +262,7 @@ bool DbcLineParser::ParseSignalLine(SignalDescriptor_t* sig, const std::string& 
     //   value_type = '+' | '-'; (*+= unsigned, -=signed*)
     sig->Signed = (valpart[2].find('-') == std::string::npos) ? 0 : 1;
 
-    sig->Type = GetSigType(sig);
+    GetSigType(sig);
 
     // mark all simple signals to make using them easier
     if (!sig->IsDoubleSig && (sig->Factor == 1) && (sig->Offset == 0))
@@ -312,80 +312,89 @@ SigType DbcLineParser::GetSigType(SignalDescriptor_t* sig)
 
   uint64_t max_v = 0;
 
-  if (!sig->IsDoubleSig)
+  // 1 step is to detect type of _ro
+  int64_t max_abs, min_abs;
+
+  int64_t addon = 0;
+
+  if (sig->Signed)
+  {
+    addon = 1;
+    max_abs = static_cast<int64_t>( (std::pow(2, sig->LengthBit - 1) - 1) );
+    min_abs = (max_abs + 1) * -1;
+
+    for (size_t i = 0; i < 4; i++)
+    {
+      sig->TypeRo = (SigType)(i);
+
+      if (max_abs <= __maxsignedvals[i])
+      {
+        break;
+      }
+    }
+  }
+  else
+  {
+    max_abs = static_cast<int64_t>( (std::pow(2, sig->LengthBit) - 1) );
+    min_abs = 0;
+
+    for (size_t i = 0; i < 4; i++)
+    {
+      sig->TypeRo = (SigType)(i + 4);
+
+      if (max_abs <= __maxunsigvalues[i])
+      {
+        break;
+      }
+    }
+  }
+
+  if (sig->IsSimpleSig)
+  {
+    // the most simple case, TypePhys is the same as TypeRo
+    sig->TypePhys = sig->TypeRo;
+  }
+
+  else if (sig->IsDoubleSig == false)
   {
     int64_t i_offset = (int64_t)sig->Offset;
     int64_t i_factor = (int64_t)sig->Factor;
 
-    // for this case physical value needs to be allowed to
-    // fit inside field type
-    if (sig->Signed)
+    // get max and min values with applied factor and offset (physical values)
+    max_abs = max_abs * i_factor + i_offset;
+    min_abs = min_abs * i_factor + i_offset;
+
+    if (sig->Signed || max_abs < 0 || min_abs < 0)
     {
-      // physical_value = raw_value * factor + offset
-      // 1 get the max value for the positive part
-      max_v = (uint64_t)(std::pow(2, sig->LengthBit - 1));
-      // 2 scale to max value
-      max_v *= i_factor;
+      // phys value must be signed
+      uint64_t max_v = std::abs(max_abs);
+      uint64_t addon = 0;
 
-      // 3 add offset
-      // factor affects on difference between min and max values
-      // abs(max_neg)-(max_pos) = sig->Factor;
-      // so if offset == Factor
-      if (sig->Offset > (int32_t)(sig->Factor - 1))
+      if ((max_v + 1) < std::abs(min_abs))
       {
-        // positive value less then
-        max_v = (max_v + i_offset - ((int64_t)sig->Factor));
-      }
-      else
-      {
-        max_v = (max_v - i_offset) - 1;
+        // low part is main
+        addon = 1;
+        max_v = std::abs(min_abs);
       }
 
-      for (uint8_t i = 0; i < 4; i++)
+      for (size_t i = 0; i < 4; i++)
       {
-        if (max_v <= (__maxsignedvals[i]))
+        sig->TypePhys = (SigType)(i);
+
+        if (max_v <= __maxsignedvals[i] + addon)
         {
-          ret = (SigType)(i + (is_unsigned * 4));
           break;
         }
       }
     }
     else
     {
-      is_unsigned = 1;
-
-      max_v = (uint64_t)(std::pow(2, sig->LengthBit)) - 1;
-
-      max_v *= (int32_t)sig->Factor;
-
-      if (sig->Offset >= 0)
-      {
-        // when offset positive the max physical value is got just
-        // adding roffset value
-        max_v += roffset;
-      }
-      else
-      {
-        is_unsigned = 0;
-        // this code must determmine which part of range is larger - positive or negative
-        // the largest part will define which sig type will be used for signal
-        // roffset here - negative value
-
-        // max positive value fot the LenBits if it would have signed type
-        uint64_t maxpos = (uint64_t)(std::pow(2, sig->LengthBit) - 1);
-        // max negative value
-        uint64_t maxneg = (uint64_t)(std::abs(roffset));
-
-        max_v = std::max(maxpos, maxneg);
-        // mul 2 for using unsinged compare levels (int8_t (127) like uint8_t (255))
-        max_v *= 2;
-      }
-
+      // phys value must be unsigned
       for (uint8_t i = 0; i < 4; i++)
       {
-        if (max_v <= (__maxunsigvalues[i]))
+        if ((uint64_t)max_abs <= __maxunsigvalues[i])
         {
-          ret = (SigType)(i + (is_unsigned * 4));
+          sig->TypePhys = (SigType)(i + 4);
           break;
         }
       }
@@ -393,28 +402,11 @@ SigType DbcLineParser::GetSigType(SignalDescriptor_t* sig)
   }
   else
   {
-    // this type definition is simple (without
-    // additional type-expanded operations inside
-    // main driver, so to determine type simple
-    // operations is needed
-    max_v = (uint64_t)(std::pow(2, sig->LengthBit) - 1);
-
-    if (!sig->Signed)
-    {
-      is_unsigned = 1;
-    }
-
-    for (uint8_t i = 0; i < 4; i++)
-    {
-      if (max_v <= __maxunsigvalues[i])
-      {
-        ret = (SigType)(i + (is_unsigned * 4));
-        break;
-      }
-    }
+    // in this case TypePhys will be (sigfloat_t), so
+    // there is no necessity to determine physical signal type
   }
 
-  return ret;
+  return sig->TypeRo;
 }
 
 bool DbcLineParser::ParseCommentLine(Comment_t* cm, const std::string& line)

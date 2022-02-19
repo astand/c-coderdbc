@@ -65,7 +65,7 @@ std::string CSigPrinter::PrintPhysicalToRaw(const SignalDescriptor_t* sig, const
   }
 
   retstr += StrPrint("#define %s_%s_toS(x) ( (%s) ", drvname.c_str(), sig->Name.c_str(),
-      PrintType((uint8_t)sig->Type).c_str());
+      PrintType((uint8_t)sig->TypeRo).c_str());
 
   if (sig->IsDoubleSig)
   {
