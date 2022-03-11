@@ -70,8 +70,6 @@ std::vector<ParamPair_t> getoptions(int argc, char** argv)
 
 int main(int argc, char* argv[])
 {
-  const std::string arg_ops = "dbc:out:rxnodes:rw";
-
   bool err = false;
   bool dbc_ok = false;
   bool path_ok = false;
