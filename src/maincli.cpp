@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <algorithm>
 #include <stdlib.h>
+#include <helpers/formatter.h>
 #include "parser/dbcscanner.h"
 #include "codegen/c-main-generator.h"
 #include "codegen/c-util-generator.h"
@@ -115,6 +116,16 @@ int main(int argc, char* argv[])
   {
     PrintUsage();
     return 0;
+  }
+
+  if (drvname_ok)
+  {
+    dbc_driver_name = make_c_name(dbc_driver_name);
+
+    if (dbc_driver_name.length() == 0)
+    {
+      drvname_ok = false;
+    }
   }
 
   if (drvname_ok && path_ok && dbc_ok)
