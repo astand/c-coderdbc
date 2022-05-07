@@ -1,4 +1,6 @@
 #include "dbclineparser.h"
+#include <helpers/formatter.h>
+#include <stdlib.h>
 #include <clocale>
 #include <regex>
 #include <math.h>
@@ -466,6 +468,12 @@ bool DbcLineParser::ParseCommentLine(Comment_t* cm, const std::string& line)
           cm->Text = items[1];
         }
 
+        if (cm->Text.size() > 0 && cm->Text.back() == '\n')
+        {
+          // remove last '\n' symbol in the string end
+          cm->Text.pop_back();
+        }
+
         ret = true;
       }
 
@@ -515,7 +523,7 @@ bool DbcLineParser::ParseAttributeLine(AttributeDescriptor_t* attr, const std::s
   return ret;
 }
 
-bool DbcLineParser::ParseValTableLine(Comment_t* comm, const std::string& line)
+bool DbcLineParser::ParseValTableLine(Comment_t* comm, const std::string& line, ValTable_t& vtab)
 {
   bool ret = false;
 
@@ -546,10 +554,17 @@ bool DbcLineParser::ParseValTableLine(Comment_t* comm, const std::string& line)
         comm->Text = "";
         comm->ca_target = CommentTarget::Signal;
 
+        // prepare value table container
+        vtab.SigName = items[2];
+        vtab.vpairs.clear();
+
         for (size_t valpair = 3; valpair < (items.size() - 1); valpair += 2)
         {
           comm->Text += " " + items[valpair + 0] + " : ";
           comm->Text += items[valpair + 1] + '\n';
+
+          auto valdef = make_c_name(items[valpair + 1]);
+          vtab.vpairs.push_back({valdef, (uint32_t)atoll((items[valpair + 0]).c_str())});
         }
 
         if (comm->Text.size() > 0)

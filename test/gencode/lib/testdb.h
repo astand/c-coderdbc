@@ -11,14 +11,14 @@ extern "C" {
 #define VER_TESTDB_MIN (10U)
 
 // include current dbc-driver compilation config
-#include "testdb-config.h"
+#include <testdb-config.h>
 
 #ifdef TESTDB_USE_DIAG_MONITORS
 // This file must define:
 // base monitor struct
 // function signature for HASH calculation: (@GetFrameHash)
 // function signature for getting system tick value: (@GetSystemTick)
-#include "canmonitorutil.h"
+#include <canmonitorutil.h>
 
 #endif // TESTDB_USE_DIAG_MONITORS
 
@@ -27,6 +27,25 @@ extern "C" {
 #define UTEST_2_IDE (0U)
 #define UTEST_2_DLC (8U)
 #define UTEST_2_CANID (0x14d)
+
+// Value tables for @ValTest signal
+
+#ifndef ValTest_UTEST_2_Unsupported
+#define ValTest_UTEST_2_Unsupported (3)
+#endif
+
+#ifndef ValTest_UTEST_2_Fail
+#define ValTest_UTEST_2_Fail (2)
+#endif
+
+#ifndef ValTest_UTEST_2_OK
+#define ValTest_UTEST_2_OK (1)
+#endif
+
+#ifndef ValTest_UTEST_2_Undefined
+#define ValTest_UTEST_2_Undefined (0)
+#endif
+
 // signal: @U7_TEST_1_ro
 #define TESTDB_U7_TEST_1_ro_CovFactor (1)
 #define TESTDB_U7_TEST_1_ro_toS(x) ( (uint8_t) ((x) - (-255)) )
@@ -39,7 +58,6 @@ typedef struct
   uint32_t U28_TEST_1;                       //      Bits=28
 
   // This is test signal for Value Table
-  // 
   //  3 : "Unsupported"
   //  2 : "Fail"
   //  1 : "OK"
@@ -48,7 +66,7 @@ typedef struct
 
   uint8_t U8_TEST_1;                         //      Bits= 8
 
-  uint8_t U7_TEST_1_ro : 7;                  //      Bits= 7 Offset= -255              
+  uint8_t U7_TEST_1_ro : 7;                  //      Bits= 7 Offset= -255
 
 #ifdef TESTDB_USE_SIGFLOAT
   int16_t U7_TEST_1_phys;
@@ -59,7 +77,6 @@ typedef struct
   uint32_t U28_TEST_1;                       //      Bits=28
 
   // This is test signal for Value Table
-  // 
   //  3 : "Unsupported"
   //  2 : "Fail"
   //  1 : "OK"
@@ -68,7 +85,7 @@ typedef struct
 
   uint8_t U8_TEST_1;                         //      Bits= 8
 
-  uint8_t U7_TEST_1_ro;                      //      Bits= 7 Offset= -255              
+  uint8_t U7_TEST_1_ro;                      //      Bits= 7 Offset= -255
 
 #ifdef TESTDB_USE_SIGFLOAT
   int16_t U7_TEST_1_phys;
@@ -135,15 +152,76 @@ typedef struct
 #define UTEST_3_DLC (8U)
 #define UTEST_3_CANID (0x22b)
 
+// Value tables for @TestValTableID signal
+
+#ifndef TestValTableID_UTEST_3_Description_for_the_value_0x7
+#define TestValTableID_UTEST_3_Description_for_the_value_0x7 (-2)
+#endif
+
+#ifndef TestValTableID_UTEST_3_Udef
+#define TestValTableID_UTEST_3_Udef (-1)
+#endif
+
+#ifndef TestValTableID_UTEST_3_Udef
+#define TestValTableID_UTEST_3_Udef (6)
+#endif
+
+#ifndef TestValTableID_UTEST_3_Udef
+#define TestValTableID_UTEST_3_Udef (5)
+#endif
+
+#ifndef TestValTableID_UTEST_3_Udef
+#define TestValTableID_UTEST_3_Udef (4)
+#endif
+
+#ifndef TestValTableID_UTEST_3_Error
+#define TestValTableID_UTEST_3_Error (3)
+#endif
+
+#ifndef TestValTableID_UTEST_3_Ok
+#define TestValTableID_UTEST_3_Ok (2)
+#endif
+
+#ifndef TestValTableID_UTEST_3_State_one
+#define TestValTableID_UTEST_3_State_one (1)
+#endif
+
+#ifndef TestValTableID_UTEST_3_State_1
+#define TestValTableID_UTEST_3_State_1 (0)
+#endif
+
+
 typedef struct
 {
 #ifdef TESTDB_USE_BITS_SIGNAL
 
   uint32_t U32_TEST_1;                       //      Bits=32
 
+  //  -2 : "Description for the value '0x7'"
+  //  -1 : "Udef"
+  //  6 : "Udef"
+  //  5 : "Udef"
+  //  4 : "Udef"
+  //  3 : "Error"
+  //  2 : "Ok"
+  //  1 : "State one"
+  //  0 : "State 1"
+  uint8_t TestValTableID : 3;                //      Bits= 3
+
 #else
 
   uint32_t U32_TEST_1;                       //      Bits=32
+
+  //  -2 : "Description for the value '0x7'"
+  //  -1 : "Udef"
+  //  6 : "Udef"
+  //  5 : "Udef"
+  //  4 : "Udef"
+  //  3 : "Error"
+  //  2 : "Ok"
+  //  1 : "State one"
+  //  0 : "State 1"
+  uint8_t TestValTableID;                    //      Bits= 3
 
 #endif // TESTDB_USE_BITS_SIGNAL
 
@@ -160,6 +238,25 @@ typedef struct
 #define FLT_TEST_1_DLC (8U)
 #define FLT_TEST_1_CANID (0x360)
 #define FLT_TEST_1_CYC (101U)
+
+// Value tables for @ValTable signal
+
+#ifndef ValTable_FLT_TEST_1_Unsupported
+#define ValTable_FLT_TEST_1_Unsupported (3)
+#endif
+
+#ifndef ValTable_FLT_TEST_1_Fail
+#define ValTable_FLT_TEST_1_Fail (2)
+#endif
+
+#ifndef ValTable_FLT_TEST_1_OK
+#define ValTable_FLT_TEST_1_OK (1)
+#endif
+
+#ifndef ValTable_FLT_TEST_1_Undefined
+#define ValTable_FLT_TEST_1_Undefined (0)
+#endif
+
 // signal: @INT_TEST_2_ro
 #define TESTDB_INT_TEST_2_ro_CovFactor (5)
 #define TESTDB_INT_TEST_2_ro_toS(x) ( (int8_t) ((x) / (5)) )
@@ -199,7 +296,7 @@ typedef struct
 
   uint8_t Position : 4;                      //      Bits= 4
 
-  int8_t INT_TEST_2_ro : 7;                  //  [-] Bits= 7 Factor= 5              
+  int8_t INT_TEST_2_ro : 7;                  //  [-] Bits= 7 Factor= 5
 
 #ifdef TESTDB_USE_SIGFLOAT
   int16_t INT_TEST_2_phys;
@@ -217,25 +314,25 @@ typedef struct
   sigfloat_t Accel_phys;
 #endif // TESTDB_USE_SIGFLOAT
 
-  uint8_t FLT4_TEST_1_ro : 4;                //      Bits= 4 Offset= -0.010000          Factor= 2.010000       
+  uint8_t FLT4_TEST_1_ro : 4;                //      Bits= 4 Offset= -0.010000          Factor= 2.010000
 
 #ifdef TESTDB_USE_SIGFLOAT
   sigfloat_t FLT4_TEST_1_phys;
 #endif // TESTDB_USE_SIGFLOAT
 
-  uint8_t FLT4_TEST_2_ro : 4;                //      Bits= 4 Offset= -5.000000          Factor= 2.010000       
+  uint8_t FLT4_TEST_2_ro : 4;                //      Bits= 4 Offset= -5.000000          Factor= 2.010000
 
 #ifdef TESTDB_USE_SIGFLOAT
   sigfloat_t FLT4_TEST_2_phys;
 #endif // TESTDB_USE_SIGFLOAT
 
-  uint8_t FLT4_TEST_3_ro : 4;                //      Bits= 4 Offset= -10.100000         Factor= 2.000000       
+  uint8_t FLT4_TEST_3_ro : 4;                //      Bits= 4 Offset= -10.100000         Factor= 2.000000
 
 #ifdef TESTDB_USE_SIGFLOAT
   sigfloat_t FLT4_TEST_3_phys;
 #endif // TESTDB_USE_SIGFLOAT
 
-  uint8_t INT_TEST_1_ro : 4;                 //      Bits= 4 Offset= -11                Factor= 9              
+  uint8_t INT_TEST_1_ro : 4;                 //      Bits= 4 Offset= -11                Factor= 9
 
 #ifdef TESTDB_USE_SIGFLOAT
   int8_t INT_TEST_1_phys;
@@ -259,7 +356,7 @@ typedef struct
 
   uint8_t Position;                          //      Bits= 4
 
-  int8_t INT_TEST_2_ro;                      //  [-] Bits= 7 Factor= 5              
+  int8_t INT_TEST_2_ro;                      //  [-] Bits= 7 Factor= 5
 
 #ifdef TESTDB_USE_SIGFLOAT
   int16_t INT_TEST_2_phys;
@@ -277,25 +374,25 @@ typedef struct
   sigfloat_t Accel_phys;
 #endif // TESTDB_USE_SIGFLOAT
 
-  uint8_t FLT4_TEST_1_ro;                    //      Bits= 4 Offset= -0.010000          Factor= 2.010000       
+  uint8_t FLT4_TEST_1_ro;                    //      Bits= 4 Offset= -0.010000          Factor= 2.010000
 
 #ifdef TESTDB_USE_SIGFLOAT
   sigfloat_t FLT4_TEST_1_phys;
 #endif // TESTDB_USE_SIGFLOAT
 
-  uint8_t FLT4_TEST_2_ro;                    //      Bits= 4 Offset= -5.000000          Factor= 2.010000       
+  uint8_t FLT4_TEST_2_ro;                    //      Bits= 4 Offset= -5.000000          Factor= 2.010000
 
 #ifdef TESTDB_USE_SIGFLOAT
   sigfloat_t FLT4_TEST_2_phys;
 #endif // TESTDB_USE_SIGFLOAT
 
-  uint8_t FLT4_TEST_3_ro;                    //      Bits= 4 Offset= -10.100000         Factor= 2.000000       
+  uint8_t FLT4_TEST_3_ro;                    //      Bits= 4 Offset= -10.100000         Factor= 2.000000
 
 #ifdef TESTDB_USE_SIGFLOAT
   sigfloat_t FLT4_TEST_3_phys;
 #endif // TESTDB_USE_SIGFLOAT
 
-  uint8_t INT_TEST_1_ro;                     //      Bits= 4 Offset= -11                Factor= 9              
+  uint8_t INT_TEST_1_ro;                     //      Bits= 4 Offset= -11                Factor= 9
 
 #ifdef TESTDB_USE_SIGFLOAT
   int8_t INT_TEST_1_phys;
@@ -346,31 +443,31 @@ typedef struct
 {
 #ifdef TESTDB_USE_BITS_SIGNAL
 
-  int16_t sig15_ro;                          //  [-] Bits=15 Offset= -1024              Factor= 3              
+  int16_t sig15_ro;                          //  [-] Bits=15 Offset= -1024              Factor= 3
 
 #ifdef TESTDB_USE_SIGFLOAT
   int32_t sig15_phys;
 #endif // TESTDB_USE_SIGFLOAT
 
-  int16_t sig15_2_ro;                        //  [-] Bits=15 Offset= -2500.000000       Factor= 1.900000       
+  int16_t sig15_2_ro;                        //  [-] Bits=15 Offset= -2500.000000       Factor= 1.900000
 
 #ifdef TESTDB_USE_SIGFLOAT
   sigfloat_t sig15_2_phys;
 #endif // TESTDB_USE_SIGFLOAT
 
-  int8_t sig8_ro;                            //  [-] Bits= 8 Factor= 5              
+  int8_t sig8_ro;                            //  [-] Bits= 8 Factor= 5
 
 #ifdef TESTDB_USE_SIGFLOAT
   int16_t sig8_phys;
 #endif // TESTDB_USE_SIGFLOAT
 
-  int8_t sig_7_ro : 7;                       //  [-] Bits= 7 Factor= 1.200000       
+  int8_t sig_7_ro : 7;                       //  [-] Bits= 7 Factor= 1.200000
 
 #ifdef TESTDB_USE_SIGFLOAT
   sigfloat_t sig_7_phys;
 #endif // TESTDB_USE_SIGFLOAT
 
-  uint8_t U7_TEST_1_ro : 7;                  //      Bits= 7 Offset= -255              
+  uint8_t U7_TEST_1_ro : 7;                  //      Bits= 7 Offset= -255
 
 #ifdef TESTDB_USE_SIGFLOAT
   int16_t U7_TEST_1_phys;
@@ -378,31 +475,31 @@ typedef struct
 
 #else
 
-  int16_t sig15_ro;                          //  [-] Bits=15 Offset= -1024              Factor= 3              
+  int16_t sig15_ro;                          //  [-] Bits=15 Offset= -1024              Factor= 3
 
 #ifdef TESTDB_USE_SIGFLOAT
   int32_t sig15_phys;
 #endif // TESTDB_USE_SIGFLOAT
 
-  int16_t sig15_2_ro;                        //  [-] Bits=15 Offset= -2500.000000       Factor= 1.900000       
+  int16_t sig15_2_ro;                        //  [-] Bits=15 Offset= -2500.000000       Factor= 1.900000
 
 #ifdef TESTDB_USE_SIGFLOAT
   sigfloat_t sig15_2_phys;
 #endif // TESTDB_USE_SIGFLOAT
 
-  int8_t sig8_ro;                            //  [-] Bits= 8 Factor= 5              
+  int8_t sig8_ro;                            //  [-] Bits= 8 Factor= 5
 
 #ifdef TESTDB_USE_SIGFLOAT
   int16_t sig8_phys;
 #endif // TESTDB_USE_SIGFLOAT
 
-  int8_t sig_7_ro;                           //  [-] Bits= 7 Factor= 1.200000       
+  int8_t sig_7_ro;                           //  [-] Bits= 7 Factor= 1.200000
 
 #ifdef TESTDB_USE_SIGFLOAT
   sigfloat_t sig_7_phys;
 #endif // TESTDB_USE_SIGFLOAT
 
-  uint8_t U7_TEST_1_ro;                      //      Bits= 7 Offset= -255              
+  uint8_t U7_TEST_1_ro;                      //      Bits= 7 Offset= -255
 
 #ifdef TESTDB_USE_SIGFLOAT
   int16_t U7_TEST_1_phys;
@@ -423,12 +520,30 @@ typedef struct
 #define EMPTY_EXT_ID_DLC (8U)
 #define EMPTY_EXT_ID_CANID (0x1ffffff6)
 
+// Value tables for @ValTest signal
+
+#ifndef ValTest_EMPTY_EXT_ID_Unsupported
+#define ValTest_EMPTY_EXT_ID_Unsupported (3)
+#endif
+
+#ifndef ValTest_EMPTY_EXT_ID_Fail
+#define ValTest_EMPTY_EXT_ID_Fail (2)
+#endif
+
+#ifndef ValTest_EMPTY_EXT_ID_OK
+#define ValTest_EMPTY_EXT_ID_OK (1)
+#endif
+
+#ifndef ValTest_EMPTY_EXT_ID_Undefined
+#define ValTest_EMPTY_EXT_ID_Undefined (0)
+#endif
+
+
 typedef struct
 {
 #ifdef TESTDB_USE_BITS_SIGNAL
 
   // This is test signal for Value Table
-  // 
   //  3 : "Unsupported"
   //  2 : "Fail"
   //  1 : "OK"
@@ -441,7 +556,6 @@ typedef struct
 #else
 
   // This is test signal for Value Table
-  // 
   //  3 : "Unsupported"
   //  2 : "Fail"
   //  1 : "OK"

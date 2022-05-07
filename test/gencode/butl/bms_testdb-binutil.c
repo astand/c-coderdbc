@@ -1,14 +1,19 @@
-#include "BMS_testdb.h"
+#include "bms_testdb-binutil.h"
 
-#ifdef __DEF_TESTDB__
+// DBC file version
+#if (VER_TESTDB_MAJ != (1U)) || (VER_TESTDB_MIN != (10U))
+#error The BMS_TESTDB binutil source file has inconsistency with core dbc lib!
+#endif
 
-testdb_rx_t testdb_rx;
+#ifdef __DEF_BMS_TESTDB__
 
-testdb_tx_t testdb_tx;
+bms_testdb_rx_t bms_testdb_rx;
 
-#endif // __DEF_TESTDB__
+bms_testdb_tx_t bms_testdb_tx;
 
-uint32_t testdb_Receive(testdb_rx_t* _m, const uint8_t* _d, uint32_t _id, uint8_t dlc_)
+#endif // __DEF_BMS_TESTDB__
+
+uint32_t bms_testdb_Receive(bms_testdb_rx_t* _m, const uint8_t* _d, uint32_t _id, uint8_t dlc_)
 {
  uint32_t recid = 0;
  if ((_id >= 0x14DU) && (_id < 0x22BU)) {

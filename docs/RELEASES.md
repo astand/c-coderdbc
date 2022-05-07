@@ -1,5 +1,22 @@
 # Changelog
 
+## v2.2 2022-05-07
+
+### Fixed
+- "C valid name" check for main driver name and value table descriptions
+- Fixed some minor printing artefacts (extra whitespaces, extra lines)
+- Very strange issue with wrong naming through all bunch of __***-binutil__ drivers (WTF?)
+
+
+### Added
+- Values from value tables and it's descpriptions are printed as macroses
+  ([issue#9](https://github.com/astand/c-coderdbc/issues/9) from [@delipl](https://github.com/delipl))
+- Added more information about __\_\_ext_sig\_\___ function
+- Added strong check of matching of the versions of secondary dbc source 
+  files to main dbc source file (drvname.h)
+- Sources which are presumed to be located in __include__ directory are in square brakets
+
+---
 
 ## v2.1 2022-02-19
 

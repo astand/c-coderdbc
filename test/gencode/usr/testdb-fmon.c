@@ -1,4 +1,4 @@
-#include "testdb-fmon.h"
+#include <testdb-fmon.h>
 
 #ifdef TESTDB_USE_DIAG_MONITORS
 

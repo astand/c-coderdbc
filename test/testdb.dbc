@@ -34,6 +34,7 @@ NS_ :
 BS_:
 
 BU_: EPS ESP BMS BCM
+VAL_TABLE_ VtTestSig -2 "Description for the value '0x7'" -1 "Udef" 6 "Udef" 5 "Udef" 4 "Udef" 3 "Error" 2 "Ok" 1 "State one" 0 "State 1" ;
 
 
 BO_ 1911 SIG_TEST_1: 8 EPS
@@ -48,6 +49,7 @@ BO_ 2684354550 EMPTY_EXT_ID: 8 BCM
  SG_ ValTest : 7|2@0+ (1,0) [0|0] "c"  BCM,ESP,BMS
 
 BO_ 555 UTEST_3: 8 BCM
+ SG_ TestValTableID : 32|3@1+ (1,0) [0|7] ""  BMS
  SG_ U32_TEST_1 : 0|32@1+ (1,0) [0|4294967295] ""  BMS
 
 BO_ 333 UTEST_2: 8 BCM
@@ -133,6 +135,7 @@ BA_ "GenSigStartValue" SG_ 864 FLT4_TEST_1 0;
 BA_ "GenSigStartValue" SG_ 864 FLT4_TEST_3 5.05;
 BA_ "GenSigStartValue" SG_ 864 Accel 1000;
 VAL_ 2684354550 ValTest 3 "Unsupported" 2 "Fail" 1 "OK" 0 "Undefined" ;
+VAL_ 555 TestValTableID -2 "Description for the value '0x7'" -1 "Udef" 6 "Udef" 5 "Udef" 4 "Udef" 3 "Error" 2 "Ok" 1 "State one" 0 "State 1" ;
 VAL_ 333 ValTest 3 "Unsupported" 2 "Fail" 1 "OK" 0 "Undefined" ;
 VAL_ 864 ValTable 3 "Unsupported" 2 "Fail" 1 "OK" 0 "Undefined" ;
 

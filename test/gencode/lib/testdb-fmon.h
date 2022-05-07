@@ -8,11 +8,11 @@ extern "C" {
 #define VER_TESTDB_MAJ_FMON (1U)
 #define VER_TESTDB_MIN_FMON (10U)
 
-#include "testdb-config.h"
+#include <testdb-config.h>
 
 #ifdef TESTDB_USE_DIAG_MONITORS
 
-#include "canmonitorutil.h"
+#include <canmonitorutil.h>
 /*
 This file contains the prototypes of all the functions that will be called
 from each Unpack_*name* function to detect DBC related errors
