@@ -14,11 +14,15 @@
 const char* ext_sig_func_name = "__ext_sig__";
 
 const char* extend_func_body =
-  "// To compile this function you need to typedef 'bitext_t' and 'ubitext_t'\n"
-  "// globally in @dbccodeconf.h or locally in 'dbcdrvname'-config.h\n"
-  "// Type selection may affect common performance. Most useful types are:\n"
-  "// bitext_t : int64_t and ubitext_t : uint64_t\n"
-  "static bitext_t %s( ubitext_t val, uint8_t bits )\n"
+  "// This function performs extension of sign for the signals\n"
+  "// which have non-aligned to power of 2 bit's width.\n"
+  "// The types 'bitext_t' and 'ubitext_t' define maximal bit width which\n"
+  "// can be correctly handled. You need to select type which can contain\n"
+  "// n+1 bits where n is the largest signed signal width. For example if\n"
+  "// the most wide signed signal has a width of 31 bits you need to set\n"
+  "// bitext_t as int32_t and ubitext_t as uint32_t\n"
+  "// Defined these typedefs in @dbccodeconf.h or locally in 'dbcdrvname'-config.h\n"
+  "static bitext_t %s(ubitext_t val, uint8_t bits)\n"
   "{\n"
   "  ubitext_t const m = 1u << (bits - 1);\n"
   "  return (val ^ m) - m;\n"
