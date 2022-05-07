@@ -107,10 +107,10 @@ void CiUtilGenerator::PrintHeader()
   tof->AppendLine(openguard.c_str(), 2);
 
   // include common dbc code config header
-  tof->AppendLine("#include \"dbccodeconf.h\"", 2);
+  tof->AppendLine("#include <dbccodeconf.h>", 2);
 
   // include c-main driver header
-  tof->AppendLine(StrPrint("#include \"%s.h\"", file_drvname.c_str()), 2);
+  tof->AppendLine(StrPrint("#include <%s.h>", file_drvname.c_str()), 2);
 
 
   if (rx.size() == 0)

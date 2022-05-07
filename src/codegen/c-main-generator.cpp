@@ -90,7 +90,7 @@ void CiMainGenerator::Gen_MainHeader()
   fwriter->AppendLine(StrPrint("#define %s (%uU)", fdesc->verlow_def.c_str(), p_dlist->ver.low), 2);
 
   fwriter->AppendLine("// include current dbc-driver compilation config");
-  fwriter->AppendLine(StrPrint("#include \"%s-config.h\"", fdesc->drvname.c_str()), 2);
+  fwriter->AppendLine(StrPrint("#include <%s-config.h>", fdesc->drvname.c_str()), 2);
 
   fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usemon_def.c_str()));
 
@@ -99,7 +99,7 @@ void CiMainGenerator::Gen_MainHeader()
     "// base monitor struct\n"
     "// function signature for HASH calculation: (@GetFrameHash)\n"
     "// function signature for getting system tick value: (@GetSystemTick)\n"
-    "#include \"canmonitorutil.h\"\n"
+    "#include <canmonitorutil.h>\n"
     "\n"
   );
 
@@ -281,7 +281,7 @@ void CiMainGenerator::Gen_MainSource()
     "// Function prototypes to be called each time CAN frame is unpacked\n"
     "// FMon function may detect RC, CRC or DLC violation\n");
 
-  fwriter->AppendLine(StrPrint("#include \"%s-fmon.h\"", fdesc->drvname.c_str()), 2);
+  fwriter->AppendLine(StrPrint("#include <%s-fmon.h>", fdesc->drvname.c_str()), 2);
 
   fwriter->AppendLine(StrPrint("#endif // %s", fdesc->usemon_def.c_str()), 3);
 
@@ -342,7 +342,7 @@ void CiMainGenerator::Gen_ConfigHeader()
   fwriter->AppendLine("#pragma once");
   fwriter->AppendLine("");
   fwriter->AppendLine("/* include common dbccode configurations */");
-  fwriter->AppendLine("#include \"dbccodeconf.h\"");
+  fwriter->AppendLine("#include <dbccodeconf.h>");
   fwriter->AppendLine("");
   fwriter->AppendLine("");
   fwriter->AppendLine("/* ------------------------------------------------------------------------- *");
@@ -496,7 +496,7 @@ void CiMainGenerator::Gen_FMonSource()
     fwriter->AppendLine("// " + std::regex_replace(fdesc->start_info, std::regex("\n"), "\n// "));
   }
 
-  fwriter->AppendLine(StrPrint("#include \"%s\"", fdesc->fmon_h.fname.c_str()), 2);
+  fwriter->AppendLine(StrPrint("#include <%s>", fdesc->fmon_h.fname.c_str()), 2);
   // put diagmonitor ifdef selection for including @drv-fmon header
 // with FMon_* signatures to call from unpack function
   fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usemon_def.c_str()), 2);
