@@ -468,6 +468,12 @@ bool DbcLineParser::ParseCommentLine(Comment_t* cm, const std::string& line)
           cm->Text = items[1];
         }
 
+        if (cm->Text.size() > 0 && cm->Text.back() == '\n')
+        {
+          // remove last '\n' symbol in the string end
+          cm->Text.pop_back();
+        }
+
         ret = true;
       }
 
