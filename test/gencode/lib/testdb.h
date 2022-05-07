@@ -67,7 +67,7 @@ typedef struct
 
   uint8_t U8_TEST_1;                         //      Bits= 8
 
-  uint8_t U7_TEST_1_ro : 7;                  //      Bits= 7 Offset= -255              
+  uint8_t U7_TEST_1_ro : 7;                  //      Bits= 7 Offset= -255
 
 #ifdef TESTDB_USE_SIGFLOAT
   int16_t U7_TEST_1_phys;
@@ -87,7 +87,7 @@ typedef struct
 
   uint8_t U8_TEST_1;                         //      Bits= 8
 
-  uint8_t U7_TEST_1_ro;                      //      Bits= 7 Offset= -255              
+  uint8_t U7_TEST_1_ro;                      //      Bits= 7 Offset= -255
 
 #ifdef TESTDB_USE_SIGFLOAT
   int16_t U7_TEST_1_phys;
@@ -298,7 +298,7 @@ typedef struct
 
   uint8_t Position : 4;                      //      Bits= 4
 
-  int8_t INT_TEST_2_ro : 7;                  //  [-] Bits= 7 Factor= 5              
+  int8_t INT_TEST_2_ro : 7;                  //  [-] Bits= 7 Factor= 5
 
 #ifdef TESTDB_USE_SIGFLOAT
   int16_t INT_TEST_2_phys;
@@ -316,25 +316,25 @@ typedef struct
   sigfloat_t Accel_phys;
 #endif // TESTDB_USE_SIGFLOAT
 
-  uint8_t FLT4_TEST_1_ro : 4;                //      Bits= 4 Offset= -0.010000          Factor= 2.010000       
+  uint8_t FLT4_TEST_1_ro : 4;                //      Bits= 4 Offset= -0.010000          Factor= 2.010000
 
 #ifdef TESTDB_USE_SIGFLOAT
   sigfloat_t FLT4_TEST_1_phys;
 #endif // TESTDB_USE_SIGFLOAT
 
-  uint8_t FLT4_TEST_2_ro : 4;                //      Bits= 4 Offset= -5.000000          Factor= 2.010000       
+  uint8_t FLT4_TEST_2_ro : 4;                //      Bits= 4 Offset= -5.000000          Factor= 2.010000
 
 #ifdef TESTDB_USE_SIGFLOAT
   sigfloat_t FLT4_TEST_2_phys;
 #endif // TESTDB_USE_SIGFLOAT
 
-  uint8_t FLT4_TEST_3_ro : 4;                //      Bits= 4 Offset= -10.100000         Factor= 2.000000       
+  uint8_t FLT4_TEST_3_ro : 4;                //      Bits= 4 Offset= -10.100000         Factor= 2.000000
 
 #ifdef TESTDB_USE_SIGFLOAT
   sigfloat_t FLT4_TEST_3_phys;
 #endif // TESTDB_USE_SIGFLOAT
 
-  uint8_t INT_TEST_1_ro : 4;                 //      Bits= 4 Offset= -11                Factor= 9              
+  uint8_t INT_TEST_1_ro : 4;                 //      Bits= 4 Offset= -11                Factor= 9
 
 #ifdef TESTDB_USE_SIGFLOAT
   int8_t INT_TEST_1_phys;
@@ -358,7 +358,7 @@ typedef struct
 
   uint8_t Position;                          //      Bits= 4
 
-  int8_t INT_TEST_2_ro;                      //  [-] Bits= 7 Factor= 5              
+  int8_t INT_TEST_2_ro;                      //  [-] Bits= 7 Factor= 5
 
 #ifdef TESTDB_USE_SIGFLOAT
   int16_t INT_TEST_2_phys;
@@ -376,25 +376,25 @@ typedef struct
   sigfloat_t Accel_phys;
 #endif // TESTDB_USE_SIGFLOAT
 
-  uint8_t FLT4_TEST_1_ro;                    //      Bits= 4 Offset= -0.010000          Factor= 2.010000       
+  uint8_t FLT4_TEST_1_ro;                    //      Bits= 4 Offset= -0.010000          Factor= 2.010000
 
 #ifdef TESTDB_USE_SIGFLOAT
   sigfloat_t FLT4_TEST_1_phys;
 #endif // TESTDB_USE_SIGFLOAT
 
-  uint8_t FLT4_TEST_2_ro;                    //      Bits= 4 Offset= -5.000000          Factor= 2.010000       
+  uint8_t FLT4_TEST_2_ro;                    //      Bits= 4 Offset= -5.000000          Factor= 2.010000
 
 #ifdef TESTDB_USE_SIGFLOAT
   sigfloat_t FLT4_TEST_2_phys;
 #endif // TESTDB_USE_SIGFLOAT
 
-  uint8_t FLT4_TEST_3_ro;                    //      Bits= 4 Offset= -10.100000         Factor= 2.000000       
+  uint8_t FLT4_TEST_3_ro;                    //      Bits= 4 Offset= -10.100000         Factor= 2.000000
 
 #ifdef TESTDB_USE_SIGFLOAT
   sigfloat_t FLT4_TEST_3_phys;
 #endif // TESTDB_USE_SIGFLOAT
 
-  uint8_t INT_TEST_1_ro;                     //      Bits= 4 Offset= -11                Factor= 9              
+  uint8_t INT_TEST_1_ro;                     //      Bits= 4 Offset= -11                Factor= 9
 
 #ifdef TESTDB_USE_SIGFLOAT
   int8_t INT_TEST_1_phys;
@@ -445,31 +445,31 @@ typedef struct
 {
 #ifdef TESTDB_USE_BITS_SIGNAL
 
-  int16_t sig15_ro;                          //  [-] Bits=15 Offset= -1024              Factor= 3              
+  int16_t sig15_ro;                          //  [-] Bits=15 Offset= -1024              Factor= 3
 
 #ifdef TESTDB_USE_SIGFLOAT
   int32_t sig15_phys;
 #endif // TESTDB_USE_SIGFLOAT
 
-  int16_t sig15_2_ro;                        //  [-] Bits=15 Offset= -2500.000000       Factor= 1.900000       
+  int16_t sig15_2_ro;                        //  [-] Bits=15 Offset= -2500.000000       Factor= 1.900000
 
 #ifdef TESTDB_USE_SIGFLOAT
   sigfloat_t sig15_2_phys;
 #endif // TESTDB_USE_SIGFLOAT
 
-  int8_t sig8_ro;                            //  [-] Bits= 8 Factor= 5              
+  int8_t sig8_ro;                            //  [-] Bits= 8 Factor= 5
 
 #ifdef TESTDB_USE_SIGFLOAT
   int16_t sig8_phys;
 #endif // TESTDB_USE_SIGFLOAT
 
-  int8_t sig_7_ro : 7;                       //  [-] Bits= 7 Factor= 1.200000       
+  int8_t sig_7_ro : 7;                       //  [-] Bits= 7 Factor= 1.200000
 
 #ifdef TESTDB_USE_SIGFLOAT
   sigfloat_t sig_7_phys;
 #endif // TESTDB_USE_SIGFLOAT
 
-  uint8_t U7_TEST_1_ro : 7;                  //      Bits= 7 Offset= -255              
+  uint8_t U7_TEST_1_ro : 7;                  //      Bits= 7 Offset= -255
 
 #ifdef TESTDB_USE_SIGFLOAT
   int16_t U7_TEST_1_phys;
@@ -477,31 +477,31 @@ typedef struct
 
 #else
 
-  int16_t sig15_ro;                          //  [-] Bits=15 Offset= -1024              Factor= 3              
+  int16_t sig15_ro;                          //  [-] Bits=15 Offset= -1024              Factor= 3
 
 #ifdef TESTDB_USE_SIGFLOAT
   int32_t sig15_phys;
 #endif // TESTDB_USE_SIGFLOAT
 
-  int16_t sig15_2_ro;                        //  [-] Bits=15 Offset= -2500.000000       Factor= 1.900000       
+  int16_t sig15_2_ro;                        //  [-] Bits=15 Offset= -2500.000000       Factor= 1.900000
 
 #ifdef TESTDB_USE_SIGFLOAT
   sigfloat_t sig15_2_phys;
 #endif // TESTDB_USE_SIGFLOAT
 
-  int8_t sig8_ro;                            //  [-] Bits= 8 Factor= 5              
+  int8_t sig8_ro;                            //  [-] Bits= 8 Factor= 5
 
 #ifdef TESTDB_USE_SIGFLOAT
   int16_t sig8_phys;
 #endif // TESTDB_USE_SIGFLOAT
 
-  int8_t sig_7_ro;                           //  [-] Bits= 7 Factor= 1.200000       
+  int8_t sig_7_ro;                           //  [-] Bits= 7 Factor= 1.200000
 
 #ifdef TESTDB_USE_SIGFLOAT
   sigfloat_t sig_7_phys;
 #endif // TESTDB_USE_SIGFLOAT
 
-  uint8_t U7_TEST_1_ro;                      //      Bits= 7 Offset= -255              
+  uint8_t U7_TEST_1_ro;                      //      Bits= 7 Offset= -255
 
 #ifdef TESTDB_USE_SIGFLOAT
   int16_t U7_TEST_1_phys;

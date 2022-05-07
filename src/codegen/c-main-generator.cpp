@@ -646,16 +646,23 @@ void CiMainGenerator::WriteSigStructField(const SignalDescriptor_t& sig, bool bi
 
   fwriter->AppendText(StrPrint(" Bits=%2d", sig.LengthBit));
 
+  size_t offset = 0;
+  std::string infocmnt{};
+
   if (sig.IsDoubleSig)
   {
     if (sig.Offset != 0)
     {
-      fwriter->AppendText(StrPrint(" Offset= %-18f", sig.Offset));
+      infocmnt = IndentedString(offset, infocmnt);
+      offset += 27;
+      infocmnt += StrPrint(" Offset= %f", sig.Offset);
     }
 
     if (sig.Factor != 1)
     {
-      fwriter->AppendText(StrPrint(" Factor= %-15f", sig.Factor));
+      infocmnt = IndentedString(offset, infocmnt);
+      offset += 24;
+      infocmnt += StrPrint(" Factor= %f", sig.Factor);
     }
   }
   else if (sig.IsSimpleSig == false)
@@ -663,19 +670,26 @@ void CiMainGenerator::WriteSigStructField(const SignalDescriptor_t& sig, bool bi
     // 2 type of signal
     if (sig.Offset != 0)
     {
-      fwriter->AppendText(StrPrint(" Offset= %-18d", (int)sig.Offset));
+      infocmnt = IndentedString(offset, infocmnt);
+      offset += 27;
+      infocmnt += StrPrint(" Offset= %d", (int)sig.Offset);
     }
 
     if (sig.Factor != 1)
     {
-      fwriter->AppendText(StrPrint(" Factor= %-15d", (int)sig.Factor));
+      infocmnt = IndentedString(offset, infocmnt);
+      offset += 24;
+      infocmnt += StrPrint(" Factor= %d", (int)sig.Factor);
     }
   }
 
   if (sig.Unit.size() > 0)
   {
-    fwriter->AppendText(StrPrint(" Unit:'%s'", sig.Unit.c_str()));
+    infocmnt = IndentedString(offset, infocmnt);
+    infocmnt += StrPrint(" Unit:'%s'", sig.Unit.c_str());
   }
+
+  fwriter->AppendText(infocmnt);
 
   fwriter->AppendLine("", 2);
 

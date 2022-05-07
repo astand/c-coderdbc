@@ -5,6 +5,8 @@
 #include <stdarg.h>
 #include <string>
 
+std::string IndentedString(size_t n, const std::string& source, const char c = ' ');
+
 const char* StrPrint(const char* format, ...);
 
 std::string PrintType(uint8_t tid);

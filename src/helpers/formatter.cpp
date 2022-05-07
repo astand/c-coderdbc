@@ -17,6 +17,19 @@ static const std::string __typeprint[8] =
   "uint64_t"
 };
 
+std::string IndentedString(size_t n, const std::string& source, const char c)
+{
+  if (source.length() >= n)
+  {
+    return source;
+  }
+  else
+  {
+    std::string indent(n - source.length(), c);
+    return source + indent;
+  }
+}
+
 const char* StrPrint(const char* format, ...)
 {
   va_list args;
