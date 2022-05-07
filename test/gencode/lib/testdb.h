@@ -27,6 +27,25 @@ extern "C" {
 #define UTEST_2_IDE (0U)
 #define UTEST_2_DLC (8U)
 #define UTEST_2_CANID (0x14d)
+
+// Value tables for @ValTest signal
+
+#ifndef ValTest_UTEST_2_Unsupported
+#define ValTest_UTEST_2_Unsupported (3)
+#endif
+
+#ifndef ValTest_UTEST_2_Fail
+#define ValTest_UTEST_2_Fail (2)
+#endif
+
+#ifndef ValTest_UTEST_2_OK
+#define ValTest_UTEST_2_OK (1)
+#endif
+
+#ifndef ValTest_UTEST_2_Undefined
+#define ValTest_UTEST_2_Undefined (0)
+#endif
+
 // signal: @U7_TEST_1_ro
 #define TESTDB_U7_TEST_1_ro_CovFactor (1)
 #define TESTDB_U7_TEST_1_ro_toS(x) ( (uint8_t) ((x) - (-255)) )
@@ -135,15 +154,76 @@ typedef struct
 #define UTEST_3_DLC (8U)
 #define UTEST_3_CANID (0x22b)
 
+// Value tables for @TestValTableID signal
+
+#ifndef TestValTableID_UTEST_3_Description_for_the_value_0x7
+#define TestValTableID_UTEST_3_Description_for_the_value_0x7 (-2)
+#endif
+
+#ifndef TestValTableID_UTEST_3_Udef
+#define TestValTableID_UTEST_3_Udef (-1)
+#endif
+
+#ifndef TestValTableID_UTEST_3_Udef
+#define TestValTableID_UTEST_3_Udef (6)
+#endif
+
+#ifndef TestValTableID_UTEST_3_Udef
+#define TestValTableID_UTEST_3_Udef (5)
+#endif
+
+#ifndef TestValTableID_UTEST_3_Udef
+#define TestValTableID_UTEST_3_Udef (4)
+#endif
+
+#ifndef TestValTableID_UTEST_3_Error
+#define TestValTableID_UTEST_3_Error (3)
+#endif
+
+#ifndef TestValTableID_UTEST_3_Ok
+#define TestValTableID_UTEST_3_Ok (2)
+#endif
+
+#ifndef TestValTableID_UTEST_3_State_one
+#define TestValTableID_UTEST_3_State_one (1)
+#endif
+
+#ifndef TestValTableID_UTEST_3_State_1
+#define TestValTableID_UTEST_3_State_1 (0)
+#endif
+
+
 typedef struct
 {
 #ifdef TESTDB_USE_BITS_SIGNAL
 
   uint32_t U32_TEST_1;                       //      Bits=32
 
+  //  -2 : "Description for the value '0x7'"
+  //  -1 : "Udef"
+  //  6 : "Udef"
+  //  5 : "Udef"
+  //  4 : "Udef"
+  //  3 : "Error"
+  //  2 : "Ok"
+  //  1 : "State one"
+  //  0 : "State 1"
+  uint8_t TestValTableID : 3;                //      Bits= 3
+
 #else
 
   uint32_t U32_TEST_1;                       //      Bits=32
+
+  //  -2 : "Description for the value '0x7'"
+  //  -1 : "Udef"
+  //  6 : "Udef"
+  //  5 : "Udef"
+  //  4 : "Udef"
+  //  3 : "Error"
+  //  2 : "Ok"
+  //  1 : "State one"
+  //  0 : "State 1"
+  uint8_t TestValTableID;                    //      Bits= 3
 
 #endif // TESTDB_USE_BITS_SIGNAL
 
@@ -160,6 +240,25 @@ typedef struct
 #define FLT_TEST_1_DLC (8U)
 #define FLT_TEST_1_CANID (0x360)
 #define FLT_TEST_1_CYC (101U)
+
+// Value tables for @ValTable signal
+
+#ifndef ValTable_FLT_TEST_1_Unsupported
+#define ValTable_FLT_TEST_1_Unsupported (3)
+#endif
+
+#ifndef ValTable_FLT_TEST_1_Fail
+#define ValTable_FLT_TEST_1_Fail (2)
+#endif
+
+#ifndef ValTable_FLT_TEST_1_OK
+#define ValTable_FLT_TEST_1_OK (1)
+#endif
+
+#ifndef ValTable_FLT_TEST_1_Undefined
+#define ValTable_FLT_TEST_1_Undefined (0)
+#endif
+
 // signal: @INT_TEST_2_ro
 #define TESTDB_INT_TEST_2_ro_CovFactor (5)
 #define TESTDB_INT_TEST_2_ro_toS(x) ( (int8_t) ((x) / (5)) )
@@ -422,6 +521,25 @@ typedef struct
 #define EMPTY_EXT_ID_IDE (1U)
 #define EMPTY_EXT_ID_DLC (8U)
 #define EMPTY_EXT_ID_CANID (0x1ffffff6)
+
+// Value tables for @ValTest signal
+
+#ifndef ValTest_EMPTY_EXT_ID_Unsupported
+#define ValTest_EMPTY_EXT_ID_Unsupported (3)
+#endif
+
+#ifndef ValTest_EMPTY_EXT_ID_Fail
+#define ValTest_EMPTY_EXT_ID_Fail (2)
+#endif
+
+#ifndef ValTest_EMPTY_EXT_ID_OK
+#define ValTest_EMPTY_EXT_ID_OK (1)
+#endif
+
+#ifndef ValTest_EMPTY_EXT_ID_Undefined
+#define ValTest_EMPTY_EXT_ID_Undefined (0)
+#endif
+
 
 typedef struct
 {

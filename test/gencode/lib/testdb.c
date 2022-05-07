@@ -9,11 +9,15 @@
 #endif // TESTDB_USE_DIAG_MONITORS
 
 
-// To compile this function you need to typedef 'bitext_t' and 'ubitext_t'
-// globally in @dbccodeconf.h or locally in 'dbcdrvname'-config.h
-// Type selection may affect common performance. Most useful types are:
-// bitext_t : int64_t and ubitext_t : uint64_t
-static bitext_t __ext_sig__( ubitext_t val, uint8_t bits )
+// This function performs extension of sign for the signals
+// which have non-aligned to power of 2 bit's width.
+// The types 'bitext_t' and 'ubitext_t' define maximal bit width which
+// can be correctly handled. You need to select type which can contain
+// n+1 bits where n is the largest signed signal width. For example if
+// the most wide signed signal has a width of 31 bits you need to set
+// bitext_t as int32_t and ubitext_t as uint32_t
+// Defined these typedefs in @dbccodeconf.h or locally in 'dbcdrvname'-config.h
+static bitext_t __ext_sig__(ubitext_t val, uint8_t bits)
 {
   ubitext_t const m = 1u << (bits - 1);
   return (val ^ m) - m;
@@ -177,6 +181,7 @@ uint32_t Unpack_UTEST_3_testdb(UTEST_3_t* _m, const uint8_t* _d, uint8_t dlc_)
 {
   (void)dlc_;
   _m->U32_TEST_1 = ((_d[3] & (0xFFU)) << 24) | ((_d[2] & (0xFFU)) << 16) | ((_d[1] & (0xFFU)) << 8) | (_d[0] & (0xFFU));
+  _m->TestValTableID = (_d[4] & (0x07U));
 
 #ifdef TESTDB_USE_DIAG_MONITORS
   _m->mon1.dlc_error = (dlc_ < UTEST_3_DLC);
@@ -199,6 +204,7 @@ uint32_t Pack_UTEST_3_testdb(UTEST_3_t* _m, __CoderDbcCanFrame_t__* cframe)
   cframe->Data[1] |= ((_m->U32_TEST_1 >> 8) & (0xFFU));
   cframe->Data[2] |= ((_m->U32_TEST_1 >> 16) & (0xFFU));
   cframe->Data[3] |= ((_m->U32_TEST_1 >> 24) & (0xFFU));
+  cframe->Data[4] |= (_m->TestValTableID & (0x07U));
 
   cframe->MsgId = UTEST_3_CANID;
   cframe->DLC = UTEST_3_DLC;
@@ -216,6 +222,7 @@ uint32_t Pack_UTEST_3_testdb(UTEST_3_t* _m, uint8_t* _d, uint8_t* _len, uint8_t*
   _d[1] |= ((_m->U32_TEST_1 >> 8) & (0xFFU));
   _d[2] |= ((_m->U32_TEST_1 >> 16) & (0xFFU));
   _d[3] |= ((_m->U32_TEST_1 >> 24) & (0xFFU));
+  _d[4] |= (_m->TestValTableID & (0x07U));
 
   *_len = UTEST_3_DLC;
   *_ide = UTEST_3_IDE;
