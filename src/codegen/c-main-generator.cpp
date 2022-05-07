@@ -462,12 +462,12 @@ void CiMainGenerator::Gen_FMonHeader()
   fwriter->AppendLine(StrPrint("#define %s_FMON (%uU)", fdesc->verhigh_def.c_str(), p_dlist->ver.hi));
   fwriter->AppendLine(StrPrint("#define %s_FMON (%uU)", fdesc->verlow_def.c_str(), p_dlist->ver.low), 2);
 
-  fwriter->AppendLine(StrPrint("#include \"%s-config.h\"", fdesc->drvname.c_str()), 2);
+  fwriter->AppendLine(StrPrint("#include <%s-config.h>", fdesc->drvname.c_str()), 2);
 
   // put diagmonitor ifdef selection for including @drv-fmon header
   // with FMon_* signatures to call from unpack function
   fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usemon_def.c_str()), 2);
-  fwriter->AppendLine("#include \"canmonitorutil.h\"");
+  fwriter->AppendLine("#include <canmonitorutil.h>");
   fwriter->AppendLine("/*\n\
 This file contains the prototypes of all the functions that will be called\n\
 from each Unpack_*name* function to detect DBC related errors\n\
