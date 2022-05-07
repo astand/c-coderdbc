@@ -210,13 +210,16 @@ int main(int argc, char* argv[])
       {
         std::string util_name = nodes[node] + "_" + dbc_driver_name;
 
+        // set new driver name for current node
+        fscreator->FS.drvname = str_tolower(util_name);
+        fscreator->FS.DRVNAME = str_toupper(fscreator->FS.drvname);
         fscreator->FS.util_c.dir = fscreator->FS.utildir;
         fscreator->FS.util_h.dir = fscreator->FS.utildir;
 
-        fscreator->FS.util_h.fname = util_name + ".h";
+        fscreator->FS.util_h.fname = str_tolower(fscreator->FS.drvname + "-binutil.h");
         fscreator->FS.util_h.fpath = fscreator->FS.utildir + "/" + fscreator->FS.util_h.fname;
 
-        fscreator->FS.util_c.fname = util_name + ".c";
+        fscreator->FS.util_c.fname = str_tolower(fscreator->FS.drvname + "-binutil.c");
         fscreator->FS.util_c.fpath = fscreator->FS.utildir + "/" + fscreator->FS.util_c.fname;
 
         MsgsClassification groups;
