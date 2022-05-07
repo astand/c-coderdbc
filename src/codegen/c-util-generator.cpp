@@ -112,11 +112,6 @@ void CiUtilGenerator::PrintHeader()
   // include c-main driver header
   tof->AppendLine(StrPrint("#include \"%s.h\"", file_drvname.c_str()), 2);
 
-  // put version info macros
-  tof->AppendLine("// This version definition comes from main driver version and");
-  tof->AppendLine("// can be compared in user code space for strict compatibility test");
-  tof->AppendLine(StrPrint("#define %s (%uU)", fdesc->verhigh_def.c_str(), p_dlist->ver.hi));
-  tof->AppendLine(StrPrint("#define %s (%uU)", fdesc->verlow_def.c_str(), p_dlist->ver.low), 2);
 
   if (rx.size() == 0)
   {
@@ -190,6 +185,14 @@ void CiUtilGenerator::PrintSource()
   }
 
   tof->AppendLine(StrPrint("#include \"%s\"", fdesc->util_h.fname.c_str()), 2);
+
+  tof->AppendLine("// DBC file version");
+  tof->AppendLine(StrPrint("#if (%s != (%uU)) || (%s != (%uU))",
+      fdesc->verhigh_def.c_str(), p_dlist->ver.hi, fdesc->verlow_def.c_str(), p_dlist->ver.low));
+
+  tof->AppendLine(StrPrint("#error The %s binutil source file has inconsistency with core dbc lib!",
+      fdesc->DRVNAME.c_str()));
+  tof->AppendLine("#endif", 2);
 
   // optional RX and TX struct allocations
   if (rx.size() > 0 || tx.size() > 0)
