@@ -1,6 +1,11 @@
 #include "testdb.h"
 
 
+// DBC file version
+#if (VER_TESTDB_MAJ != (1U)) || (VER_TESTDB_MIN != (10U))
+#error The TESTDB dbc source files have different versions
+#endif
+
 #ifdef TESTDB_USE_DIAG_MONITORS
 // Function prototypes to be called each time CAN frame is unpacked
 // FMon function may detect RC, CRC or DLC violation

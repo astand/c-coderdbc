@@ -266,6 +266,13 @@ void CiMainGenerator::Gen_MainSource()
   // include main header file
   fwriter->AppendLine(StrPrint("#include \"%s\"", fdesc->core_h.fname.c_str()), 3);
 
+  fwriter->AppendLine("// DBC file version");
+  fwriter->AppendLine(StrPrint("#if (%s != (%uU)) || (%s != (%uU))",
+      fdesc->verhigh_def.c_str(), p_dlist->ver.hi, fdesc->verlow_def.c_str(), p_dlist->ver.low));
+
+  fwriter->AppendLine(StrPrint("#error The %s dbc source files have different versions", fdesc->DRVNAME.c_str()));
+  fwriter->AppendLine("#endif", 2);
+
   // put diagmonitor ifdef selection for including @drv-fmon header
   // with FMon_* signatures to call from unpack function
   fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usemon_def.c_str()));
