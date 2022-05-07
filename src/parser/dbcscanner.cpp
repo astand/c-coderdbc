@@ -154,6 +154,8 @@ void DbcScanner::ParseOtherInfo(istream& readstrm)
 
   Comment_t cmmnt;
 
+  ValTable_t vals;
+
   AttributeDescriptor_t attr;
 
   while (!readstrm.eof())
@@ -229,7 +231,7 @@ void DbcScanner::ParseOtherInfo(istream& readstrm)
       }
     }
 
-    if (lparser.ParseValTableLine(&cmmnt, sline))
+    if (lparser.ParseValTableLine(&cmmnt, sline, vals))
     {
       // update message comment field
       auto msg = find_message(dblist.msgs, cmmnt.MsgId);
@@ -250,6 +252,8 @@ void DbcScanner::ParseOtherInfo(istream& readstrm)
             {
               // signal has been found, update commnet text
               msg->Signals[i].ValueText = cmmnt.Text;
+              // save collected value table's definitions to signal
+              msg->Signals[i].ValDefs = vals;
             }
           }
         }

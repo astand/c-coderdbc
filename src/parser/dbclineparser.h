@@ -65,8 +65,9 @@ class DbcLineParser {
   bool ParseCommentLine(Comment_t* cm, const std::string& line);
 
   // tries to parse value table string in line
-  // and load result to attr ValueStr, return true if parsed ok
-  bool ParseValTableLine(Comment_t* cm, const std::string& line);
+  // saves result as comment text in @cm object, and as
+  // pairs of items (definition / value) in @vtab
+  bool ParseValTableLine(Comment_t* cm, const std::string& line, ValTable_t& vtab);
 
   /**
    * @brief tries to find string with information about frame which has

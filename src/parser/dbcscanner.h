@@ -31,4 +31,7 @@ class DbcScanner {
 
   DbcLineParser lparser;
 
+  // this variable is used for gathering value table signal's information
+  std::pair<std::string, uint32_t> vpairs;
+
 };
