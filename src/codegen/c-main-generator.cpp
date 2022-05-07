@@ -137,6 +137,30 @@ void CiMainGenerator::Gen_MainHeader()
       {
         max_sig_name_len = s.Name.size();
       }
+
+      // For each signal in current message print value tables definitions
+      if (s.ValDefs.vpairs.size() > 0)
+      {
+        fwriter->AppendLine(StrPrint("\n// Value tables for @%s signal", s.Name.c_str()), 2);
+
+        for (auto i = 0; i < s.ValDefs.vpairs.size(); i++)
+        {
+          // The value table definition consists of 'signal name + message name + value definition'
+          // This provides reliable way of avoiding issues with same macros names
+          std::string defname = StrPrint("%s_%s_%s", s.Name.c_str(), m.Name.c_str(), s.ValDefs.vpairs[i].first.c_str());
+
+          // @ifndef guard for the case when different values of table have
+          // the same name (it is valid for DBC file format)
+          // For this case only one of same named values will be available as macro
+          fwriter->AppendLine(StrPrint("#ifndef %s", defname.c_str()));
+
+          fwriter->AppendLine(StrPrint("#define %s_%s_%s (%d)",
+              s.Name.c_str(), m.Name.c_str(), s.ValDefs.vpairs[i].first.c_str(),
+              s.ValDefs.vpairs[i].second));
+
+          fwriter->AppendLine(StrPrint("#endif"), 2);
+        }
+      }
     }
 
     fwriter->AppendText("\n");
