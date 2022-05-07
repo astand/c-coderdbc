@@ -11,14 +11,14 @@ extern "C" {
 #define VER_TESTDB_MIN (10U)
 
 // include current dbc-driver compilation config
-#include "testdb-config.h"
+#include <testdb-config.h>
 
 #ifdef TESTDB_USE_DIAG_MONITORS
 // This file must define:
 // base monitor struct
 // function signature for HASH calculation: (@GetFrameHash)
 // function signature for getting system tick value: (@GetSystemTick)
-#include "canmonitorutil.h"
+#include <canmonitorutil.h>
 
 #endif // TESTDB_USE_DIAG_MONITORS
 

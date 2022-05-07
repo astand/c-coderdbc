@@ -9,7 +9,7 @@
 #ifdef TESTDB_USE_DIAG_MONITORS
 // Function prototypes to be called each time CAN frame is unpacked
 // FMon function may detect RC, CRC or DLC violation
-#include "testdb-fmon.h"
+#include <testdb-fmon.h>
 
 #endif // TESTDB_USE_DIAG_MONITORS
 
