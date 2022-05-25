@@ -26,6 +26,8 @@ FsCreator* fscreator;
 std::string source_files_out_path;
 std::string dbc_file_path;
 std::string dbc_driver_name;
+std::string can_struct_include_path;
+std::string can_struct_definition;
 
 typedef struct
 {
@@ -77,6 +79,11 @@ int main(int argc, char* argv[])
   bool drvname_ok = false;
   bool rewrite_src = false;
   bool gen_nodeutils = false;
+  bool rx_sig_cb = false;
+  bool tx_auto_cb = false;
+  bool can_struct_included = false;
+  bool can_struct_defined = false;
+  bool use_can_structs = false;
   bool help = false;
 
   std::vector<ParamPair_t> opts = getoptions(argc, argv);
@@ -98,6 +105,16 @@ int main(int argc, char* argv[])
       dbc_driver_name = opts[i].param;
       drvname_ok = true;
     }
+    else if (opts[i].arg == "-canstruct")
+    {
+      can_struct_include_path = opts[i].param;
+      can_struct_included = true;
+    }
+    else if (opts[i].arg == "-defstruct")
+    {
+      can_struct_definition = opts[i].param;
+      can_struct_defined = true;
+    }
     else if (opts[i].arg == "-rw")
     {
       rewrite_src = true;
@@ -105,6 +122,18 @@ int main(int argc, char* argv[])
     else if (opts[i].arg == "-nodeutils")
     {
       gen_nodeutils = true;
+    }
+    else if (opts[i].arg == "-rxcb")
+    {
+      rx_sig_cb = true;
+    }
+    else if (opts[i].arg == "-txcb")
+    {
+      tx_auto_cb = true;
+    }
+    else if (opts[i].arg == "-usestruct")
+    {
+      use_can_structs = true;
     }
     else if (opts[i].arg == "-help")
     {
@@ -161,7 +190,16 @@ int main(int argc, char* argv[])
 
     if (ret)
     {
-      cigen->Generate(scanner->dblist, fscreator->FS);
+      generator_params_t params = {
+        .gen_rx_cbs = rx_sig_cb, // generate c code with RX callback stubs
+        .gen_tx_cb = tx_auto_cb, // generate c code TX callback stub
+        .can_structs = use_can_structs, // enables CANMESSAGES_USE_CANSTRUCT macro during generation
+        .can_defined = can_struct_defined, // generate CAN structure definition
+        .struct_path_provided = can_struct_included, // external CAN structure is provided
+        .can_struct_path = can_struct_include_path, // path to header with __CoderDbcCanFrame_t__ conversion
+        .can_struct_def = can_struct_definition // string defining the CAN struct
+      };
+      cigen->Generate(scanner->dblist, fscreator->FS, params);
     }
     else
     {
@@ -170,7 +208,7 @@ int main(int argc, char* argv[])
 
 #if defined (GEN_UTIL_CODE)
 
-    // check if option --node-utils is requested, when requested binutil generation
+    // check if option -nodeutils is requested, when requested binutil generation
     // wiil be performed on each node from DBC file in accordance to its RX / TX subscription
     if (gen_nodeutils)
     {
@@ -247,7 +285,7 @@ int main(int argc, char* argv[])
 
         if (ret)
         {
-          ciugen->Generate(scanner->dblist, fscreator->FS, groups, dbc_driver_name);
+          ciugen->Generate(scanner->dblist, fscreator->FS, groups, dbc_driver_name, use_can_structs);
         }
       }
     }
@@ -262,7 +300,7 @@ int main(int argc, char* argv[])
 
       if (ret)
       {
-        ciugen->Generate(scanner->dblist, fscreator->FS, groups, dbc_driver_name);
+        ciugen->Generate(scanner->dblist, fscreator->FS, groups, dbc_driver_name, use_can_structs);
       }
     }
 
@@ -289,6 +327,15 @@ void PrintUsage()
   std::cout << std::endl;
   std::cout << "optional parameters:" << std::endl;
   std::cout << "   -nodeutils\t will generate specific pairs of binutils drivers for each node" << std::endl;
+  std::cout << "   -rxcb\t will generate callback stubs that, if assigned, will be called during signal's unpack function" << std::endl;
+  std::cout << "   -txcb\t will generate callback stubs that, if assigned, will be called at the end of the signal's pack function" << std::endl;
+  std::cout << "   -usestruct\t will enable CANMESSAGES_USE_CANSTRUCT macro in conf/<drvname>-config.h at generation time" << std::endl;
+  std::cout << "   -canstruct <path/to/header.h> \t path to external header which converts system's CAN struct to coderdbc's __CoderDbcCanFrame_t__ CAN struct;" << std::endl;
+  std::cout << "                                 \t can optionally be used to include a header defining a CAN stuct with option -defstruct" << std::endl;
+  std::cout << "   -defstruct <typdef struct {/*definitions*/} __CoderDbcCanFrame_t__;>" << std::endl;
+  std::cout << "                                 \t can be used to define the __CoderDbcCanFrame_t__ CAN frame struct during generation;" << std::endl;
+  std::cout << "                                 \t can optionally be used with option -canstruct to define __CoderDbcCanFrame_t__ with an existing struct:" << std::endl;
+  std::cout << "                                 \t -canstruct \"driver/twai.h\" -defstruct \"typedef twai_message_t __CoderDbcCanFrame_t__;\"" << std::endl;
   std::cout << "   -rw\t\t by default each new generation with previously used params" << std::endl;
   std::cout << "   \t\t will create new sud-directory with source files (000, 001, ... etc)" << std::endl;
   std::cout << "   \t\t '-rw' option enables rewriting: all source files previously generated" << std::endl;

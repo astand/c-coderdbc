@@ -11,6 +11,8 @@ static const std::string closeguard = "#ifdef __cplusplus\n\
 }\n\
 #endif";
 
+static bool use_can_struct = false;
+
 CiUtilGenerator::CiUtilGenerator()
 {
   Clear();
@@ -28,12 +30,12 @@ void CiUtilGenerator::Clear()
 
 
 void CiUtilGenerator::Generate(DbcMessageList_t& dlist, const FsDescriptor_t& fsd,
-  const MsgsClassification& groups, const std::string& drvname)
+  const MsgsClassification& groups, const std::string& drvname, bool canstruct)
 {
   Clear();
 
   p_dlist = &dlist;
-
+  use_can_struct = canstruct;
   code_drvname = drvname;
   file_drvname = str_tolower(drvname);
 
@@ -107,7 +109,7 @@ void CiUtilGenerator::PrintHeader()
   tof->AppendLine(openguard.c_str(), 2);
 
   // include common dbc code config header
-  tof->AppendLine("#include <dbccodeconf.h>", 2);
+  tof->AppendLine("#include <dbccodeconf.h>");
 
   // include c-main driver header
   tof->AppendLine(StrPrint("#include <%s.h>", file_drvname.c_str()), 2);
@@ -115,7 +117,7 @@ void CiUtilGenerator::PrintHeader()
 
   if (rx.size() == 0)
   {
-    tof->AppendLine("// There is no any RX mapped massage.", 2);
+    tof->AppendLine("// No RX massages mapped.", 2);
   }
   else
   {
@@ -132,7 +134,7 @@ void CiUtilGenerator::PrintHeader()
 
   if (tx.size() == 0)
   {
-    tof->AppendLine("// There is no any TX mapped massage.", 2);
+    tof->AppendLine("// No TX massages mapped.", 2);
   }
   else
   {
@@ -149,9 +151,20 @@ void CiUtilGenerator::PrintHeader()
 
   if (rx.size() > 0)
   {
-    // receive function necessary only when more than 0 rx messages were mapped
-    tof->AppendLine(StrPrint("uint32_t %s_Receive(%s_rx_t* m, const uint8_t* d, uint32_t msgid, uint8_t dlc);",
-        fdesc->drvname.c_str(), fdesc->drvname.c_str()), 2);
+    if (use_can_struct)
+    {
+      tof->AppendLine(StrPrint("#ifdef %s", fdesc->usesruct_def.c_str()));
+      tof->AppendLine(StrPrint("uint32_t %s_Receive(%s_rx_t* _m, __CoderDbcCanFrame_t__ frame);", fdesc->drvname.c_str(), fdesc->drvname.c_str()));
+      tof->AppendLine("#else");
+      tof->AppendLine(StrPrint("uint32_t %s_Receive(%s_rx_t* _m, const uint8_t* _d, uint32_t _id, uint8_t _dlc);", fdesc->drvname.c_str(), fdesc->drvname.c_str()));
+      tof->AppendLine("#endif", 2);
+    }
+    else
+    {
+      // receive function necessary only when more than 0 rx messages were mapped
+      tof->AppendLine(StrPrint("uint32_t %s_Receive(%s_rx_t* _m, const uint8_t* _d, uint32_t _id, uint8_t _dlc);",
+          fdesc->drvname.c_str(), fdesc->drvname.c_str()), 2);
+    }
   }
 
   // print extern for super structs
@@ -220,18 +233,35 @@ void CiUtilGenerator::PrintSource()
     // binary search on FrameID for selecting unpacking function
     auto tree = FillTreeLevel(rx, 0, static_cast<int32_t>(rx.size()));
 
-    tof->AppendLine(StrPrint("uint32_t %s_Receive(%s_rx_t* _m, const uint8_t* _d, uint32_t _id, uint8_t dlc_)",
-        fdesc->drvname.c_str(), fdesc->drvname.c_str()));
-
-    tof->AppendLine("{");
-    tof->AppendLine(" uint32_t recid = 0;");
+    if (use_can_struct)
+    {
+      tof->AppendLine(StrPrint("#ifdef %s", fdesc->usesruct_def.c_str()));
+      tof->AppendLine(StrPrint("uint32_t %s_Receive(%s_rx_t* _m, __CoderDbcCanFrame_t__ frame)", fdesc->drvname.c_str(), fdesc->drvname.c_str()));
+      tof->AppendLine("{");
+      tof->AppendLine("    uint32_t recid = 0;");
+      tof->AppendLine("    const uint8_t* _d = frame.data;");
+      tof->AppendLine("    uint32_t _id = frame.identifier;");
+      tof->AppendLine("    uint8_t _dlc = frame.data_length_code;");
+      tof->AppendLine("#else");
+      tof->AppendLine(StrPrint("uint32_t %s_Receive(%s_rx_t* _m, const uint8_t* _d, uint32_t _id, uint8_t _dlc)", fdesc->drvname.c_str(), fdesc->drvname.c_str()));
+      tof->AppendLine("{");
+      tof->AppendLine("    uint32_t recid = 0;");
+      tof->AppendLine("#endif", 2);
+    }
+    else
+    {
+      tof->AppendLine(StrPrint("uint32_t %s_Receive(%s_rx_t* _m, const uint8_t* _d, uint32_t _id, uint8_t dlc_)",
+          fdesc->drvname.c_str(), fdesc->drvname.c_str()));
+      tof->AppendLine("{");
+      tof->AppendLine("    uint32_t recid = 0;");
+    }
 
     // put tree-view struct on code (in treestr variable)
     std::string treestr;
     condtree->Clear();
     tof->AppendLine(condtree->WriteCode(tree, treestr, 1));
 
-    tof->AppendLine(" return recid;");
+    tof->AppendLine("    return recid;");
     tof->AppendLine("}", 2);
 
     // clear tree after using
@@ -265,7 +295,7 @@ ConditionalTree_t* CiUtilGenerator::FillTreeLevel(std::vector<MessageDescriptor_
     ret->ConditionExpresion = StrPrint("_id == 0x%XU", msg->MsgID);
     ret->High = new ConditionalTree_t;
     ret->High->Type = ConditionalType::Single;
-    ret->High->UtilCodeBody = StrPrint("recid = Unpack_%s_%s(&(_m->%s), _d, dlc_);",
+    ret->High->UtilCodeBody = StrPrint("recid = Unpack_%s_%s(&(_m->%s), _d, _dlc);",
         msg->Name.c_str(), code_drvname.c_str(), msg->Name.c_str());
     return ret;
   }
@@ -291,7 +321,7 @@ ConditionalTree_t* CiUtilGenerator::FillTreeLevel(std::vector<MessageDescriptor_
     ret->Type = ConditionalType::Express;
     auto msg = list[l];
     ret->ConditionExpresion = StrPrint("_id == 0x%XU", msg->MsgID);
-    ret->UtilCodeBody = StrPrint("recid = Unpack_%s_%s(&(_m->%s), _d, dlc_);",
+    ret->UtilCodeBody = StrPrint("recid = Unpack_%s_%s(&(_m->%s), _d, _dlc);",
         msg->Name.c_str(), code_drvname.c_str(), msg->Name.c_str());
   }
 

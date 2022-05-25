@@ -12,21 +12,29 @@
 #include "c-main-generator.h"
 
 const char* ext_sig_func_name = "__ext_sig__";
-
 const char* extend_func_body =
-  "// This function performs extension of sign for the signals\n"
-  "// which have non-aligned to power of 2 bit's width.\n"
-  "// The types 'bitext_t' and 'ubitext_t' define maximal bit width which\n"
-  "// can be correctly handled. You need to select type which can contain\n"
-  "// n+1 bits where n is the largest signed signal width. For example if\n"
-  "// the most wide signed signal has a width of 31 bits you need to set\n"
-  "// bitext_t as int32_t and ubitext_t as uint32_t\n"
-  "// Defined these typedefs in @dbccodeconf.h or locally in 'dbcdrvname'-config.h\n"
+  "/*******************************************************************************\n"
+  " * @brief  This function performs extension of sign for the signals\n"
+  " *         which have non-aligned to power of 2 bit's width.\n"
+  " *         The types 'bitext_t' and 'ubitext_t' define maximal bit width which\n"
+  " *         can be correctly handled. You need to select type which can contain\n"
+  " *         n+1 bits where n is the largest signed signal width. For example if\n"
+  " *         the most wide signed signal has a width of 31 bits you need to set\n"
+  " *         bitext_t as int32_t and ubitext_t as uint32_t\n"
+  " *\n"
+  " * @note   Re-define these typedefs in @dbccodeconf.h\n"
+  " *******************************************************************************/\n"
   "static bitext_t %s(ubitext_t val, uint8_t bits)\n"
   "{\n"
   "  ubitext_t const m = 1u << (bits - 1);\n"
   "  return (val ^ m) - m;\n"
   "}\n";
+static bool generate_rx_callbacks = false;
+static bool generate_tx_callback = false;
+static bool use_external_can_struct = false;
+static bool external_can_struct_defined = false;
+static std::string can_struct_path = "";
+static std::string can_struct_definition = "";
 
 CiMainGenerator::CiMainGenerator()
 {
@@ -34,7 +42,7 @@ CiMainGenerator::CiMainGenerator()
   fwriter = new FileWriter;
 }
 
-void CiMainGenerator::Generate(DbcMessageList_t& dlist, const FsDescriptor_t& fsd)
+void CiMainGenerator::Generate(DbcMessageList_t& dlist, const FsDescriptor_t& fsd, generator_params_t p)
 {
   p_dlist = &dlist;
   // Load income messages to sig printer
@@ -49,6 +57,13 @@ void CiMainGenerator::Generate(DbcMessageList_t& dlist, const FsDescriptor_t& fs
   {
     return a->msg.MsgID < b->msg.MsgID;
   });
+
+  generate_rx_callbacks = p.gen_rx_cbs;
+  generate_tx_callback = p.gen_tx_cb;
+  use_external_can_struct = p.can_structs;
+  external_can_struct_defined = p.can_defined;
+  can_struct_path = p.can_struct_path;
+  can_struct_definition = p.can_struct_def;
 
   // 2 step is to print main head file
   Gen_MainHeader();
@@ -83,7 +98,8 @@ void CiMainGenerator::Gen_MainHeader()
 
   fwriter->AppendLine("#pragma once", 2);
   fwriter->AppendLine("#ifdef __cplusplus\nextern \"C\" {\n#endif", 2);
-  fwriter->AppendLine("#include <stdint.h>", 2);
+  fwriter->AppendLine("#include <stdint.h>");
+  fwriter->AppendLine("#include <stdlib.h>", 2);
 
   fwriter->AppendLine("// DBC file version");
   fwriter->AppendLine(StrPrint("#define %s (%uU)", fdesc->verhigh_def.c_str(), p_dlist->ver.hi));
@@ -93,7 +109,6 @@ void CiMainGenerator::Gen_MainHeader()
   fwriter->AppendLine(StrPrint("#include <%s-config.h>", fdesc->drvname.c_str()), 2);
 
   fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usemon_def.c_str()));
-
   fwriter->AppendText(
     "// This file must define:\n"
     "// base monitor struct\n"
@@ -102,8 +117,29 @@ void CiMainGenerator::Gen_MainHeader()
     "#include <canmonitorutil.h>\n"
     "\n"
   );
+  fwriter->AppendLine(StrPrint("#endif // %s", fdesc->usemon_def.c_str()), 2);
 
-  fwriter->AppendLine(StrPrint("#endif // %s", fdesc->usemon_def.c_str()), 3);
+  if (generate_tx_callback)
+  {
+    fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usetxcb_def.c_str())); // "%s_USE_TX_CALLBACK"
+    fwriter->AppendLine("/*****************************************************************");
+    fwriter->AppendLine(" * @brief Helper macro to pack a signal and send it via Callback");
+    fwriter->AppendLine("******************************************************************/");
+    fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usesruct_def.c_str())); // "%s_USE_CANSTRUCT"
+    fwriter->AppendLine(StrPrint("#define CANdySend_%s(sig, data) do { \\", fdesc->DrvName_orig.c_str()));
+    fwriter->AppendLine("  __CoderDbcCanFrame_t__ f; \\");
+    fwriter->AppendLine("  sig##_t m = data; \\");
+    fwriter->AppendLine(StrPrint("  Pack_##sig##_%s(&m, &f); \\", fdesc->DrvName_orig.c_str()));
+    fwriter->AppendLine("  } while(0)");
+    fwriter->AppendLine("#else");
+    fwriter->AppendLine(StrPrint("#define CANdySend_%s(sig, data) do { \\", fdesc->DrvName_orig.c_str()));
+    fwriter->AppendLine("  uint8_t d[8], len = sig##_DLC, ide = sig##_IDE; \\");
+    fwriter->AppendLine("  sig##_t m = data; \\");
+    fwriter->AppendLine(StrPrint("  Pack_##sig##_%s(&m, sig##_CANID, d, &len, &ide); \\", fdesc->DrvName_orig.c_str()));
+    fwriter->AppendLine("  } while(0)");
+    fwriter->AppendLine("#endif");
+    fwriter->AppendLine("#endif", 3);
+  }
 
   for (size_t num = 0; num < sigprt->sigs_expr.size(); num++)
   {
@@ -224,6 +260,25 @@ void CiMainGenerator::Gen_MainHeader()
     fwriter->AppendLine("  FrameMonitor_t mon1;", 2);
     fwriter->AppendLine(StrPrint("#endif // %s", fdesc->usemon_def.c_str()), 2);
     fwriter->AppendLine(StrPrint("} %s_t;", m.Name.c_str()), 2);
+
+    // write the callback struct for signals that can be receieved
+    fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->userxcb_def.c_str()));
+    // fwriter->AppendLine(StrPrint("void (*%s_cb)(%s_t) = NULL;", m.Name.c_str()), 2);
+    std::string cbWithParams = "void (*" + m.Name + "_cb)(";
+    for (size_t signum = 0; signum < m.Signals.size(); signum++)
+    {
+      cbWithParams += PrintType((int)m.Signals[signum].TypeRo) + " " + m.Signals[signum].Name;
+      if (signum == (m.Signals.size() - 1))
+      {
+        cbWithParams += ") = NULL;";
+      }
+      else
+      {
+        cbWithParams += ", ";
+      }
+    }
+    fwriter->AppendLine(cbWithParams);
+    fwriter->AppendLine(StrPrint("#endif // %s", fdesc->userxcb_def.c_str()), 2);
   }
 
   fwriter->AppendLine("// Function signatures", 2);
@@ -243,7 +298,7 @@ void CiMainGenerator::Gen_MainHeader()
 
     fwriter->AppendLine("#else");
 
-    fwriter->AppendLine(StrPrint("uint32_t Pack_%s_%s(%s_t* _m, uint8_t* _d, uint8_t* _len, uint8_t* _ide);",
+    fwriter->AppendLine(StrPrint("uint32_t Pack_%s_%s(%s_t* _m, uint32_t _id, uint8_t* _d, uint8_t* _len, uint8_t* _ide);",
         m.Name.c_str(), fdesc->DrvName_orig.c_str(), m.Name.c_str()));
 
     fwriter->AppendLine(StrPrint("#endif // %s", fdesc->usesruct_def.c_str()), 2);
@@ -320,7 +375,7 @@ void CiMainGenerator::Gen_MainSource()
     fwriter->AppendLine("#else", 2);
 
     // third function
-    fwriter->AppendLine(StrPrint("uint32_t Pack_%s_%s(%s_t* _m, uint8_t* _d, uint8_t* _len, uint8_t* _ide)",
+    fwriter->AppendLine(StrPrint("uint32_t Pack_%s_%s(%s_t* _m, uint32_t _id, uint8_t* _d, uint8_t* _len, uint8_t* _ide)",
         m.Name.c_str(), fdesc->DrvName_orig.c_str(), m.Name.c_str()));
 
     WritePackArrayBody(sigprt->sigs_expr[num]);
@@ -339,109 +394,162 @@ void CiMainGenerator::Gen_ConfigHeader()
     fwriter->AppendLine("// " + std::regex_replace(fdesc->start_info, std::regex("\n"), "\n// "));
   }
 
-  fwriter->AppendLine("#pragma once");
-  fwriter->AppendLine("");
+  fwriter->AppendLine("#pragma once", 2);
   fwriter->AppendLine("/* include common dbccode configurations */");
-  fwriter->AppendLine("#include <dbccodeconf.h>");
-  fwriter->AppendLine("");
-  fwriter->AppendLine("");
-  fwriter->AppendLine("/* ------------------------------------------------------------------------- *");
-  fwriter->AppendLine("  This define enables using CAN message structs with bit-fielded signals");
-  fwriter->AppendLine("  layout.");
-  fwriter->AppendLine("");
-  fwriter->AppendLine("  Note(!): bit-feild was not tested properly. */");
-  fwriter->AppendLine("");
-  fwriter->AppendLine(StrPrint("/* #define %s */", fdesc->usebits_def.c_str()), 3);
+  fwriter->AppendLine("#include <stdlib.h>");
+  fwriter->AppendLine("#include <dbccodeconf.h>", 3);
 
-  fwriter->AppendLine("/* ------------------------------------------------------------------------- *");
-  fwriter->AppendLine("  This macro enables using CAN message descriptive struct packing functions");
-  fwriter->AppendLine("  (by default signature of pack function intakes a few simple typed params");
-  fwriter->AppendLine("  for loading data, len, etc). To compile you need to define the struct");
-  fwriter->AppendLine("  __CoderDbcCanFrame_t__ which must have fields:");
-  fwriter->AppendLine("");
-  fwriter->AppendLine("    u32 MsgId (CAN Frame message ID)");
-  fwriter->AppendLine("    u8 DLC (CAN Frame payload length field)");
-  fwriter->AppendLine("    u8 Data[8] (CAN Frame payload data)");
-  fwriter->AppendLine("    u8 IDE (CAN Frame Extended (1) / Standard (0) ID type)");
-  fwriter->AppendLine("");
-  fwriter->AppendLine("  This struct definition have to be placed (or be included) in dbccodeconf.h */");
-  fwriter->AppendLine("");
-  fwriter->AppendLine(StrPrint("/* #define %s */", fdesc->usesruct_def.c_str()), 3);
+  fwriter->AppendLine("/********************************************************************************");
+  fwriter->AppendLine(" * This define enables using CAN message structs with bit-fielded signals layout.");
+  fwriter->AppendLine(" * Note(!): bit-feild was not tested properly.");
+  fwriter->AppendLine(" ********************************************************************************/");
+  fwriter->AppendLine(StrPrint("// #define %s", fdesc->usebits_def.c_str()), 3);
 
-  fwriter->AppendLine("/* ------------------------------------------------------------------------- *");
-  fwriter->AppendLine("  All the signals which have values of factor != 1 or offset != 0");
-  fwriter->AppendLine("  will be named in message struct with posfix '_ro'. Pack to payload");
-  fwriter->AppendLine("  operations will be made on this signal value as well as unpack from payload.");
-  fwriter->AppendLine("");
-  fwriter->AppendLine("  USE_SIGFLOAT macro makes some difference:");
-  fwriter->AppendLine("");
-  fwriter->AppendLine("  1. All the '_ro' fields will have a pair field with '_phys' postfix.");
-  fwriter->AppendLine("  If only offset != 0 is true then the type of '_phys' signal is the same");
-  fwriter->AppendLine("  as '_ro' signal. In other case the type will be @sigfloat_t which");
-  fwriter->AppendLine("  have to be defined in user dbccodeconf.h");
-  fwriter->AppendLine("");
-  fwriter->AppendLine("  2. In pack function '_ro' signal will be rewritten by '_phys' signal, which");
-  fwriter->AppendLine("  requires from user to use ONLY '_phys' signal for packing frame");
-  fwriter->AppendLine("");
-  fwriter->AppendLine("  3. In unpack function '_phys' signal will be written by '_ro' signal.");
-  fwriter->AppendLine("  User have to use '_phys' signal to read physical value. */");
-  fwriter->AppendLine("");
-  fwriter->AppendLine(StrPrint("/* #define %s */", fdesc->usesigfloat_def.c_str()), 3);
+  fwriter->AppendLine("/********************************************************************************");
+  fwriter->AppendLine(" * This macro enables using CAN message descriptive struct packing functions");
+  fwriter->AppendLine(" * (by default signature of pack function intakes a few simple typed params");
+  fwriter->AppendLine(" * for loading data, len, etc). To compile you need to define the struct");
+  fwriter->AppendLine(" * __CoderDbcCanFrame_t__ which must have fields:");
+  fwriter->AppendLine(" *     uint32_t flags  (breakdown of the flags below)");
+  fwriter->AppendLine(" *                     extd: 1;           < Extended Frame Format (29bit ID) >");
+  fwriter->AppendLine(" *                     rtr: 1;            < Message is a Remote Frame >");
+  fwriter->AppendLine(" *                     ss: 1;             < Transmit as a Single Shot Transmission. Unused for received. >");
+  fwriter->AppendLine(" *                     self: 1;           < Transmit as a Self Reception Request. Unused for received. >");
+  fwriter->AppendLine(" *                     dlc_non_comp: 1;   < Message's Data length code is larger than 8. This will break compliance with ISO 11898-1 >");
+  fwriter->AppendLine(" *                     reserved: 27;      < Reserved bits >");
+  fwriter->AppendLine(" *     uint32_t identifier (11 or 29 bit identifier)");
+  fwriter->AppendLine(" *     uint8_t data_length_code (Data length code)");
+  fwriter->AppendLine(" *     uint8_t data[8] (Data bytes (not relevant in RTR frame))");
+  fwriter->AppendLine(" *");
+  fwriter->AppendLine(" * This struct definition have to be placed (or be included) in dbccodeconf.h");
+  fwriter->AppendLine(" ********************************************************************************/");
+  if (use_external_can_struct)
+  {
+    fwriter->AppendLine(StrPrint("#define %s", fdesc->usesruct_def.c_str()), 3);
+  }
+  else
+  {
+    fwriter->AppendLine(StrPrint("// #define %s", fdesc->usesruct_def.c_str()), 3);
+  }
 
-  fwriter->AppendLine("/* ------------------------------------------------------------------------- *");
-  fwriter->AppendLine("  Note(!) that the \"canmonitorutil.h\" must be accessed in include path:");
-  fwriter->AppendLine("");
-  fwriter->AppendLine("  This macro adds:");
-  fwriter->AppendLine("");
-  fwriter->AppendLine("  - monitor field @mon1 to message struct");
-  fwriter->AppendLine("");
-  fwriter->AppendLine("  - capture system tick in unpack function and save value to mon1 field");
-  fwriter->AppendLine("  to provide to user better missing frame detection code. For this case");
-  fwriter->AppendLine("  user must provide function declared in canmonitorutil.h - GetSysTick()");
-  fwriter->AppendLine("  which may return 1ms uptime.");
-  fwriter->AppendLine("");
-  fwriter->AppendLine("  - calling function FMon_***  (from 'fmon' driver) inside unpack function");
-  fwriter->AppendLine("  which is empty by default and have to be filled by user if");
-  fwriter->AppendLine("  tests for DLC, rolling, checksum are necessary */");
-  fwriter->AppendLine("");
-  fwriter->AppendLine(StrPrint("/* #define %s */", fdesc->usemon_def.c_str()), 3);
+  fwriter->AppendLine("/********************************************************************************");
+  fwriter->AppendLine(" * All the signals which have values of factor != 1 or offset != 0");
+  fwriter->AppendLine(" * will be named in message struct with posfix '_ro'. Pack to payload");
+  fwriter->AppendLine(" * operations will be made on this signal value as well as unpack from payload.");
+  fwriter->AppendLine(" *");
+  fwriter->AppendLine(" * USE_SIGFLOAT macro makes some difference:");
+  fwriter->AppendLine(" *");
+  fwriter->AppendLine(" * 1. All the '_ro' fields will have a pair field with '_phys' postfix.");
+  fwriter->AppendLine(" * If only offset != 0 is true then the type of '_phys' signal is the same");
+  fwriter->AppendLine(" * as '_ro' signal. In other case the type will be @sigfloat_t which");
+  fwriter->AppendLine(" * have to be defined in user dbccodeconf.h");
+  fwriter->AppendLine(" *");
+  fwriter->AppendLine(" * 2. In pack function '_ro' signal will be rewritten by '_phys' signal, which");
+  fwriter->AppendLine(" * requires from user to use ONLY '_phys' signal for packing frame");
+  fwriter->AppendLine(" *");
+  fwriter->AppendLine(" * 3. In unpack function '_phys' signal will be written by '_ro' signal.");
+  fwriter->AppendLine(" * User have to use '_phys' signal to read physical value.");
+  fwriter->AppendLine(" ********************************************************************************/");
+  fwriter->AppendLine(StrPrint("// #define %s", fdesc->usesigfloat_def.c_str()), 3);
 
-  fwriter->AppendLine("/* ------------------------------------------------------------------------- *");
-  fwriter->AppendLine(StrPrint("  When monitor using is enabled (%s) and define below", fdesc->usemon_def.c_str()));
-  fwriter->AppendLine("  uncommented, additional signal will be added to message struct. ***_expt:");
-  fwriter->AppendLine("  expected rolling counter, to perform monitoring rolling counter sequence");
-  fwriter->AppendLine("  automatically (result may be tested in dedicated Fmon_*** function) */");
-  fwriter->AppendLine("");
-  fwriter->AppendLine(StrPrint("/* #define %s */", fdesc->useroll_def.c_str()), 3);
+  fwriter->AppendLine("/********************************************************************************");
+  fwriter->AppendLine(" * Note(!) that the \"canmonitorutil.h\" must be accessed in include path:");
+  fwriter->AppendLine(" *");
+  fwriter->AppendLine(" * This macro adds:");
+  fwriter->AppendLine(" *");
+  fwriter->AppendLine(" * - monitor field @mon1 to message struct");
+  fwriter->AppendLine(" *");
+  fwriter->AppendLine(" * - capture system tick in unpack function and save value to mon1 field");
+  fwriter->AppendLine(" * to provide to user better missing frame detection code. For this case");
+  fwriter->AppendLine(" * user must provide function declared in canmonitorutil.h - GetSysTick()");
+  fwriter->AppendLine(" * which may return 1ms uptime.");
+  fwriter->AppendLine(" *");
+  fwriter->AppendLine(" * - calling function FMon_***  (from 'fmon' driver) inside unpack function");
+  fwriter->AppendLine(" * which is empty by default and have to be filled by user if");
+  fwriter->AppendLine(" * tests for DLC, rolling, checksum are necessary");
+  fwriter->AppendLine(" *********************************************************************************/");
+  fwriter->AppendLine(StrPrint("// #define %s", fdesc->usemon_def.c_str()), 3);
 
-  fwriter->AppendLine("/* ------------------------------------------------------------------------- *");
-  fwriter->AppendLine(StrPrint("  When monitor using is enabled (%s) and define below", fdesc->usemon_def.c_str()));
-  fwriter->AppendLine("  uncommented, frame checksum signal may be handled automatically.");
+  fwriter->AppendLine("/********************************************************************************");
+  fwriter->AppendLine(StrPrint(" * When monitor using is enabled (%s) and define below", fdesc->usemon_def.c_str()));
+  fwriter->AppendLine(" * uncommented, additional signal will be added to message struct. ***_expt:");
+  fwriter->AppendLine(" * expected rolling counter, to perform monitoring rolling counter sequence");
+  fwriter->AppendLine(" * automatically (result may be tested in dedicated Fmon_*** function)");
+  fwriter->AppendLine(" ********************************************************************************/");
+  fwriter->AppendLine(StrPrint("// #define %s", fdesc->useroll_def.c_str()), 3);
+
+  fwriter->AppendLine("/********************************************************************************");
+  fwriter->AppendLine(StrPrint(" * When monitor using is enabled (%s) and define below", fdesc->usemon_def.c_str()));
+  fwriter->AppendLine(" * uncommented, frame checksum signal may be handled automatically.");
+  fwriter->AppendLine(" *");
+  fwriter->AppendLine(" * The signal which may be marked as checksum signal must have substring");
+  fwriter->AppendLine(" * with next format:");
+  fwriter->AppendLine(" *   <Checksum:XOR8:3>");
+  fwriter->AppendLine(" *");
+  fwriter->AppendLine(" * where:");
+  fwriter->AppendLine(" *");
+  fwriter->AppendLine(" * - \"Checksum\": constant marker word");
+  fwriter->AppendLine(" *");
+  fwriter->AppendLine(" * - \"XOR8\": type of method, this text will be passed to GetFrameHash");
+  fwriter->AppendLine(" * (canmonitorutil.h) function as is, the best use case is to define 'enum");
+  fwriter->AppendLine(" * DbcCanCrcMethods' in canmonitorutil.h file with all possible");
+  fwriter->AppendLine(" * checksum algorithms (e.g. XOR8, XOR4 etc)");
+  fwriter->AppendLine(" *");
+  fwriter->AppendLine(" * - \"3\": optional value that will be passed to GetFrameHash as integer value");
+  fwriter->AppendLine(" *");
+  fwriter->AppendLine(" * Function GetFrameHash have to be implemented by user");
+  fwriter->AppendLine(" *");
+  fwriter->AppendLine(" * In pack function checksum signal will be calculated automatically");
+  fwriter->AppendLine(" * and loaded to payload");
+  fwriter->AppendLine(" *");
+  fwriter->AppendLine(" * In unpack function checksum signal is checked with calculated.");
+  fwriter->AppendLine(" * (result may be tested in dedicated Fmon_*** function).");
+  fwriter->AppendLine(" ********************************************************************************/");
+  fwriter->AppendLine(StrPrint("// #define %s", fdesc->usecsm_def.c_str()), 3);
+
+  fwriter->AppendLine("/********************************************************************************");
+  fwriter->AppendLine(" * Enable the use of generated callback stubs (each defaulted to NULL)");
+  fwriter->AppendLine(" * If a callback is assigned and macro is defined, unpack functions will execute");
+  fwriter->AppendLine(" * the assigned callback immediately after unpacking and before returning and");
+  fwriter->AppendLine(" * pack functions will execute the callback after packing the signal's structure.");
+  fwriter->AppendLine(" * @Note All Tx Callbacks use: void *<drvname>_TX_cb(__CoderDbcCanFrame_t__ frame);");
+  fwriter->AppendLine(" ********************************************************************************/");
+  if (generate_rx_callbacks)
+  {
+    fwriter->AppendLine(StrPrint("#define %s", fdesc->userxcb_def.c_str()));
+  }
+  else
+  {
+    fwriter->AppendLine(StrPrint("// #define %s", fdesc->userxcb_def.c_str()));
+  }
+  if (generate_tx_callback)
+  {
+    fwriter->AppendLine(StrPrint("#define %s", fdesc->usetxcb_def.c_str()), 2);
+  }
+  else
+  {
+    fwriter->AppendLine(StrPrint("// #define %s", fdesc->usetxcb_def.c_str()), 2);
+  }
+
+  fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usetxcb_def.c_str())); // "%s_USE_TX_CALLBACK"
+  fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usesruct_def.c_str())); // "%s_USE_CANSTRUCT"
+  fwriter->AppendLine(StrPrint("void (*%s)(__CoderDbcCanFrame_t__ frame) = NULL;", fdesc->txcb_func.c_str()));
+  fwriter->AppendLine("#else");
+  fwriter->AppendLine(StrPrint("void (*%s)(uint32_t _id, uint8_t* _d, uint8_t* _len, uint8_t* _ide) = NULL;", fdesc->txcb_func.c_str()));
+  fwriter->AppendLine("#endif"); // "%s_USE_CANSTRUCT"
+  fwriter->AppendLine(StrPrint("#endif // %s", fdesc->usetxcb_def.c_str()), 3);
+
+  fwriter->AppendLine("/********************************************************************************");
+  fwriter->AppendLine(" * Callbacks can be assigned and triggred when a signal is unpacked.");
+  fwriter->AppendLine(" * If a callback is not assigned (remains NULL when signal is unpacked) the macro");
+  fwriter->AppendLine(StrPrint(" * %s can be used to log triggered callbacks.", fdesc->debugcb_def.c_str()));
+  fwriter->AppendLine(StrPrint(" * externally define %s for use.", fdesc->debugcb_def.c_str()));
+  fwriter->AppendLine(" * If not defined, it's optimized out/precompiled to nothing.");
+  fwriter->AppendLine(" ********************************************************************************/");
+  fwriter->AppendLine(StrPrint("#ifndef %s", fdesc->debugcb_def.c_str()));
+  fwriter->AppendLine(StrPrint("#define %s(msg) do { /* ## msg ## */ } while(0)", fdesc->debugcb_def.c_str()));
+  fwriter->AppendLine("#endif");
   fwriter->AppendLine("");
-  fwriter->AppendLine("  The signal which may be marked as checksum signal must have substring");
-  fwriter->AppendLine("  with next format:");
-  fwriter->AppendLine("    <Checksum:XOR8:3>");
-  fwriter->AppendLine("");
-  fwriter->AppendLine("  where:");
-  fwriter->AppendLine("");
-  fwriter->AppendLine("  - \"Checksum\": constant marker word");
-  fwriter->AppendLine("");
-  fwriter->AppendLine("  - \"XOR8\": type of method, this text will be passed to GetFrameHash");
-  fwriter->AppendLine("  (canmonitorutil.h) function as is, the best use case is to define 'enum");
-  fwriter->AppendLine("  DbcCanCrcMethods' in canmonitorutil.h file with all possible");
-  fwriter->AppendLine("  checksum algorithms (e.g. XOR8, XOR4 etc)");
-  fwriter->AppendLine("");
-  fwriter->AppendLine("  - \"3\": optional value that will be passed to GetFrameHash as integer value");
-  fwriter->AppendLine("");
-  fwriter->AppendLine("  Function GetFrameHash have to be implemented by user");
-  fwriter->AppendLine("");
-  fwriter->AppendLine("  In pack function checksum signal will be calculated automatically");
-  fwriter->AppendLine("  and loaded to payload");
-  fwriter->AppendLine("");
-  fwriter->AppendLine("  In unpack function checksum signal is checked with calculated.");
-  fwriter->AppendLine("  (result may be tested in dedicated Fmon_*** function). */");
-  fwriter->AppendLine("");
-  fwriter->AppendLine(StrPrint("/* #define %s */", fdesc->usecsm_def.c_str()), 2);
 
   fwriter->Flush(fdesc->confdir + '/' + fdesc->drvname + "-config.h");
 }
@@ -590,20 +698,58 @@ void CiMainGenerator::Gen_CanMonUtil()
 
 void CiMainGenerator::Gen_DbcCodeConf()
 {
-  fwriter->AppendLine("#pragma once");
-  fwriter->AppendLine("");
-  fwriter->AppendLine("#include <stdint.h>");
-  fwriter->AppendLine("");
+  fwriter->AppendLine("#pragma once", 2);
+  fwriter->AppendLine("#include <stdint.h>", 2);
+
+  fwriter->AppendLine("typedef int32_t bitext_t;");
+  fwriter->AppendLine("typedef uint32_t ubitext_t;", 2);
+  
   fwriter->AppendLine("// when USE_SIGFLOAT enabed the sigfloat_t must be defined");
-  fwriter->AppendLine("// typedef double sigfloat_t;");
-  fwriter->AppendLine("");
-  fwriter->AppendLine("// when USE_CANSTRUCT enabled __CoderDbcCanFrame_t__ must be defined");
-  fwriter->AppendLine("// #include \"{header_with_can_struct}\"");
-  fwriter->AppendLine("// typedef {can_struct} __CoderDbcCanFrame_t__;");
-  fwriter->AppendLine("");
+  fwriter->AppendLine("// typedef double sigfloat_t;", 2);
+  
+  fwriter->AppendLine("/********************************************************************************");
+  fwriter->AppendLine(StrPrint(" * @brief when %s is enabled, __CoderDbcCanFrame_t__", fdesc->usesruct_def.c_str()));
+  fwriter->AppendLine(" * must be defined. Defining it externally and providing the generator with the");
+  fwriter->AppendLine(" * path avoids needing to modify the generated c source files.");
+  if (use_external_can_struct)
+  {
+    fwriter->AppendLine(" * @note generated with `-canstruct` option. Including provided header for CAN struct.");
+    if (external_can_struct_defined)
+    {
+      fwriter->AppendLine(" *       generated with `-defstruct` option. Including provided definition.");
+    }
+    fwriter->AppendLine("********************************************************************************/");
+    fwriter->AppendLine(StrPrint("#include \"%s\"", can_struct_path.c_str()));
+    if (external_can_struct_defined)
+    {
+      fwriter->AppendLine(StrPrint("%s", can_struct_definition.c_str()), 3);
+    }
+    else
+    {
+      fwriter->AppendLine("", 2);
+    }
+  }
+  else
+  {
+    fwriter->AppendLine(" * Use options `-canstruct \"path/to/header.h\" -usestruct` to include predefined struct.");
+    if (external_can_struct_defined)
+    {
+      fwriter->AppendLine(" * @note generated with `-defstruct` option. Including provided definition.");
+    }
+    fwriter->AppendLine("********************************************************************************/");
+    fwriter->AppendLine("// #include \"{header_with_can_struct}\"");
+    if (external_can_struct_defined)
+    {
+      fwriter->AppendLine(StrPrint("%s", can_struct_definition.c_str()), 3);
+    }
+    else
+    {
+      fwriter->AppendLine("// typedef {can_struct} __CoderDbcCanFrame_t__;", 2);
+    }
+  }
+
   fwriter->AppendLine("// if you need to allocate rx and tx messages structs put the allocation macro here");
-  fwriter->AppendLine("// #define __DEF_{your_driver_name}__");
-  fwriter->AppendLine("");
+  fwriter->AppendLine("// #define __DEF_{your_driver_name}__", 2);
 
   fwriter->Flush(fdesc->confdir + '/' + "dbccodeconf.h");
 }
@@ -807,16 +953,58 @@ void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
 
   fwriter->AppendLine(StrPrint("#endif // %s", fdesc->usemon_def.c_str()), 2);
 
+  if (generate_rx_callbacks)
+  {
+    fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->userxcb_def.c_str()));
+    fwriter->AppendLine(StrPrint("  if (%s_cb)", sgs->msg.Name.c_str()));
+    fwriter->AppendLine("  {");
+    std::string cbWithParams = "    " + sgs->msg.Name + "_cb(";
+    for (size_t num = 0; num < sgs->to_signals.size(); num++)
+    {
+      cbWithParams += "_m->" + sgs->msg.Signals[num].Name;
+      if (num == (sgs->msg.Signals.size() - 1))
+      {
+        cbWithParams += ");";
+      }
+      else
+      {
+        cbWithParams += ", ";
+      }
+    }
+    fwriter->AppendLine(cbWithParams);
+    fwriter->AppendLine("  }");
+    fwriter->AppendLine("  else");
+    fwriter->AppendLine("  {");
+    fwriter->AppendLine(StrPrint("    %s(\"No callback assigned to %s_cb()\");", fdesc->debugcb_def.c_str(), sgs->msg.Name.c_str()));
+    fwriter->AppendLine("  }");
+    fwriter->AppendLine(StrPrint("#endif // %s", fdesc->userxcb_def.c_str()));
+  }
+
   fwriter->AppendLine(StrPrint("  return %s_CANID;", sgs->msg.Name.c_str()));
 }
 
 void CiMainGenerator::WritePackStructBody(const CiExpr_t* sgs)
 {
   fwriter->AppendLine("{");
-  PrintPackCommonText("cframe->Data", sgs);
-  fwriter->AppendLine(StrPrint("  cframe->MsgId = %s_CANID;", sgs->msg.Name.c_str()));
-  fwriter->AppendLine(StrPrint("  cframe->DLC = %s_DLC;", sgs->msg.Name.c_str()));
-  fwriter->AppendLine(StrPrint("  cframe->IDE = %s_IDE;", sgs->msg.Name.c_str(), 2));
+  PrintPackCommonText("cframe->data", sgs);
+  fwriter->AppendLine(StrPrint("  cframe->identifier = %s_CANID;", sgs->msg.Name.c_str()));
+  fwriter->AppendLine(StrPrint("  cframe->data_length_code = %s_DLC;", sgs->msg.Name.c_str()));
+  fwriter->AppendLine(StrPrint("  cframe->extd = %s_IDE;", sgs->msg.Name.c_str()), 2);
+  
+  if (generate_tx_callback)
+  {
+    fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usetxcb_def.c_str()));
+    fwriter->AppendLine(StrPrint("  if (%s)", fdesc->txcb_func.c_str()));
+    fwriter->AppendLine("  {");
+    fwriter->AppendLine(StrPrint("    %s(*cframe);", fdesc->txcb_func.c_str()));
+    fwriter->AppendLine("  }");
+    fwriter->AppendLine("  else");
+    fwriter->AppendLine("  {");
+    fwriter->AppendLine(StrPrint("    %s(\"No TX callback assigned to %s(__CoderDbcCanFrame_t__ frame).\");", fdesc->debugcb_def.c_str(), fdesc->txcb_func.c_str()));
+    fwriter->AppendLine("  }");
+    fwriter->AppendLine(StrPrint("#endif // %s", fdesc->usetxcb_def.c_str()), 2);
+  }
+
   fwriter->AppendLine(StrPrint("  return %s_CANID;", sgs->msg.Name.c_str()));
   fwriter->AppendLine("}", 2);
 }
@@ -826,7 +1014,22 @@ void CiMainGenerator::WritePackArrayBody(const CiExpr_t* sgs)
   fwriter->AppendLine("{");
   PrintPackCommonText("_d", sgs);
   fwriter->AppendLine(StrPrint("  *_len = %s_DLC;", sgs->msg.Name.c_str()));
-  fwriter->AppendLine(StrPrint("  *_ide = %s_IDE;", sgs->msg.Name.c_str(), 2));
+  fwriter->AppendLine(StrPrint("  *_ide = %s_IDE;", sgs->msg.Name.c_str()), 2);
+
+  if (generate_tx_callback)
+  {
+    fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usetxcb_def.c_str()));
+    fwriter->AppendLine(StrPrint("  if (%s)", fdesc->txcb_func.c_str()));
+    fwriter->AppendLine("  {");
+    fwriter->AppendLine(StrPrint("    %s(%s_CANID, _d, _len, _ide);", fdesc->txcb_func.c_str(), sgs->msg.Name.c_str()));
+    fwriter->AppendLine("  }");
+    fwriter->AppendLine("  else");
+    fwriter->AppendLine("  {");
+    fwriter->AppendLine(StrPrint("    %s(\"No TX callback assigned to %s(uint32_t _id, uint8_t* _d, uint8_t* _len, uint8_t* _ide).\");", fdesc->debugcb_def.c_str(), fdesc->txcb_func.c_str()));
+    fwriter->AppendLine("  }");
+    fwriter->AppendLine(StrPrint("#endif // %s", fdesc->usetxcb_def.c_str()), 2);
+  }
+
   fwriter->AppendLine(StrPrint("  return %s_CANID;", sgs->msg.Name.c_str()));
   fwriter->AppendLine("}", 2);
 }

@@ -31,6 +31,10 @@ typedef struct
   std::string usebits_def;
   std::string usesruct_def;
   std::string usemon_def;
+  std::string userxcb_def;
+  std::string usetxcb_def;
+  std::string txcb_func;
+  std::string debugcb_def;
   std::string usesigfloat_def;
   std::string useroll_def;
   std::string usecsm_def;

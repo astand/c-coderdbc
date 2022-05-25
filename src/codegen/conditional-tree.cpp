@@ -61,7 +61,7 @@ void ConditionalTree::PrintCode(std::string& str, uint8_t indent)
 {
   while (indent--)
   {
-    codestr += " ";
+    codestr += "    ";
   }
 
   codestr += str;

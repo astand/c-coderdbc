@@ -21,7 +21,7 @@ class CiUtilGenerator {
   // - optional (through define in global "dbccodeconf.h") variable allocation in source files
   //
   void Generate(DbcMessageList_t& dlist, const FsDescriptor_t& fsd,
-    const MsgsClassification& groups, const std::string& drvname);
+    const MsgsClassification& groups, const std::string& drvname, bool canstruct);
 
  private:
   void PrintHeader();

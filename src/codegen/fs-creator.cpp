@@ -145,6 +145,18 @@ bool FsCreator::PrepareDirectory(std::string drvname, std::string basepath, bool
     snprintf(_tmpb, kTmpLen, "%s_USE_DIAG_MONITORS", FS.DRVNAME.c_str());
     FS.usemon_def = _tmpb;
 
+    snprintf(_tmpb, kTmpLen, "%s_USE_RX_CALLBACKS", FS.DRVNAME.c_str());
+    FS.userxcb_def = _tmpb;
+
+    snprintf(_tmpb, kTmpLen, "%s_USE_TX_CALLBACK", FS.DRVNAME.c_str());
+    FS.usetxcb_def = _tmpb;
+
+    snprintf(_tmpb, kTmpLen, "%s_TX_cb", FS.DrvName_orig.c_str());
+    FS.txcb_func = _tmpb;
+
+    snprintf(_tmpb, kTmpLen, "DBUG_%s_CB", FS.DRVNAME.c_str());
+    FS.debugcb_def = _tmpb;
+
     snprintf(_tmpb, kTmpLen, "%s_USE_SIGFLOAT", FS.DRVNAME.c_str());
     FS.usesigfloat_def = _tmpb;
 
