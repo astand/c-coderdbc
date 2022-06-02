@@ -263,14 +263,13 @@ void CiMainGenerator::Gen_MainHeader()
 
     // write the callback struct for signals that can be receieved
     fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->userxcb_def.c_str()));
-    // fwriter->AppendLine(StrPrint("void (*%s_cb)(%s_t) = NULL;", m.Name.c_str()), 2);
-    std::string cbWithParams = "void (*" + m.Name + "_cb)(";
+    std::string cbWithParams = "extern void (*" + m.Name + "_cb)(";
     for (size_t signum = 0; signum < m.Signals.size(); signum++)
     {
       cbWithParams += PrintType((int)m.Signals[signum].TypeRo) + " " + m.Signals[signum].Name;
       if (signum == (m.Signals.size() - 1))
       {
-        cbWithParams += ") = NULL;";
+        cbWithParams += ");";
       }
       else
       {
@@ -339,6 +338,29 @@ void CiMainGenerator::Gen_MainSource()
   fwriter->AppendLine(StrPrint("#include <%s-fmon.h>", fdesc->drvname.c_str()), 2);
 
   fwriter->AppendLine(StrPrint("#endif // %s", fdesc->usemon_def.c_str()), 3);
+
+  // write the callback struct for signals that can be receieved
+  fwriter->AppendLine("// Callback prototypes which will be used if assigned");
+  fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->userxcb_def.c_str()));
+  for (size_t num = 0; num < sigprt->sigs_expr.size(); num++)
+  {
+    MessageDescriptor_t& m = sigprt->sigs_expr[num]->msg;
+    std::string cbWithParams = "void (*" + m.Name + "_cb)(";
+    for (size_t signum = 0; signum < m.Signals.size(); signum++)
+    {
+      cbWithParams += PrintType((int)m.Signals[signum].TypeRo) + " " + m.Signals[signum].Name;
+      if (signum == (m.Signals.size() - 1))
+      {
+        cbWithParams += ") = NULL;";
+      }
+      else
+      {
+        cbWithParams += ", ";
+      }
+    }
+    fwriter->AppendLine(cbWithParams);
+  }
+  fwriter->AppendLine(StrPrint("#endif // %s", fdesc->userxcb_def.c_str()), 2);
 
   fwriter->AppendLine(StrPrint(extend_func_body, ext_sig_func_name), 1);
 
@@ -1105,4 +1127,3 @@ void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExp
     fwriter->AppendLine(StrPrint("#endif // %s", fdesc->usecsm_def.c_str()), 2);
   }
 }
-
