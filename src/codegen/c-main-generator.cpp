@@ -122,23 +122,28 @@ void CiMainGenerator::Gen_MainHeader()
   if (generate_tx_callback)
   {
     fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usetxcb_def.c_str())); // "%s_USE_TX_CALLBACK"
+    fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usesruct_def.c_str())); // "%s_USE_CANSTRUCT"
+    fwriter->AppendLine(StrPrint("extern void (*%s)(__CoderDbcCanFrame_t__ frame);", fdesc->txcb_func.c_str()), 2);
     fwriter->AppendLine("/*****************************************************************");
     fwriter->AppendLine(" * @brief Helper macro to pack a signal and send it via Callback");
     fwriter->AppendLine("******************************************************************/");
-    fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usesruct_def.c_str())); // "%s_USE_CANSTRUCT"
     fwriter->AppendLine(StrPrint("#define CANdySend_%s(sig, data) do { \\", fdesc->DrvName_orig.c_str()));
     fwriter->AppendLine("  __CoderDbcCanFrame_t__ f; \\");
     fwriter->AppendLine("  sig##_t m = data; \\");
     fwriter->AppendLine(StrPrint("  Pack_##sig##_%s(&m, &f); \\", fdesc->DrvName_orig.c_str()));
-    fwriter->AppendLine("  } while(0)");
+    fwriter->AppendLine("  } while(0)", 2);
     fwriter->AppendLine("#else");
+    fwriter->AppendLine(StrPrint("extern void (*%s)(uint32_t _id, uint8_t* _d, uint8_t* _len, uint8_t* _ide);", fdesc->txcb_func.c_str()), 2);
+    fwriter->AppendLine("/*****************************************************************");
+    fwriter->AppendLine(" * @brief Helper macro to pack a signal and send it via Callback");
+    fwriter->AppendLine("******************************************************************/");
     fwriter->AppendLine(StrPrint("#define CANdySend_%s(sig, data) do { \\", fdesc->DrvName_orig.c_str()));
     fwriter->AppendLine("  uint8_t d[8], len = sig##_DLC, ide = sig##_IDE; \\");
     fwriter->AppendLine("  sig##_t m = data; \\");
     fwriter->AppendLine(StrPrint("  Pack_##sig##_%s(&m, sig##_CANID, d, &len, &ide); \\", fdesc->DrvName_orig.c_str()));
     fwriter->AppendLine("  } while(0)");
     fwriter->AppendLine("#endif");
-    fwriter->AppendLine("#endif", 3);
+    fwriter->AppendLine(StrPrint("#endif // %s", fdesc->usetxcb_def.c_str()), 3);
   }
 
   for (size_t num = 0; num < sigprt->sigs_expr.size(); num++)
@@ -362,6 +367,14 @@ void CiMainGenerator::Gen_MainSource()
   }
   fwriter->AppendLine(StrPrint("#endif // %s", fdesc->userxcb_def.c_str()), 2);
 
+  fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usetxcb_def.c_str())); // "%s_USE_TX_CALLBACK"
+  fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usesruct_def.c_str())); // "%s_USE_CANSTRUCT"
+  fwriter->AppendLine(StrPrint("void (*%s)(__CoderDbcCanFrame_t__ frame) = NULL;", fdesc->txcb_func.c_str()));
+  fwriter->AppendLine("#else");
+  fwriter->AppendLine(StrPrint("void (*%s)(uint32_t _id, uint8_t* _d, uint8_t* _len, uint8_t* _ide) = NULL;", fdesc->txcb_func.c_str()));
+  fwriter->AppendLine("#endif");
+  fwriter->AppendLine(StrPrint("#endif // %s", fdesc->usetxcb_def.c_str()), 2);
+
   fwriter->AppendLine(StrPrint(extend_func_body, ext_sig_func_name), 1);
 
   // for each message 3 functions must be defined - 1 unpack function,
@@ -552,14 +565,6 @@ void CiMainGenerator::Gen_ConfigHeader()
   {
     fwriter->AppendLine(StrPrint("// #define %s", fdesc->usetxcb_def.c_str()), 2);
   }
-
-  fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usetxcb_def.c_str())); // "%s_USE_TX_CALLBACK"
-  fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usesruct_def.c_str())); // "%s_USE_CANSTRUCT"
-  fwriter->AppendLine(StrPrint("void (*%s)(__CoderDbcCanFrame_t__ frame) = NULL;", fdesc->txcb_func.c_str()));
-  fwriter->AppendLine("#else");
-  fwriter->AppendLine(StrPrint("void (*%s)(uint32_t _id, uint8_t* _d, uint8_t* _len, uint8_t* _ide) = NULL;", fdesc->txcb_func.c_str()));
-  fwriter->AppendLine("#endif"); // "%s_USE_CANSTRUCT"
-  fwriter->AppendLine(StrPrint("#endif // %s", fdesc->usetxcb_def.c_str()), 3);
 
   fwriter->AppendLine("/********************************************************************************");
   fwriter->AppendLine(" * Callbacks can be assigned and triggred when a signal is unpacked.");
