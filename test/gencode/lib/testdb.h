@@ -58,6 +58,12 @@ typedef struct
   uint32_t U28_TEST_1;                       //      Bits=28
 
   // This is test signal for Value Table
+  // 
+  // 
+  // 
+  // 
+  // 
+  // 
   //  3 : "Unsupported"
   //  2 : "Fail"
   //  1 : "OK"
@@ -77,6 +83,12 @@ typedef struct
   uint32_t U28_TEST_1;                       //      Bits=28
 
   // This is test signal for Value Table
+  // 
+  // 
+  // 
+  // 
+  // 
+  // 
   //  3 : "Unsupported"
   //  2 : "Fail"
   //  1 : "OK"
@@ -544,6 +556,12 @@ typedef struct
 #ifdef TESTDB_USE_BITS_SIGNAL
 
   // This is test signal for Value Table
+  // 
+  // 
+  // 
+  // 
+  // 
+  // 
   //  3 : "Unsupported"
   //  2 : "Fail"
   //  1 : "OK"
@@ -556,6 +574,12 @@ typedef struct
 #else
 
   // This is test signal for Value Table
+  // 
+  // 
+  // 
+  // 
+  // 
+  // 
   //  3 : "Unsupported"
   //  2 : "Fail"
   //  1 : "OK"
