@@ -222,6 +222,9 @@ void CoderApp::PrintHelp()
   std::cout << "   \t\t will create new sud-directory with source files (000, 001, ... etc)" << std::endl;
   std::cout << "   \t\t '-rw' option enables rewriting: all source files previously generated" << std::endl;
   std::cout << "   \t\t will be replaced by new ones" << std::endl;
+  std::cout << "   -noconfig:\t no {drivername}-config and dbccodeconfig generation" << std::endl;
+  std::cout << "   -noinc:\t no canmonitorutil.h generation" << std::endl;
+  std::cout << "   -nofmon:\t no ***-fmon.c generation" << std::endl;
   std::cout << std::endl;
 
   std::cout << "examples:" << std::endl;
