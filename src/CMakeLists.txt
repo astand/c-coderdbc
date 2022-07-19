@@ -8,6 +8,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(coderdbc
     ${CMAKE_CURRENT_SOURCE_DIR}/codegen/c-main-generator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/codegen/mon-generator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/codegen/config-generator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/codegen/c-util-generator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/codegen/conditional-tree.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/codegen/c-sigprinter.cpp
@@ -16,5 +18,6 @@ add_executable(coderdbc
     ${CMAKE_CURRENT_SOURCE_DIR}/helpers/formatter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/parser/dbclineparser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/parser/dbcscanner.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/app.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/maincli.cpp
 )

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <memory>
 #include "c-sigprinter.h"
 #include "filewriter.h"
 #include "../types/message.h"
@@ -11,7 +12,7 @@ class CiMainGenerator {
  public:
   CiMainGenerator();
 
-  void Generate(DbcMessageList_t& dlist, const FsDescriptor_t& fsd);
+  void Generate(DbcMessageList_t& dlist, const AppSettings_t& fsd);
 
  private:
 
@@ -31,13 +32,8 @@ class CiMainGenerator {
   void PrintPackCommonText(const std::string& arrtxt, const CiExpr_t* sgs);
 
  private:
-  std::vector<std::string> tmpvect;
-
-  CSigPrinter* sigprt;
-
-  FileWriter* fwriter;
-
-  const FsDescriptor_t* fdesc;
-
+  std::unique_ptr<CSigPrinter> sigprt;
+  std::unique_ptr<FileWriter> fwriter;
+  const AppSettings_t* fdesc;
   const DbcMessageList_t* p_dlist;
 };

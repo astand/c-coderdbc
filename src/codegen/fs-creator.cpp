@@ -73,37 +73,37 @@ bool FsCreator::PrepareDirectory(std::string drvname, std::string basepath, bool
     }
   }
 
-  FS.libdir = work_dir_path + kLibDir;
+  FS.file.libdir = work_dir_path + kLibDir;
 
-  if (std::filesystem::create_directory(FS.libdir))
+  if (std::filesystem::create_directory(FS.file.libdir))
   {
     // ret = false;
   }
 
-  FS.usrdir = work_dir_path + kUsrDir;
+  FS.file.usrdir = work_dir_path + kUsrDir;
 
-  if (std::filesystem::create_directory(FS.usrdir))
+  if (std::filesystem::create_directory(FS.file.usrdir))
   {
     // ret = false;
   }
 
-  FS.incdir = work_dir_path + kIncDir;
+  FS.file.incdir = work_dir_path + kIncDir;
 
-  if (std::filesystem::create_directory(FS.incdir))
+  if (std::filesystem::create_directory(FS.file.incdir))
   {
     // ret = false;
   }
 
-  FS.confdir = work_dir_path + kConfDir;
+  FS.file.confdir = work_dir_path + kConfDir;
 
-  if (std::filesystem::create_directory(FS.confdir))
+  if (std::filesystem::create_directory(FS.file.confdir))
   {
     // ret = false;
   }
 
-  FS.utildir = work_dir_path + kUtilDir;
+  FS.file.utildir = work_dir_path + kUtilDir;
 
-  if (std::filesystem::create_directory(FS.utildir))
+  if (std::filesystem::create_directory(FS.file.utildir))
   {
     // ret = false;
   }
@@ -111,64 +111,67 @@ bool FsCreator::PrepareDirectory(std::string drvname, std::string basepath, bool
   if (true)
   {
     // directory valid and exists, set all the values
-    FS.DrvName_orig = drvname;
-    FS.DRVNAME = str_toupper(drvname);
-    FS.drvname = str_tolower(drvname);
+    FS.gen.DrvName_orig = drvname;
+    FS.gen.DRVNAME = str_toupper(drvname);
+    FS.gen.drvname = str_tolower(drvname);
 
-    FS.core_h.dir = work_dir_path;
-    FS.core_h.fname = FS.drvname + ".h";
-    FS.core_h.fpath = FS.libdir + "/" + FS.core_h.fname;
+    FS.file.core_h.dir = work_dir_path;
+    FS.file.core_h.fname = FS.gen.drvname + ".h";
+    FS.file.core_h.fpath = FS.file.libdir + "/" + FS.file.core_h.fname;
 
-    FS.core_c.dir = work_dir_path;
-    FS.core_c.fname = FS.drvname + ".c";
-    FS.core_c.fpath = FS.libdir + "/" + FS.core_c.fname;
+    FS.file.core_c.dir = work_dir_path;
+    FS.file.core_c.fname = FS.gen.drvname + ".c";
+    FS.file.core_c.fpath = FS.file.libdir + "/" + FS.file.core_c.fname;
 
-    FS.util_h.dir = work_dir_path;
-    FS.util_h.fname = FS.drvname + "-binutil" + ".h";
-    FS.util_h.fpath = FS.utildir + "/" + FS.util_h.fname;
+    FS.file.util_h.dir = work_dir_path;
+    FS.file.util_h.fname = FS.gen.drvname + "-binutil" + ".h";
+    FS.file.util_h.fpath = FS.file.utildir + "/" + FS.file.util_h.fname;
 
-    FS.util_c.dir = work_dir_path;
-    FS.util_c.fname = FS.drvname + "-binutil" + ".c";
-    FS.util_c.fpath = FS.utildir + "/" + FS.util_c.fname;
+    FS.file.util_c.dir = work_dir_path;
+    FS.file.util_c.fname = FS.gen.drvname + "-binutil" + ".c";
+    FS.file.util_c.fpath = FS.file.utildir + "/" + FS.file.util_c.fname;
 
-    FS.fmon_h.dir = work_dir_path;
-    FS.fmon_h.fname = FS.drvname + "-fmon.h";
-    FS.fmon_h.fpath = FS.libdir + "/" + FS.fmon_h.fname;
+    FS.file.fmon_h.dir = work_dir_path;
+    FS.file.fmon_h.fname = FS.gen.drvname + "-fmon.h";
+    FS.file.fmon_h.fpath = FS.file.libdir + "/" + FS.file.fmon_h.fname;
 
-    FS.fmon_c.dir = work_dir_path;
-    FS.fmon_c.fname = FS.drvname + "-fmon.c";
-    FS.fmon_c.fpath = FS.usrdir + "/" + FS.fmon_c.fname;
+    FS.file.fmon_c.dir = work_dir_path;
+    FS.file.fmon_c.fname = FS.gen.drvname + "-fmon.c";
+    FS.file.fmon_c.fpath = FS.file.usrdir + "/" + FS.file.fmon_c.fname;
 
-    snprintf(_tmpb, kTmpLen, "%s_USE_BITS_SIGNAL", FS.DRVNAME.c_str());
-    FS.usebits_def = _tmpb;
+    snprintf(_tmpb, kTmpLen, "%s_USE_BITS_SIGNAL", FS.gen.DRVNAME.c_str());
+    FS.gen.usebits_def = _tmpb;
 
-    snprintf(_tmpb, kTmpLen, "%s_USE_DIAG_MONITORS", FS.DRVNAME.c_str());
-    FS.usemon_def = _tmpb;
+    snprintf(_tmpb, kTmpLen, "%s_USE_DIAG_MONITORS", FS.gen.DRVNAME.c_str());
+    FS.gen.usemon_def = _tmpb;
 
-    snprintf(_tmpb, kTmpLen, "%s_USE_SIGFLOAT", FS.DRVNAME.c_str());
-    FS.usesigfloat_def = _tmpb;
+    snprintf(_tmpb, kTmpLen, "%s_USE_MONO_FMON", FS.gen.DRVNAME.c_str());
+    FS.gen.usemonofmon_def = _tmpb;
 
-    snprintf(_tmpb, kTmpLen, "%s_USE_CANSTRUCT", FS.DRVNAME.c_str());
-    FS.usesruct_def = _tmpb;
+    snprintf(_tmpb, kTmpLen, "%s_USE_SIGFLOAT", FS.gen.DRVNAME.c_str());
+    FS.gen.usesigfloat_def = _tmpb;
 
-    snprintf(_tmpb, kTmpLen, "%s_AUTO_ROLL", FS.DRVNAME.c_str());
-    FS.useroll_def = _tmpb;
+    snprintf(_tmpb, kTmpLen, "%s_USE_CANSTRUCT", FS.gen.DRVNAME.c_str());
+    FS.gen.usesruct_def = _tmpb;
 
-    snprintf(_tmpb, kTmpLen, "%s_AUTO_CSM", FS.DRVNAME.c_str());
-    FS.usecsm_def = _tmpb;
+    snprintf(_tmpb, kTmpLen, "%s_AUTO_ROLL", FS.gen.DRVNAME.c_str());
+    FS.gen.useroll_def = _tmpb;
 
-    snprintf(_tmpb, kTmpLen, "VER_%s_MAJ", FS.DRVNAME.c_str());
-    FS.verhigh_def = _tmpb;
+    snprintf(_tmpb, kTmpLen, "%s_AUTO_CSM", FS.gen.DRVNAME.c_str());
+    FS.gen.usecsm_def = _tmpb;
 
-    snprintf(_tmpb, kTmpLen, "VER_%s_MIN", FS.DRVNAME.c_str());
-    FS.verlow_def = _tmpb;
+    snprintf(_tmpb, kTmpLen, "VER_%s_MAJ", FS.gen.DRVNAME.c_str());
+    FS.gen.verhigh_def = _tmpb;
+
+    snprintf(_tmpb, kTmpLen, "VER_%s_MIN", FS.gen.DRVNAME.c_str());
+    FS.gen.verlow_def = _tmpb;
 
     // load start info to fdescriptor
-    FS.start_info.clear();
+    FS.gen.start_info.clear();
 
     if (strinfo.size() > 0)
     {
-      FS.start_info = strinfo;
+      FS.gen.start_info = strinfo;
     }
   }
 
