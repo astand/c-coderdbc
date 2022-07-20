@@ -3,10 +3,11 @@
 #include <stdint.h>
 #include <vector>
 #include <string>
+#include <options-parser.h>
 
 class CoderApp {
  public:
-  CoderApp(const std::vector<std::pair<std::string, std::string>>& params) : Params(params) {}
+  CoderApp(const OptionsParser::Pairs& params) : Params(params) {}
 
   void Run();
 
@@ -21,7 +22,7 @@ class CoderApp {
     bool ok{false};
   } StrParam_t;
 
-  const std::vector<std::pair<std::string, std::string>>& Params;
+  const OptionsParser::Pairs& Params;
 
   StrParam_t dbc{};
   StrParam_t outdir{};
