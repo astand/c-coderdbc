@@ -38,6 +38,7 @@ enable_testing()
 
 add_executable(
   cctest
+  ${CMAKE_CURRENT_SOURCE_DIR}/helpers/formatter.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/options-parser.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/tests/args-test.cpp
 )

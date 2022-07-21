@@ -1,4 +1,4 @@
-#include <gtest/gtest.h>
+#include "testapi.h"
 #include <options-parser.h>
 
 TEST(ArgParserTest, BasicAssert)
@@ -10,19 +10,28 @@ TEST(ArgParserTest, BasicAssert)
     (char*)"path/to/out",
     (char*)"-dbc",
     (char*)"path/to/test.dbc",
+    (char*)"-drvname",
+    (char*)"testdbc",
     (char*)"-rw"
   };
 
   OptionsParser parser;
-  auto ret = parser.GetOptions(6, testchunks);
-  EXPECT_TRUE(ret.size() == 3);
+  auto ret = parser.GetOptions(9, testchunks);
 
-  EXPECT_EQ(ret[0].first.compare("-out"), 0);
-  EXPECT_EQ(ret[0].second.compare("path/to/out"), 0);
-  EXPECT_EQ(ret[1].first.compare("-dbc"), 0);
-  EXPECT_EQ(ret[1].second.compare("path/to/test.dbc"), 0);
-  EXPECT_EQ(ret[2].first.compare("-rw"), 0);
-  EXPECT_EQ(ret[2].second.size(), 0);
+  expect_true(ret.dbc.ok);
+  expect_true(ret.dbc.value.compare("path/to/test.dbc") == 0);
 
-  EXPECT_EQ(1, 1);
+  expect_true(ret.outdir.ok);
+  expect_true(ret.outdir.value.compare("path/to/out") == 0);
+
+  expect_true(ret.drvname.ok);
+  expect_true(ret.drvname.value.compare("testdbc") == 0);
+  expect_true(ret.is_rewrite);
+
+  expect_false(ret.is_help);
+  expect_false(ret.is_noconfig);
+  expect_false(ret.is_nodeutils);
+  expect_false(ret.is_nofmon);
+  expect_false(ret.is_nocanmon);
+
 }

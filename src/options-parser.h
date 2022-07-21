@@ -19,7 +19,7 @@ typedef struct
   bool is_rewrite{false};
   bool is_nodeutils{false};
   bool is_noconfig{false};
-  bool is_nomon{false};
+  bool is_nocanmon{false};
   bool is_nofmon{false};
   bool is_help{false};
 } ParamConfig_t;
