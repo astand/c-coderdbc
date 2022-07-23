@@ -35,5 +35,4 @@ class CiMainGenerator {
   std::unique_ptr<CSigPrinter> sigprt;
   std::unique_ptr<FileWriter> fwriter;
   const AppSettings_t* fdesc;
-  const DbcMessageList_t* p_dlist;
 };

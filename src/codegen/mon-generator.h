@@ -10,6 +10,6 @@ class MonGenerator {
 
   MonGenerator() = default;
 
-  uint32_t FillHeader(FileWriter& wr, std::vector<CiExpr_t*>& sigs, const GenDescriptor_t& gsett);
-  uint32_t FillSource(FileWriter& wr, std::vector<CiExpr_t*>& sigs, const GenDescriptor_t& gsett);
+  uint32_t FillHeader(FileWriter& wr, std::vector<CiExpr_t*>& sigs, const AppSettings_t& gsett);
+  uint32_t FillSource(FileWriter& wr, std::vector<CiExpr_t*>& sigs, const AppSettings_t& gsett);
 };

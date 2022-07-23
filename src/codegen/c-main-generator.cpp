@@ -38,7 +38,6 @@ CiMainGenerator::CiMainGenerator()
 
 void CiMainGenerator::Generate(DbcMessageList_t& dlist, const AppSettings_t& fsd)
 {
-  p_dlist = &dlist;
   // Load income messages to sig printer
   sigprt->LoadMessages(dlist.msgs);
 
@@ -91,8 +90,8 @@ void CiMainGenerator::Gen_MainHeader()
   fwriter->Append();
 
   fwriter->Append("// DBC file version");
-  fwriter->Append("#define %s (%uU)", fdesc->gen.verhigh_def.c_str(), p_dlist->ver.hi);
-  fwriter->Append("#define %s (%uU)", fdesc->gen.verlow_def.c_str(), p_dlist->ver.low);
+  fwriter->Append("#define %s (%uU)", fdesc->gen.verhigh_def.c_str(), fdesc->gen.hiver);
+  fwriter->Append("#define %s (%uU)", fdesc->gen.verlow_def.c_str(), fdesc->gen.lowver);
   fwriter->Append();
 
   fwriter->Append("// include current dbc-driver compilation config");
@@ -290,7 +289,7 @@ void CiMainGenerator::Gen_MainSource()
 
   fwriter->Append("// DBC file version");
   fwriter->Append("#if (%s != (%uU)) || (%s != (%uU))",
-    fdesc->gen.verhigh_def.c_str(), p_dlist->ver.hi, fdesc->gen.verlow_def.c_str(), p_dlist->ver.low);
+    fdesc->gen.verhigh_def.c_str(), fdesc->gen.hiver, fdesc->gen.verlow_def.c_str(), fdesc->gen.lowver);
 
   fwriter->Append("#error The %s dbc source files have different versions", fdesc->gen.DRVNAME.c_str());
   fwriter->Append("#endif");
@@ -376,76 +375,15 @@ void CiMainGenerator::Gen_ConfigHeader()
 
 void CiMainGenerator::Gen_FMonHeader()
 {
-  if (fdesc->gen.start_info.size() > 0)
-  {
-    // replace all '\n' on "\n //" for c code comment text
-    fwriter->Append("// " + std::regex_replace(fdesc->gen.start_info, std::regex("\n"), "\n// "));
-  }
-
-  fwriter->Append("#pragma once");
-  fwriter->Append();
-
-  fwriter->Append("#ifdef __cplusplus\nextern \"C\" {\n#endif");
-  fwriter->Append();
-
-  fwriter->Append("// DBC file version");
-  fwriter->Append("#define %s_FMON (%uU)", fdesc->gen.verhigh_def.c_str(), p_dlist->ver.hi);
-  fwriter->Append("#define %s_FMON (%uU)", fdesc->gen.verlow_def.c_str(), p_dlist->ver.low);
-  fwriter->Append();
-
-  fwriter->Append("#include <%s-config.h>", fdesc->gen.drvname.c_str());
-  fwriter->Append();
-
-  // put diagmonitor ifdef selection for including @drv-fmon header
-  // with FMon_* signatures to call from unpack function
-  fwriter->Append("#ifdef %s", fdesc->gen.usemon_def.c_str());
-  fwriter->Append();
-  fwriter->Append("#include <canmonitorutil.h>");
-  fwriter->Append("/*\n\
-This file contains the prototypes of all the functions that will be called\n\
-from each Unpack_*name* function to detect DBC related errors\n\
-It is the user responsibility to defined these functions in the\n\
-separated .c file. If it won't be done the linkage error will happen\n*/");
-  fwriter->Append();
-
   MonGenerator mongen;
-
-  mongen.FillHeader((*fwriter), sigprt->sigs_expr, fdesc->gen);
-
-  fwriter->Append("#endif // %s", fdesc->gen.usemon_def.c_str());
-  fwriter->Append();
-
-  fwriter->Append("#ifdef __cplusplus\n}\n#endif");
-
+  mongen.FillHeader((*fwriter), sigprt->sigs_expr, *fdesc);
   fwriter->Flush(fdesc->file.fmon_h.fpath);
 }
 
 void CiMainGenerator::Gen_FMonSource()
 {
-  if (fdesc->gen.start_info.size() > 0)
-  {
-    // replace all '\n' on "\n //" for c code comment text
-    fwriter->Append("// " + std::regex_replace(fdesc->gen.start_info, std::regex("\n"), "\n// "));
-  }
-
-  fwriter->Append("#include <%s>", fdesc->file.fmon_h.fname.c_str());
-  fwriter->Append();
-  // put diagmonitor ifdef selection for including @drv-fmon header
-  // with FMon_* signatures to call from unpack function
-  fwriter->Append("#ifdef %s", fdesc->gen.usemon_def.c_str());
-  fwriter->Append();
-
-  fwriter->Append("/*\n\
-Put the monitor function content here, keep in mind -\n\
-next generation will completely clear all manually added code (!)\n\
-*/\n\n");
-
   MonGenerator mongen;
-
-  mongen.FillSource((*fwriter), sigprt->sigs_expr, fdesc->gen);
-
-  fwriter->Append("#endif // %s", fdesc->gen.usemon_def.c_str());
-
+  mongen.FillSource((*fwriter), sigprt->sigs_expr, *fdesc);
   fwriter->Flush(fdesc->file.fmon_c.fpath);
 }
 
