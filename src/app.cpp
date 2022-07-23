@@ -54,8 +54,9 @@ void CoderApp::GenerateCode()
   std::string info("");
 
   // create main destination directory
-  auto ret = fscreator->PrepareDirectory(Params.drvname.value.c_str(), Params.outdir.value.c_str(), Params.is_rewrite,
-      info);
+  fscreator->Configure(Params.drvname.value, Params.outdir.value, info, scanner->dblist.ver.hi, scanner->dblist.ver.low);
+
+  auto ret = fscreator->PrepareDirectory(Params.is_rewrite);
 
   if (ret)
   {
