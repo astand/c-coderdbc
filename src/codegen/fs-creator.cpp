@@ -42,7 +42,7 @@ bool FsCreator::PrepareDirectory(std::string drvname, std::string basepath, bool
   }
   else
   {
-    std::string separator = basepath.at(basepath.size() - 1) == '/' ? "" : "/";
+    std::string separator = basepath.back() == '/' ? "" : "/";
 
     for (int32_t dirnum = 0; dirnum < 1000; dirnum++)
     {
@@ -188,7 +188,7 @@ std::string FsCreator::CreateSubDir(std::string basepath, std::string sub, bool 
     return "";
   }
 
-  if (basepath.at(basepath.size() - 1) != '/')
+  if (basepath.back() != '/')
   {
     basepath.append("/");
   }
