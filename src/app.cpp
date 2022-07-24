@@ -58,6 +58,10 @@ void CoderApp::GenerateCode()
 
   auto ret = fscreator->PrepareDirectory(Params.is_rewrite);
 
+  fscreator->FS.gen.no_config = Params.is_noconfig;
+  fscreator->FS.gen.no_inc = Params.is_nocanmon;
+  fscreator->FS.gen.no_fmon = Params.is_nofmon;
+
   if (ret)
   {
     cigen->Generate(scanner->dblist, fscreator->FS);

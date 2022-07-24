@@ -48,6 +48,10 @@ typedef struct
 
   uint32_t hiver{0};
   uint32_t lowver{0};
+
+  bool no_fmon{false};
+  bool no_inc{false};
+  bool no_config{false};
 } GenDescriptor_t;
 
 typedef struct
