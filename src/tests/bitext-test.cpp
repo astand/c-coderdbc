@@ -19,10 +19,10 @@ TEST(TestBitExt, FullTest)
     expect_eq(ret, cmp[val]);
   }
 
-  static const uint8_t val2[] { 126, 127, 128, 129 };
-  static const int32_t cmp2[] { 126, 127, -128, -127};
+  static const uint8_t val2[] { 126, 127,  128,  129, 255, 0, 1};
+  static const int32_t cmp2[] { 126, 127, -128, -127,  -1, 0, 1};
 
-  for (uint8_t i = 0; i < 4; i++)
+  for (uint8_t i = 0; i < 7; i++)
   {
     auto ret = bitext<int32_t, uint32_t>(val2[i], 8);
     expect_eq(ret, cmp2[i]);
