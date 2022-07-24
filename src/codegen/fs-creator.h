@@ -45,6 +45,13 @@ typedef struct
 
   // inforamtion to be placed at the start of each source file
   std::string start_info;
+
+  uint32_t hiver{0};
+  uint32_t lowver{0};
+
+  bool no_fmon{false};
+  bool no_inc{false};
+  bool no_config{false};
 } GenDescriptor_t;
 
 typedef struct
@@ -62,7 +69,8 @@ class FsCreator {
  public:
   FsCreator();
 
-  bool PrepareDirectory(std::string drvname, std::string basepath, bool rw, std::string& info);
+  void Configure(const std::string& drvname, const std::string& outpath, const std::string& info, uint32_t h, uint32_t l);
+  bool PrepareDirectory(bool rw);
 
   std::string CreateSubDir(std::string basepath, std::string subdir, bool rm = true);
 
