@@ -32,7 +32,7 @@ if [ $? -ne 0 ]; then
 	exit 1
 fi
 
-FILES=`find . | grep -P "^(?!(.*\/thirdparty|.*\/lib\/dbc|.*\/bin|.*\/doc|.*\/utl|.*\/tst|.*\/generated*)).*\.(c|cpp|h)$"`
+FILES=`find . | grep -P "^(?!(.*\/test\/gencode)).*\.(c|cpp|h)$"`
 for FILE in $FILES; do
   # compare files
 	# $ASTYLE $OPTIONS < $FILE | cmp -s $FILE -
