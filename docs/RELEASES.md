@@ -1,5 +1,14 @@
 # Changelog
 
+## v2.4 24.07.2022
+
+### Added
+
+- Three new CLI keys to optionally disable some source code generation (see help)
+- Added more tests
+
+---
+
 ## v2.3 19.07.2022
 
 ### Changed
