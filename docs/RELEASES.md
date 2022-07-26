@@ -1,5 +1,14 @@
 # Changelog
 
+## v2.5 26.07.2022
+
+### Changed
+
+- GetSystemTick and GetFrameHash functions became macroses. It makes coupling lighter
+and adds more flexibility to configure driver
+- bitext_t and ubitext_t defined by default in dbccodeconf.h file
+- App version is printed when generator runs (not only in help print case)
+
 ## v2.4 24.07.2022
 
 ### Added
