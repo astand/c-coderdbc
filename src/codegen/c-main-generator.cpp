@@ -112,8 +112,6 @@ void CiMainGenerator::Gen_MainHeader()
   fwriter->Append(
     "// This file must define:\n"
     "// base monitor struct\n"
-    "// function signature for HASH calculation: (@GetFrameHash)\n"
-    "// function signature for getting system tick value: (@GetSystemTick)\n"
     "#include <canmonitorutil.h>\n"
     "\n"
   );
@@ -316,7 +314,24 @@ void CiMainGenerator::Gen_MainSource()
   fwriter->Append();
 
   fwriter->Append("#endif // %s", fdesc->gen.usemon_def.c_str());
-  fwriter->Append(2);
+  fwriter->Append("");
+  fwriter->Append("// This macro guard for the case when you need to enable");
+  fwriter->Append("// using diag monitors but there is no necessity in proper");
+  fwriter->Append("// SysTick provider. For providing one you need define macro");
+  fwriter->Append("// before this line - in dbccodeconf.h");
+  fwriter->Append("");
+  fwriter->Append("#ifndef GetSystemTick");
+  fwriter->Append("#define GetSystemTick() (0u)");
+  fwriter->Append("#endif");
+  fwriter->Append("");
+  fwriter->Append("// This macro guard is for the case when you want to build");
+  fwriter->Append("// app with enabled optoin auto CSM, but don't yet have");
+  fwriter->Append("// proper getframehash implementation");
+  fwriter->Append("");
+  fwriter->Append("#ifndef GetFrameHash");
+  fwriter->Append("#define GetFrameHash(a,b,c,d,e) (0u)");
+  fwriter->Append("#endif");
+  fwriter->Append();
 
   fwriter->Append(extend_func_body, ext_sig_func_name), 1;
 
@@ -412,6 +427,9 @@ void CiMainGenerator::Gen_CanMonUtil()
   fwriter->Append("  // XOR8 = 0,");
   fwriter->Append("  // XOR4 = 1,");
   fwriter->Append("  // etc");
+  fwriter->Append("");
+  fwriter->Append("  // it is up to user to have or to skip final enum value - @CRC_ALG_COUNT");
+  fwriter->Append("  CRC_ALG_COUNT");
   fwriter->Append("} DbcCanCrcMethods;");
   fwriter->Append("");
   fwriter->Append("typedef struct");
@@ -444,19 +462,6 @@ void CiMainGenerator::Gen_CanMonUtil()
   fwriter->Append("");
   fwriter->Append("} FrameMonitor_t;");
   fwriter->Append("");
-  fwriter->Append("/* ----------------------------------------------------------------------------- */");
-  fwriter->Append("// @d - buff for hash calculation");
-  fwriter->Append("// @len - number of bytes for hash calculation");
-  fwriter->Append("// @method - hash algorythm.");
-  fwriter->Append("// @op - optional value");
-  fwriter->Append("uint8_t GetFrameHash(const uint8_t* data_ptr, uint8_t len, uint32_t msgid, DbcCanCrcMethods type, uint32_t option);");
-  fwriter->Append("");
-  fwriter->Append("/* ----------------------------------------------------------------------------- */");
-  fwriter->Append("// this function will be called when unpacking is performing. Value will be saved");
-  fwriter->Append("// in @last_cycle variable");
-  fwriter->Append("uint32_t GetSystemTick(void);");
-  fwriter->Append("");
-  fwriter->Append("");
   fwriter->Append("#ifdef __cplusplus");
   fwriter->Append("}");
   fwriter->Append("#endif");
@@ -480,6 +485,23 @@ void CiMainGenerator::Gen_DbcCodeConf()
   fwriter->Append("");
   fwriter->Append("// if you need to allocate rx and tx messages structs put the allocation macro here");
   fwriter->Append("// #define __DEF_{your_driver_name}__");
+  fwriter->Append("");
+
+  fwriter->Append("// defualt @__ext_sig__ help types definition");
+  fwriter->Append("");
+  fwriter->Append("typedef uint32_t ubitext_t;");
+  fwriter->Append("typedef int32_t bitext_t;");
+  fwriter->Append("");
+  fwriter->Append("// To provide a way to make missing control correctly you");
+  fwriter->Append("// have to define macro @GetSystemTick() which has to");
+  fwriter->Append("// return kind of tick counter (e.g. 1 ms ticker)");
+  fwriter->Append("");
+  fwriter->Append("// #define GetSystemTick() __get__tick__()");
+  fwriter->Append("");
+  fwriter->Append("// To provide a way to calculate hash (crc) for CAN");
+  fwriter->Append("// frame's data field you have to define macro @GetFrameHash");
+  fwriter->Append("");
+  fwriter->Append("// #define GetFrameHash(a,b,c,d,e) __get_hash__(a,b,c,d,e)");
   fwriter->Append("");
 
   fwriter->Flush(fdesc->file.confdir + '/' + "dbccodeconf.h");

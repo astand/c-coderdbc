@@ -16,8 +16,6 @@ extern "C" {
 #ifdef TESTDB_USE_DIAG_MONITORS
 // This file must define:
 // base monitor struct
-// function signature for HASH calculation: (@GetFrameHash)
-// function signature for getting system tick value: (@GetSystemTick)
 #include <canmonitorutil.h>
 
 #endif // TESTDB_USE_DIAG_MONITORS
