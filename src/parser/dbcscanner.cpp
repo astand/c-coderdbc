@@ -4,10 +4,6 @@
 #include <math.h>
 #include "../helpers/formatter.h"
 
-#define MAX_LINE 4096 * 4
-
-char line[MAX_LINE] = { 0 };
-
 MessageDescriptor_t* find_message(vector<MessageDescriptor_t*> msgs, uint32_t ID)
 {
   MessageDescriptor_t* ret = nullptr;
@@ -72,9 +68,8 @@ void DbcScanner::ParseMessageInfo(istream& readstrm)
 
   while (readstrm.eof() == false)
   {
-    readstrm.getline(line, MAX_LINE);
-
-    sline = str_trim(line);
+    std::getline(readstrm, sline);
+    sline = str_trim(sline);
 
     FindVersion(sline);
 
@@ -160,9 +155,8 @@ void DbcScanner::ParseOtherInfo(istream& readstrm)
 
   while (!readstrm.eof())
   {
-    readstrm.getline(line, MAX_LINE);
-
-    sline = str_trim(line);
+    std::getline(readstrm, sline);
+    sline = str_trim(sline);
 
     if (lparser.ParseCommentLine(&cmmnt, sline))
     {

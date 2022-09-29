@@ -5,14 +5,18 @@
 #include <assert.h>
 #include "filewriter.h"
 
-template<size_t N = 4096>
+template<size_t N = 10000>
 std::string __print_loc__(const char* format, va_list args)
 {
-  // TODO: make N sanitizing here to prevent memory errors
   char work_buff[N] = {0};
   auto ret = vsnprintf(work_buff, N, format, args);
 
-  assert(ret < N);
+  if (ret >= N)
+  {
+    std::cout << "Attention (!) the line has been shortened : " << std::endl;
+    std::cout << work_buff << std::endl;
+  }
+
   // make string from local array
   return work_buff;
 }

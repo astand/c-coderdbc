@@ -1,5 +1,13 @@
 # Changelog
 
+## v2.6 29.09.2022
+
+### Fixed
+
+- [issue #9](https://github.com/astand/c-coderdbc/issues/16) found by [@DPOH357](https://github.com/DPOH357)
+
+---
+
 ## v2.5 26.07.2022
 
 ### Changed
