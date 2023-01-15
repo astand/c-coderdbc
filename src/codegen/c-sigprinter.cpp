@@ -54,11 +54,14 @@ std::string CSigPrinter::PrintPhysicalToRaw(const SignalDescriptor_t* sig, const
 {
   std::string retstr = "";
 
+  const std::string prtFactor = prt_double(sig->Factor, 9);
+  const std::string prtOffset = prt_double(sig->Offset, 9);
+
   retstr = StrPrint("// signal: @%s\n", sig->Name.c_str());
 
   if (sig->IsDoubleSig)
   {
-    retstr += StrPrint("#define %s_%s_CovFactor (%f)\n", drvname.c_str(), sig->Name.c_str(), sig->Factor);
+    retstr += StrPrint("#define %s_%s_CovFactor (%s)\n", drvname.c_str(), sig->Name.c_str(), prtFactor.c_str());
   }
   else
   {
@@ -70,7 +73,7 @@ std::string CSigPrinter::PrintPhysicalToRaw(const SignalDescriptor_t* sig, const
 
   if (sig->IsDoubleSig)
   {
-    retstr += StrPrint("(((x) - (%f)) / (%f)) )\n", sig->Offset, sig->Factor);
+    retstr += StrPrint("(((x) - (%s)) / (%s)) )\n", prtOffset.c_str(), prtFactor.c_str());
   }
   else
   {
@@ -95,7 +98,7 @@ std::string CSigPrinter::PrintPhysicalToRaw(const SignalDescriptor_t* sig, const
 
   if (sig->IsDoubleSig)
   {
-    retstr += StrPrint("(((x) * (%f)) + (%f)) )\n", sig->Factor, sig->Offset);
+    retstr += StrPrint("(((x) * (%s)) + (%s)) )\n", prtFactor.c_str(), prtOffset.c_str());
   }
   else
   {

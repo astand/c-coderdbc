@@ -1,5 +1,19 @@
 # Changelog
 
+## v2.7
+
+### Fixed
+
+- Removed signal conversion macroses duplication ([issue #11](https://github.com/astand/c-coderdbc/issues/18))
+- More precise floating factor/offset values handling ([issue #10](https://github.com/astand/c-coderdbc/issues/20))
+
+### Added
+
+- Better print for floating factor/offset values (removed tailing zeros)
+- Signals with too low factor/offset values (less than 0.000000001) are considered as plain integer signals, it is up to client to handle them
+
+---
+
 ## v2.6 29.09.2022
 
 ### Fixed

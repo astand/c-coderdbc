@@ -6,6 +6,9 @@
 #include <math.h>
 #include <limits.h>
 
+/// @brief Minimal possible value for Factor/Offset
+constexpr double MIN_FAC_OFF = 0.000000001;
+
 // Message line definitions
 static const std::string regMessage = "[^A-Za-z0-9_.-]";
 static const std::string MessageLineStart = "BO_ ";
@@ -232,22 +235,37 @@ bool DbcLineParser::ParseSignalLine(SignalDescriptor_t* sig, const std::string& 
 
     // for enabling double conversation the factor or offset
     // substring must have dot ('.') character
-    if (valpart[3].find_first_of('.') != std::string::npos ||
-      valpart[4].find_first_of('.') != std::string::npos)
+    if (valpart[3].find_first_of('.') != std::string::npos
+      || valpart[4].find_first_of('.') != std::string::npos
+      || valpart[3].find_first_of('E') != std::string::npos
+      || valpart[3].find_first_of('e') != std::string::npos
+      || valpart[4].find_first_of('E') != std::string::npos
+      || valpart[4].find_first_of('e') != std::string::npos
+    )
     {
       sig->IsDoubleSig = true;
     }
 
-    //  factor = double;
-    //  offset = double;
-    //The factorand offset define the linear conversion rule to convert the signals raw
-    //value into the signal's physical value and vice versa:
-    //  physical_value = raw_value * factor + offset
-    //  raw_value = (physical_value - offset) / factor
+    // factor = double;
+    // offset = double;
+    //
+    // The factorand offset define the linear conversion rule to convert the signals raw
+    // value into the signal's physical value and vice versa:
+    //      physical_value = raw_value * factor + offset
+    //      raw_value = (physical_value - offset) / factor
     std::setlocale(LC_ALL, "en_US.UTF-8");
 
     sig->Factor = atof(valpart[3].c_str());
     sig->Offset = atof(valpart[4].c_str());
+
+    if (((std::fabs(sig->Factor) < MIN_FAC_OFF) && (sig->Factor != 0.0)) ||
+      ((std::fabs(sig->Offset) < MIN_FAC_OFF) && (sig->Offset != 0.0)))
+    {
+      // this values are not supported, treat this signal as a plain integer
+      sig->Factor = 1.0;
+      sig->Offset = 0.0;
+      sig->IsDoubleSig = false;
+    }
 
     sig->RawOffset = sig->Offset / sig->Factor;
 
@@ -255,13 +273,12 @@ bool DbcLineParser::ParseSignalLine(SignalDescriptor_t* sig, const std::string& 
     sig->MaxValue = atof(valpart[6].c_str());
 
 
-    //The signal_size specifies the size of the signal in bits
-    //   byte_order = '0' | '1'; (*0 = little endian, 1 = big endian*)
+    // Bytes layout
+    // 0: Big endian (Motorolla)
+    // 1: Little endian (Intel)
     sig->Order = (valpart[2].find('1') == std::string::npos) ? BitLayout::kMotorolla : BitLayout::kIntel;
 
-    //The byte_format is 0 if the signal's byte order is Intel (little endian) or 1 if the byte
-    //order is Motorola(big endian).
-    //   value_type = '+' | '-'; (*+= unsigned, -=signed*)
+    // value_type = '+' | '-'; (*+= unsigned, -=signed*)
     sig->Signed = (valpart[2].find('-') == std::string::npos) ? 0 : 1;
 
     GetSigType(sig);
