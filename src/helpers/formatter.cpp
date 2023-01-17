@@ -144,11 +144,11 @@ std::string make_c_name(const std::string& s)
   return ret;
 }
 
-const char* prt_double(double value, size_t presicsion, bool usedot)
+std::string prt_double(double value, size_t presicsion, bool usedot)
 {
   constexpr size_t MAX_CAP = 1024u;
 
-  static char buff[MAX_CAP] = {0};
+  char buff[MAX_CAP] = {0};
 
   // sprint value with max precision (currently 15 digits)
   snprintf(buff, MAX_CAP, "%.15f", value);
@@ -179,7 +179,7 @@ const char* prt_double(double value, size_t presicsion, bool usedot)
         break;
       }
 
-      if ((buff[i] > '0') && (buff[i] < '9'))
+      if ((buff[i] > '0') && (buff[i] <= '9'))
       {
         last_non_zero_id = i;
       }

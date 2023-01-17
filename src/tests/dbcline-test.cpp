@@ -123,4 +123,18 @@ TEST(TestSigLineParsing, test_prt_double)
   constexpr double v2 = 0.0110022;
 
   expect_eq((std::string)prt_double(v2, 0), "0.0");
+
+  constexpr double v3 = 20.4699999999;
+
+  expect_eq((std::string)prt_double(v3, 9), "20.469999999");
+  expect_eq((std::string)prt_double(v3, 8), "20.46999999");
+  expect_eq((std::string)prt_double(v3, 7), "20.4699999");
+  expect_eq((std::string)prt_double(v3, 3), "20.469");
+
+  constexpr double v4 = -20.4699999999;
+
+  expect_eq((std::string)prt_double(v4, 9), "-20.469999999");
+  expect_eq((std::string)prt_double(v4, 8), "-20.46999999");
+  expect_eq((std::string)prt_double(v4, 7), "-20.4699999");
+  expect_eq((std::string)prt_double(v4, 3), "-20.469");
 }
