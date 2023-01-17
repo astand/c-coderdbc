@@ -22,7 +22,7 @@ std::string str_trim(std::string s);
 /// @param presicsion maximal precision length
 /// @param usedot true for forcibly print presicion 1 (one digit after dot)
 /// @return string object fixed formatted value
-std::string prt_double(double value, size_t presicsion, bool usedot = true);
+std::string prt_double(double value, size_t precision, bool usedot = true);
 
 /**
  * @brief Makes input string valid C-identifier

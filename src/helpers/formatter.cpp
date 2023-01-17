@@ -1,6 +1,9 @@
 #include "formatter.h"
 #include <algorithm>
 
+#include <iomanip>
+#include <sstream>
+
 static const size_t kMaxWorkArrLength = 4096;
 
 static char work_buff[kMaxWorkArrLength] = { 0 };
@@ -144,59 +147,46 @@ std::string make_c_name(const std::string& s)
   return ret;
 }
 
-std::string prt_double(double value, size_t presicsion, bool usedot)
+std::string prt_double(double value, size_t precision, bool usedot)
 {
-  constexpr size_t MAX_CAP = 1024u;
+  precision = std::min(precision, (size_t)std::numeric_limits<double>::digits10);
 
-  char buff[MAX_CAP] = {0};
+  std::stringstream ss;
+  ss.imbue(std::locale::classic());
+  ss << std::fixed << std::setprecision(precision) << value;
 
-  // sprint value with max precision (currently 15 digits)
-  snprintf(buff, MAX_CAP, "%.15f", value);
+  std::string s(ss.str());
 
-  size_t last_non_zero_id = 0u;
-  size_t dot_id = 0u;
-  size_t left_to_check = presicsion;
-
-  for (size_t i = 0u; i < MAX_CAP - 1u; i++)
+  size_t i = s.find('.');
+  if (i == std::string::npos)
   {
-    if ((buff[i] == '.') && (last_non_zero_id == 0u))
+    if (usedot)
     {
-      // dot is detected
-      last_non_zero_id = i;
-
-      if (usedot)
-      {
-        // forcibly leave at least 1 position after dot
-        last_non_zero_id = i + 1u;
-      }
-
-      dot_id = i;
+      s += ".0";
     }
-    else if (last_non_zero_id != 0u)
-    {
-      if ((left_to_check == 0u) || (buff[i] < '0') || (buff[i] > '9'))
-      {
-        break;
-      }
-
-      if ((buff[i] > '0') && (buff[i] <= '9'))
-      {
-        last_non_zero_id = i;
-      }
-
-      left_to_check--;
-    }
+    return s;
   }
 
-  if (last_non_zero_id == dot_id)
+  // remove trailing zeros after decimal delimiter (dot char)
+  size_t j;
+  for (j = s.size() - 1; (j > i) && (s[j] == '0'); --j)
   {
-    buff[dot_id] = '\0';
+  }
+  if (j == i)
+  {
+    if (usedot)
+    {
+      s.resize(j + 1);
+      s += '0';
+    }
+    else
+    {
+      s.resize(j);
+    }
   }
   else
   {
-    buff[last_non_zero_id + 1u] = '\0';
+    s.resize(j + 1);
   }
-
-  return buff;
+  return s;
 }
-
