@@ -19,7 +19,7 @@ std::string str_trim(std::string s);
 
 /// @brief Function prints double value with dropping tailing zeros
 /// @param value value to format
-/// @param presicsion maximal precision length
+/// @param precision maximal precision length
 /// @param usedot true for forcibly print presicion 1 (one digit after dot)
 /// @return string object fixed formatted value
 std::string prt_double(double value, size_t precision, bool usedot = true);

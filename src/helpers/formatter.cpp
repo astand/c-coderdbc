@@ -1,6 +1,5 @@
 #include "formatter.h"
 #include <algorithm>
-
 #include <iomanip>
 #include <sstream>
 
@@ -158,20 +157,24 @@ std::string prt_double(double value, size_t precision, bool usedot)
   std::string s(ss.str());
 
   size_t i = s.find('.');
+
   if (i == std::string::npos)
   {
     if (usedot)
     {
       s += ".0";
     }
+
     return s;
   }
 
   // remove trailing zeros after decimal delimiter (dot char)
   size_t j;
+
   for (j = s.size() - 1; (j > i) && (s[j] == '0'); --j)
   {
   }
+
   if (j == i)
   {
     if (usedot)
@@ -188,5 +191,6 @@ std::string prt_double(double value, size_t precision, bool usedot)
   {
     s.resize(j + 1);
   }
+
   return s;
 }
