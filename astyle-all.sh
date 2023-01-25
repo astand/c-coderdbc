@@ -26,7 +26,7 @@ OPTIONS="--suffix=none \
 --max-continuation-indent=120"
 
 RETURN=0
-ASTYLE='astyle'
+ASTYLE='./astyle'
 if [ $? -ne 0 ]; then
 	echo "[!] astyle not installed. Unable to check source file format policy." >&2
 	exit 1
