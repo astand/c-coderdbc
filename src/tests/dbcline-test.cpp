@@ -133,15 +133,22 @@ TEST(TestSigLineParsing, test_prt_double)
 
   constexpr double v4 = 20.4699999999;
 
-  expect_eq(prt_double(v4, 9), "20.47");
-  expect_eq(prt_double(v4, 8), "20.47");
-  expect_eq(prt_double(v4, 7), "20.47");
-  expect_eq(prt_double(v4, 3), "20.47");
+  expect_eq(prt_double(v4, 9), "20.469999999");
+  expect_eq(prt_double(v4, 8), "20.46999999");
+  expect_eq(prt_double(v4, 7), "20.4699999");
+  expect_eq(prt_double(v4, 3), "20.469");
 
   constexpr double v5 = -20.4699999999;
 
-  expect_eq(prt_double(v5, 8), "-20.47");
-  expect_eq(prt_double(v5, 7), "-20.47");
-  expect_eq(prt_double(v5, 3), "-20.47");
-  expect_eq(prt_double(v5, 9), "-20.47");
+  expect_eq(prt_double(v5, 8), "-20.46999999");
+  expect_eq(prt_double(v5, 7), "-20.4699999");
+  expect_eq(prt_double(v5, 3), "-20.469");
+  expect_eq(prt_double(v5, 10), "-20.4699999999");
+  expect_eq(prt_double(v5, 11), "-20.4699999999");
+  expect_eq(prt_double(v5, 15), "-20.4699999999");
+
+  constexpr double v6 = 123.012345678900000;
+  expect_eq(prt_double(v6, 10), "123.0123456789");
+  expect_eq(prt_double(v6, 11), "123.0123456789");
+  expect_eq(prt_double(v6, 15), "123.0123456789");
 }

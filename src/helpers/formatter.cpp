@@ -1,8 +1,8 @@
-#include "formatter.h"
-#include <limits>
 #include <algorithm>
+#include <limits>
 #include <iomanip>
 #include <sstream>
+#include "formatter.h"
 
 static const size_t kMaxWorkArrLength = 4096;
 
@@ -149,18 +149,17 @@ std::string make_c_name(const std::string& s)
 
 std::string prt_double(double value, size_t precision, bool usedot)
 {
-  precision = std::min(precision, (size_t)std::numeric_limits<double>::digits10);
+  std::stringstream strstrm;
+  strstrm.imbue(std::locale::classic());
+  strstrm << std::fixed << std::setprecision(10) << value;
 
-  std::stringstream ss;
-  ss.imbue(std::locale::classic());
-  ss << std::fixed << std::setprecision(precision) << value;
+  std::string s(strstrm.str());
 
-  std::string s(ss.str());
+  size_t dotpos = s.find('.');
 
-  size_t i = s.find('.');
-
-  if (i == std::string::npos)
+  if (dotpos == std::string::npos)
   {
+    // dot not found
     if (usedot)
     {
       s += ".0";
@@ -170,27 +169,33 @@ std::string prt_double(double value, size_t precision, bool usedot)
   }
 
   // remove trailing zeros after decimal delimiter (dot char)
-  size_t j;
+  size_t tailsize = std::min((s.size() - (dotpos + 1u)), precision);
+  size_t addtail = 0u;
 
-  for (j = s.size() - 1; (j > i) && (s[j] == '0'); --j)
+  for (size_t j = 0; j < tailsize; j++)
   {
+    auto ch =  s[dotpos + 1u + j];
+
+    if (ch > '0' && ch <= '9')
+    {
+      addtail = j + 1;
+    }
   }
 
-  if (j == i)
+  if (addtail == 0)
   {
+    // precision == 0 or xxx.0(0)  resize cut tail with dot
+    s.resize(dotpos);
+
     if (usedot)
     {
-      s.resize(j + 1);
-      s += '0';
-    }
-    else
-    {
-      s.resize(j);
+      s += ".0";
     }
   }
   else
   {
-    s.resize(j + 1);
+    // xxx.x(x)
+    s.resize(dotpos + addtail + 1);
   }
 
   return s;
