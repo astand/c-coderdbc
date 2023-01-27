@@ -1,4 +1,5 @@
 #include "formatter.h"
+#include <limits>
 #include <algorithm>
 #include <iomanip>
 #include <sstream>
