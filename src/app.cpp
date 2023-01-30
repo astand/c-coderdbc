@@ -18,7 +18,7 @@ void CoderApp::Run()
 {
   std::cout << "coderdbc v" << CODEGEN_LIB_VERSION_MAJ << "." << CODEGEN_LIB_VERSION_MIN << std::endl << std::endl;
 
-  if (ParseParams())
+  if (AreParamsValid())
   {
     GenerateCode();
   }
@@ -28,6 +28,7 @@ void CoderApp::Run()
   }
 }
 
+/// @brief Main generation process
 void CoderApp::GenerateCode()
 {
   auto scanner = std::make_unique<DbcScanner>();
@@ -37,17 +38,17 @@ void CoderApp::GenerateCode()
 
   std::ifstream reader;
 
-  std::cout << "dbc file : " << Params.dbc.value << std::endl;
-  std::cout << "gen path : " << Params.outdir.value << std::endl;
-  std::cout << "drv name : " << Params.drvname.value << std::endl;
+  std::cout << "dbc file : " << Params.dbc.first << std::endl;
+  std::cout << "gen path : " << Params.outdir.first << std::endl;
+  std::cout << "drv name : " << Params.drvname.first << std::endl;
 
-  if (std::filesystem::exists(Params.dbc.value) == false)
+  if (std::filesystem::exists(Params.dbc.first) == false)
   {
     std::cout << "DBC file is not exists!" << std::endl;
     return;
   }
 
-  reader.open(Params.dbc.value);
+  reader.open(Params.dbc.first);
 
   std::istream& s = reader;
 
@@ -56,7 +57,7 @@ void CoderApp::GenerateCode()
   std::string info("");
 
   // create main destination directory
-  fscreator->Configure(Params.drvname.value, Params.outdir.value, info, scanner->dblist.ver.hi, scanner->dblist.ver.low);
+  fscreator->Configure(Params.drvname.first, Params.outdir.first, info, scanner->dblist.ver.hi, scanner->dblist.ver.low);
 
   auto ret = fscreator->PrepareDirectory(Params.is_rewrite);
 
@@ -111,7 +112,7 @@ void CoderApp::GenerateCode()
     // for each node in collection perform specific bin-util generation
     for (size_t node = 0; node < nodes.size(); node++)
     {
-      std::string util_name = nodes[node] + "_" + Params.drvname.value;
+      std::string util_name = nodes[node] + "_" + Params.drvname.first;
 
       // set new driver name for current node
       fscreator->FS.gen.drvname = str_tolower(util_name);
@@ -150,7 +151,7 @@ void CoderApp::GenerateCode()
 
       if (ret)
       {
-        ciugen->Generate(scanner->dblist, fscreator->FS, groups, Params.drvname.value);
+        ciugen->Generate(scanner->dblist, fscreator->FS, groups, Params.drvname.first);
       }
     }
   }
@@ -165,16 +166,19 @@ void CoderApp::GenerateCode()
 
     if (ret)
     {
-      ciugen->Generate(scanner->dblist, fscreator->FS, groups, Params.drvname.value);
+      ciugen->Generate(scanner->dblist, fscreator->FS, groups, Params.drvname.first);
     }
   }
 }
 
-bool CoderApp::ParseParams()
+/// @brief Checks if all mandatory configuration parameters are provided
+/// @return TRUE if configuration valid, otherwise FALSE
+bool CoderApp::AreParamsValid()
 {
-  return (Params.dbc.ok && Params.outdir.ok && Params.drvname.ok) && (Params.is_help == false);
+  return (Params.dbc.second && Params.outdir.second && Params.drvname.second) && (Params.is_help == false);
 }
 
+/// @brief Help message printer
 void CoderApp::PrintHelp()
 {
   std::cout << "project source code:\thttps://github.com/astand/c-coderdbc\t\t" << std::endl;
