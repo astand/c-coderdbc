@@ -37,8 +37,8 @@ class CiUtilGenerator {
   std::vector<MessageDescriptor_t*> both;
 
   // to file writer
-  std::unique_ptr<FileWriter> tof;
-  std::unique_ptr<ConditionalTree> condtree;
+  FileWriter tof;
+  ConditionalTree condtree;
 
   std::string code_drvname;
   std::string file_drvname;
