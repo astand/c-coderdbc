@@ -4,36 +4,42 @@
 #include <string>
 #include <vector>
 
+/// @brief Type of commented value
 enum class CommentTarget
 {
+  /// @brief Comment is for CAN message
   Message,
+  /// @brief Comment is for CAN message signal
   Signal,
+  /// @brief Invalid type
   Undefined
 };
 
-typedef struct
-{
 
-  // CAN ID to which comment is belongs (in case of message targeting)
+/// @brief Comment descripton
+struct Comment_t
+{
+  /// @brief Message ID for which comment is bound
   uint32_t MsgId;
 
-  // name of signal of the CAN Frame to whick comment is belong (in case
-  // of signal targeting
+  /// @brief Signal name for which comment is bound
   std::string SigName;
 
-  // type of the comment in attribute line (message or signal)
+  /// @brief Comment target type
   CommentTarget ca_target;
 
-  // value of the comment from line
+  /// @brief Comment text
   std::string Text;
+};
 
-} Comment_t;
 
-
-typedef struct
+/// @brief Value table inforamtion
+struct ValTable_t
 {
+  /// @brief Signal name for which value table is applied
   std::string SigName;
 
+  /// @brief Value table names and values pairs
   std::vector<std::pair<std::string, uint32_t>> vpairs{};
 
-} ValTable_t;
+};
