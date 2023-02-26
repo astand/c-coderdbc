@@ -10,8 +10,6 @@
 
 class CiMainGenerator {
  public:
-  CiMainGenerator();
-
   void Generate(DbcMessageList_t& dlist, const AppSettings_t& fsd);
 
  private:
@@ -32,7 +30,7 @@ class CiMainGenerator {
   void PrintPackCommonText(const std::string& arrtxt, const CiExpr_t* sgs);
 
  private:
-  std::unique_ptr<CSigPrinter> sigprt;
-  std::unique_ptr<FileWriter> fwriter;
+  CSigPrinter sigprt;
+  FileWriter fwriter;
   const AppSettings_t* fdesc;
 };
