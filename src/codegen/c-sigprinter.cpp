@@ -209,12 +209,20 @@ std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig, std::vec
   int32_t bbc = (startb % 8) + 1;
   int32_t slen = sig->LengthBit;
 
+  std::string multiplexPrefix = "";
+  std::string multiplexSuffix = "";
+  if (sig->Multiplex == MultiplexType::kMulValue)
+  {
+      multiplexPrefix = "((_m->" + sig->MultiplexName + " == " + std::to_string(sig->MultiplexGroup) + ") ? ";
+      multiplexSuffix = " : 0x0)";
+  }
+
   if (bbc > slen)
   {
     snprintf(workbuff, WBUFF_LEN, "((_d[%d] >> %d) & (%s))", bn, bbc - slen, msk[slen].c_str());
     tosigexpr += workbuff;
 
-    snprintf(workbuff, WBUFF_LEN, "((_m->%s & (%s)) << %d)", sig->Name.c_str(), msk[slen].c_str(), bbc - slen);
+    snprintf(workbuff, WBUFF_LEN, "%s((_m->%s & (%s)) << %d)%s", multiplexPrefix.c_str(), sig->Name.c_str(), msk[slen].c_str(), bbc - slen, multiplexSuffix.c_str());
     AppendToByteLine(to_bytes[bn], workbuff);
   }
   else if (bbc == slen)
@@ -223,7 +231,7 @@ std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig, std::vec
     snprintf(workbuff, WBUFF_LEN, "(_d[%d] & (%s))", bn, msk[slen].c_str());
     tosigexpr += workbuff;
 
-    snprintf(workbuff, WBUFF_LEN, "(_m->%s & (%s))", sig->Name.c_str(), msk[slen].c_str());
+    snprintf(workbuff, WBUFF_LEN, "%s(_m->%s & (%s))%s", multiplexPrefix.c_str(), sig->Name.c_str(), msk[slen].c_str(), multiplexSuffix.c_str());
     AppendToByteLine(to_bytes[bn], workbuff);
   }
   else
@@ -239,7 +247,7 @@ std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig, std::vec
     snprintf(workbuff, WBUFF_LEN, "(%s(_d[%d] & (%s)) << %d)", t64.c_str(), bn, msk[bbc].c_str(), slen);
     tosigexpr += workbuff;
 
-    snprintf(workbuff, WBUFF_LEN, "((_m->%s >> %d) & (%s))", sig->Name.c_str(), slen, msk[bbc].c_str());
+    snprintf(workbuff, WBUFF_LEN, "%s((_m->%s >> %d) & (%s))%s", multiplexPrefix.c_str(), sig->Name.c_str(), slen, msk[bbc].c_str(), multiplexSuffix.c_str());
     AppendToByteLine(to_bytes[bn], workbuff);
 
     while ((slen - 8) >= 0)
@@ -266,7 +274,7 @@ std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig, std::vec
         snprintf(workbuff, WBUFF_LEN, "(_d[%d] & (%s))", bn, msk[8].c_str());
         tosigexpr += workbuff;
 
-        snprintf(workbuff, WBUFF_LEN, "(_m->%s & (%s))", sig->Name.c_str(), msk[8].c_str());
+        snprintf(workbuff, WBUFF_LEN, "%s(_m->%s & (%s))%s", multiplexPrefix.c_str(), sig->Name.c_str(), msk[8].c_str(), multiplexSuffix.c_str());
         AppendToByteLine(to_bytes[bn], workbuff);
 
       }
@@ -280,7 +288,7 @@ std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig, std::vec
         snprintf(workbuff, WBUFF_LEN, "(%s(_d[%d] & (%s)) << %d)", t64.c_str(), bn, msk[8].c_str(), slen);
         tosigexpr += workbuff;
 
-        snprintf(workbuff, WBUFF_LEN, "((_m->%s >> %d) & (%s))", sig->Name.c_str(), slen, msk[8].c_str());
+        snprintf(workbuff, WBUFF_LEN, "%s((_m->%s >> %d) & (%s))%s", multiplexPrefix.c_str(), sig->Name.c_str(), slen, msk[8].c_str(), multiplexSuffix.c_str());
         AppendToByteLine(to_bytes[bn], workbuff);
       }
     }
@@ -292,8 +300,7 @@ std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig, std::vec
       snprintf(workbuff, WBUFF_LEN, " | ((_d[%d] >> %d) & (%s))", bn, 8 - slen, msk[slen].c_str());
       tosigexpr += workbuff;
 
-      snprintf(workbuff, WBUFF_LEN, "((_m->%s & (%s)) << %d)", sig->Name.c_str(), msk[slen].c_str(),
-        8 - slen);
+      snprintf(workbuff, WBUFF_LEN, "%s((_m->%s & (%s)) << %d)%s",multiplexPrefix.c_str(), sig->Name.c_str(), msk[slen].c_str(), 8 - slen, multiplexSuffix.c_str());
       AppendToByteLine(to_bytes[bn], workbuff);
     }
   }

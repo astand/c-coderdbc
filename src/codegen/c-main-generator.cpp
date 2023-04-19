@@ -523,11 +523,11 @@ void CiMainGenerator::WriteSigStructField(const SignalDescriptor_t& sig, bool bi
 
   if (sig.Multiplex == MultiplexType::kMulValue)
   {
-    fwriter.Append("  // multiplex variable");
+    fwriter.Append("  // multiplex variable - " + sig.MultiplexName + " - m" + std::to_string(sig.MultiplexGroup));
   }
   else if (sig.Multiplex == MultiplexType::kMaster)
   {
-    fwriter.Append("  // MULTIPLEX master signal");
+    fwriter.Append("  // multiplex master signal");
   }
 
   std::string dtype = "";
@@ -639,14 +639,23 @@ void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
     // for code shortening
     const char* sname = sgs->msg.Signals[num].Name.c_str();
 
+    std::string ident = "  ";
+
+    if (sgs->msg.Signals[num].Multiplex == MultiplexType::kMulValue)
+    {
+      ident = "    ";
+      fwriter.Append("  if (_m->%s == %d)", sgs->msg.Signals[num].MultiplexName.c_str(), sgs->msg.Signals[num].MultiplexGroup);
+      fwriter.Append("  {");
+    }
+
     if (sgs->msg.Signals[num].Signed)
     {
-      fwriter.Append("  _m->%s = %s(( %s ), %d);",
-        sname, ext_sig_func_name, expr.c_str(), (int32_t)sgs->msg.Signals[num].LengthBit);
+      fwriter.Append("%s_m->%s = %s(( %s ), %d);",
+        ident.c_str(), sname, ext_sig_func_name, expr.c_str(), (int32_t)sgs->msg.Signals[num].LengthBit);
     }
     else
     {
-      fwriter.Append("  _m->%s = %s;", sname, expr.c_str());
+      fwriter.Append("%s_m->%s = %s;", ident.c_str(), sname, expr.c_str());
     }
 
     // print sigfloat conversion
@@ -657,20 +666,24 @@ void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
       if (sgs->msg.Signals[num].IsDoubleSig)
       {
         // for double signals (sigfloat_t) type cast
-        fwriter.Append("  _m->%s = (sigfloat_t)(%s_%s_fromS(_m->%s));",
-          sgs->msg.Signals[num].NameFloat.c_str(), fdesc->gen.DRVNAME.c_str(), sname, sname);
+        fwriter.Append("%s_m->%s = (sigfloat_t)(%s_%s_fromS(_m->%s));",
+          ident.c_str(), sgs->msg.Signals[num].NameFloat.c_str(), fdesc->gen.DRVNAME.c_str(), sname, sname);
       }
       else
       {
-        fwriter.Append("  _m->%s = %s_%s_fromS(_m->%s);",
-          sgs->msg.Signals[num].NameFloat.c_str(), fdesc->gen.DRVNAME.c_str(), sname, sname);
+        fwriter.Append("%s_m->%s = %s_%s_fromS(_m->%s);",
+          ident.c_str(), sgs->msg.Signals[num].NameFloat.c_str(), fdesc->gen.DRVNAME.c_str(), sname, sname);
       }
 
       fwriter.Append("#endif // %s", fdesc->gen.usesigfloat_def.c_str());
-      fwriter.Append();
     }
 
-    else if (num + 1 == sgs->to_signals.size())
+    if (sgs->msg.Signals[num].Multiplex == MultiplexType::kMulValue)
+    {
+      fwriter.Append("  }");
+    }
+
+    if (num + 1 == sgs->to_signals.size())
     {
       // last signal without phys part, put \n manually
       fwriter.Append("");

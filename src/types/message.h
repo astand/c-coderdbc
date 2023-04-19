@@ -89,7 +89,13 @@ typedef struct
 
   std::string ValueText;
 
+  // multiplex information
+  // type
+  // group number
+  // multiplex name
   MultiplexType Multiplex;
+  uint16_t MultiplexGroup;
+  std::string MultiplexName;
 
 } SignalDescriptor_t;
 

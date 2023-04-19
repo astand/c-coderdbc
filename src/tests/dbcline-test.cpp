@@ -8,20 +8,22 @@ TEST(TestSigLineParsing, test1)
 {
   DbcLineParser parser;
 
+  std::string sigMultiplexMasterName;
+
   const std::string t2 = " SG_ FLT4_TEST_1 : 39|4@0+ (2.01,1E-002) [-0.01|30.14] \"\"  BCM";
 
   expect_true(parser.IsSignalLine(t2));
 
   SignalDescriptor_t dsc;
 
-  parser.ParseSignalLine(&dsc, t2);
+  parser.ParseSignalLine(&dsc, t2, sigMultiplexMasterName);
 
   expect_true(dsc.IsDoubleSig);
   expect_true(dsc.Offset == 0.01);
 
   const std::string t3 = " SG_ FLT4_TEST_1 : 39|4@0+ (2, 1) [-0.01|30.14] \"\"  BCM";
 
-  parser.ParseSignalLine(&dsc, t3);
+  parser.ParseSignalLine(&dsc, t3, sigMultiplexMasterName);
 
   expect_false(dsc.IsDoubleSig);
   expect_true(dsc.Offset == 1.0);
@@ -35,25 +37,25 @@ TEST(TestSigLineParsing, test1)
   const std::string t3_nok_scie = " SG_ FLT4_TEST_1 : 39|4@0+ (1e-10, 44) [-0.01|30.14] \"\"  BCM";
   const std::string t3_nok_norm = " SG_ FLT4_TEST_1 : 39|4@0+ (0.00000000099, 2) [-0.01|30.14] \"\"  BCM";
 
-  parser.ParseSignalLine(&dsc, t2_ok_norm);
+  parser.ParseSignalLine(&dsc, t2_ok_norm, sigMultiplexMasterName);
 
   expect_true(dsc.IsDoubleSig);
   expect_eq(dsc.Offset, 0.000000001);
   expect_eq(dsc.Factor, 2.0);
 
-  parser.ParseSignalLine(&dsc, t2_ok_scie);
+  parser.ParseSignalLine(&dsc, t2_ok_scie, sigMultiplexMasterName);
 
   expect_true(dsc.IsDoubleSig);
   expect_eq(dsc.Offset, 0.000000001);
   expect_eq(dsc.Factor, 2.0);
 
-  parser.ParseSignalLine(&dsc, t3_nok_norm);
+  parser.ParseSignalLine(&dsc, t3_nok_norm, sigMultiplexMasterName);
 
   expect_false(dsc.IsDoubleSig);
   expect_eq(dsc.Offset, 0.0);
   expect_eq(dsc.Factor, 1.0);
 
-  parser.ParseSignalLine(&dsc, t3_nok_scie);
+  parser.ParseSignalLine(&dsc, t3_nok_scie, sigMultiplexMasterName);
 
   expect_false(dsc.IsDoubleSig);
   expect_eq(dsc.Offset, 0.0);
@@ -72,23 +74,25 @@ TEST(TestSigLineParsing, test_02)
 
   SignalDescriptor_t dsc;
 
-  parser.ParseSignalLine(&dsc, t3_ok);
+  std::string sigMultiplexMasterName;
+
+  parser.ParseSignalLine(&dsc, t3_ok, sigMultiplexMasterName);
 
   expect_true(dsc.IsDoubleSig);
 
-  parser.ParseSignalLine(&dsc, t4_ok);
+  parser.ParseSignalLine(&dsc, t4_ok, sigMultiplexMasterName);
 
   expect_true(dsc.IsDoubleSig);
   expect_eq(dsc.Factor, 0.0);
   expect_eq(dsc.Offset, -0.11);
 
-  parser.ParseSignalLine(&dsc, t5_notok);
+  parser.ParseSignalLine(&dsc, t5_notok, sigMultiplexMasterName);
 
   expect_false(dsc.IsDoubleSig);
   expect_eq(dsc.Factor, 1.0);
   expect_eq(dsc.Offset, 0.0);
 
-  parser.ParseSignalLine(&dsc, t6_ok);
+  parser.ParseSignalLine(&dsc, t6_ok, sigMultiplexMasterName);
 
   expect_true(dsc.IsDoubleSig);
   expect_eq(dsc.Factor, 0.0);
@@ -151,4 +155,54 @@ TEST(TestSigLineParsing, test_prt_double)
   expect_eq(prt_double(v6, 10), "123.0123456789");
   expect_eq(prt_double(v6, 11), "123.0123456789");
   expect_eq(prt_double(v6, 15), "123.0123456789");
+}
+
+TEST(TestMuxParsing, test_mux)
+{
+  const std::string msg_mux = "SBO_ 546 FOO_MUXED_M: 6 FOO_NODE";
+
+  std::vector<std::string> sigLines;
+  sigLines.push_back("SG_ FOO_Mux1 M : 0|8@1+ (1,0) [0|4] \"\" BCM");
+  sigLines.push_back("SG_ FOO_Val_S8_L8_G0 m0 : 8|8@1+ (1,0) [0|255] "" BCM");
+  sigLines.push_back("SG_ FOO_Val_S8_L8_G1 m1 : 8|8@1+ (1,0) [0|255] "" BCM");
+  sigLines.push_back("SG_ FOO_Mux2 M : 0|8@1+ (1,0) [0|4] \"\" BCM");
+  sigLines.push_back("SG_ FOO_Val_S24_L8_G0 m0 : 8|8@1+ (1,0) [0|255] "" BCM");
+  sigLines.push_back("SG_ FOO_Val_S24_L8_G1 m1 : 8|8@1+ (1,0) [0|255] "" BCM");
+
+  DbcLineParser parser;
+
+  MessageDescriptor_t msg;
+  
+  // parse message
+  parser.ParseMessageLine(&msg, msg_mux);
+
+  // parse signals
+  std::string sigMultiplexMasterName;
+  for (auto & element : sigLines) 
+  {
+    SignalDescriptor_t sig;
+
+    parser.ParseSignalLine(&sig, element, sigMultiplexMasterName);
+    msg.Signals.push_back(sig);
+  }
+
+  expect_true(msg.Signals[0].Multiplex == MultiplexType::kMaster);
+  expect_true(msg.Signals[1].Multiplex == MultiplexType::kMulValue);
+  expect_true(msg.Signals[2].Multiplex == MultiplexType::kMulValue);
+  
+  expect_true(msg.Signals[1].MultiplexGroup == 0);
+  expect_true(msg.Signals[2].MultiplexGroup == 1);
+
+  expect_eq(msg.Signals[1].MultiplexName, "FOO_Mux1");
+  expect_eq(msg.Signals[2].MultiplexName, "FOO_Mux1");
+
+  expect_true(msg.Signals[3].Multiplex == MultiplexType::kMaster);
+  expect_true(msg.Signals[4].Multiplex == MultiplexType::kMulValue);
+  expect_true(msg.Signals[5].Multiplex == MultiplexType::kMulValue);
+  
+  expect_true(msg.Signals[4].MultiplexGroup == 0);
+  expect_true(msg.Signals[5].MultiplexGroup == 1);
+
+  expect_eq(msg.Signals[4].MultiplexName, "FOO_Mux2");
+  expect_eq(msg.Signals[5].MultiplexName, "FOO_Mux2");
 }

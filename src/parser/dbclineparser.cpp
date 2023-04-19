@@ -178,7 +178,7 @@ bool DbcLineParser::IsSignalLine(const std::string& line)
   return ret;
 }
 
-bool DbcLineParser::ParseSignalLine(SignalDescriptor_t* sig, const std::string& line)
+bool DbcLineParser::ParseSignalLine(SignalDescriptor_t* sig, const std::string& line, std::string& sigMultiplexMasterName)
 {
   // split line in two parts
   auto halfs = resplit(line, kRegSigSplit1, -1);
@@ -200,6 +200,7 @@ bool DbcLineParser::ParseSignalLine(SignalDescriptor_t* sig, const std::string& 
   {
     sig->Name = halfs[1];
     sig->Multiplex = MultiplexType::kNone;
+    sig->MultiplexGroup = 0;
 
     if (halfs.size() == 3)
     {
@@ -207,10 +208,15 @@ bool DbcLineParser::ParseSignalLine(SignalDescriptor_t* sig, const std::string& 
       if (halfs[2] == "M")
       {
         sig->Multiplex = MultiplexType::kMaster;
+        sigMultiplexMasterName = sig->Name;
       }
       else
       {
         sig->Multiplex = MultiplexType::kMulValue;
+        sig->MultiplexName = sigMultiplexMasterName;
+        // get multiplex group from string m<group number>
+        // convert string starting at index 1 (not zero) to int        
+        sig->MultiplexGroup = std::stoi(halfs[2].substr(1, halfs[2].size()-1));
       }
     }
   }

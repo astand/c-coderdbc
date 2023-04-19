@@ -66,6 +66,8 @@ void DbcScanner::ParseMessageInfo(istream& readstrm)
 
   MessageDescriptor_t* pMsg = nullptr;
 
+  std::string sigMultiplexMasterName;
+
   while (readstrm.eof() == false)
   {
     std::getline(readstrm, sline);
@@ -97,7 +99,7 @@ void DbcScanner::ParseMessageInfo(istream& readstrm)
       SignalDescriptor_t sig;
 
       // parse signal line
-      if (lparser.ParseSignalLine(&sig, sline))
+      if (lparser.ParseSignalLine(&sig, sline, sigMultiplexMasterName))
       {
         // put successfully parsed  signal to the message signals
         pMsg->Signals.push_back(sig);

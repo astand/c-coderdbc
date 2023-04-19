@@ -26,7 +26,7 @@ cmake -S src -B build
 ```
 Run cmake build:
 ```sh
---build build --config release
+cmake --build build --config release
 ```
 Go to the build directory and run:
 ```sh

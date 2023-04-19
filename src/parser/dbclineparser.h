@@ -48,13 +48,15 @@ class DbcLineParser {
 
   // checks if the line is message description
   bool IsMessageLine(const std::string& line);
+  
   // parses message line
   bool ParseMessageLine(MessageDescriptor_t* msg, const std::string& line = "");
 
   // checks if the line is signal description
   bool IsSignalLine(const std::string& line);
+
   // parses signal line
-  bool ParseSignalLine(SignalDescriptor_t* sig, const std::string& line);
+  bool ParseSignalLine(SignalDescriptor_t *sig, const std::string &line, std::string& sigMultiplexMasterName);
 
   // tries to parse attribute line (or a few lines) and
   // loads result in attr struct, return @true if parsed ok
