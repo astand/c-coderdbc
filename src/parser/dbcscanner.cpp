@@ -69,6 +69,7 @@ void DbcScanner::ParseMessageInfo(istream& readstrm)
   while (readstrm.eof() == false)
   {
     std::getline(readstrm, sline);
+
     sline = str_trim(sline);
 
     FindVersion(sline);
@@ -156,6 +157,7 @@ void DbcScanner::ParseOtherInfo(istream& readstrm)
   while (!readstrm.eof())
   {
     std::getline(readstrm, sline);
+
     sline = str_trim(sline);
 
     if (lparser.ParseCommentLine(&cmmnt, sline))
@@ -328,17 +330,20 @@ void DbcScanner::SetDefualtMessage(MessageDescriptor_t* message)
 void DbcScanner::FindVersion(const std::string& instr)
 {
   // try to find version string which looks like: VERSION "x.x"
-  uint32_t h = 0, l = 0;
-  char marker[9];
+  static constexpr char* versionAttr = (char*)"VERSION";
+  static constexpr size_t VER_MIN_LENGTH = strlen(versionAttr);
 
-  if (instr[0] != 'V' && instr[1] != 'E')
+  uint32_t h = 0, l = 0;
+  char marker[VER_MIN_LENGTH + 1u];
+
+  if (instr.size() < VER_MIN_LENGTH)
   {
     return;
   }
 
-  int32_t ret = std::sscanf(instr.c_str(), "%8s \"%u.%u\"", marker, &h, &l);
+  auto ret = std::sscanf(instr.c_str(), "%8s \"%u.%u\"", marker, &h, &l);
 
-  if ((ret == 3) && (std::strcmp(marker, "VERSION") == 0))
+  if ((ret == 3) && (std::strcmp(marker, versionAttr) == 0))
   {
     // versions have been found, save numeric values
     dblist.ver.hi = h;
