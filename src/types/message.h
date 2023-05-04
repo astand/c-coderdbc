@@ -83,6 +83,8 @@ typedef struct
 
   std::vector<std::string> RecS;
 
+  ValTable_t ValDefs;
+
   std::string CommentText;
 
   std::string ValueText;

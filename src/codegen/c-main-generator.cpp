@@ -14,11 +14,15 @@
 const char* ext_sig_func_name = "__ext_sig__";
 
 const char* extend_func_body =
-  "// To compile this function you need to typedef 'bitext_t' and 'ubitext_t'\n"
-  "// globally in @dbccodeconf.h or locally in 'dbcdrvname'-config.h\n"
-  "// Type selection may affect common performance. Most useful types are:\n"
-  "// bitext_t : int64_t and ubitext_t : uint64_t\n"
-  "static bitext_t %s( ubitext_t val, uint8_t bits )\n"
+  "// This function performs extension of sign for the signals\n"
+  "// which have non-aligned to power of 2 bit's width.\n"
+  "// The types 'bitext_t' and 'ubitext_t' define maximal bit width which\n"
+  "// can be correctly handled. You need to select type which can contain\n"
+  "// n+1 bits where n is the largest signed signal width. For example if\n"
+  "// the most wide signed signal has a width of 31 bits you need to set\n"
+  "// bitext_t as int32_t and ubitext_t as uint32_t\n"
+  "// Defined these typedefs in @dbccodeconf.h or locally in 'dbcdrvname'-config.h\n"
+  "static bitext_t %s(ubitext_t val, uint8_t bits)\n"
   "{\n"
   "  ubitext_t const m = 1u << (bits - 1);\n"
   "  return (val ^ m) - m;\n"
@@ -86,7 +90,7 @@ void CiMainGenerator::Gen_MainHeader()
   fwriter->AppendLine(StrPrint("#define %s (%uU)", fdesc->verlow_def.c_str(), p_dlist->ver.low), 2);
 
   fwriter->AppendLine("// include current dbc-driver compilation config");
-  fwriter->AppendLine(StrPrint("#include \"%s-config.h\"", fdesc->drvname.c_str()), 2);
+  fwriter->AppendLine(StrPrint("#include <%s-config.h>", fdesc->drvname.c_str()), 2);
 
   fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usemon_def.c_str()));
 
@@ -95,7 +99,7 @@ void CiMainGenerator::Gen_MainHeader()
     "// base monitor struct\n"
     "// function signature for HASH calculation: (@GetFrameHash)\n"
     "// function signature for getting system tick value: (@GetSystemTick)\n"
-    "#include \"canmonitorutil.h\"\n"
+    "#include <canmonitorutil.h>\n"
     "\n"
   );
 
@@ -136,6 +140,30 @@ void CiMainGenerator::Gen_MainHeader()
       if (s.Name.size() > max_sig_name_len)
       {
         max_sig_name_len = s.Name.size();
+      }
+
+      // For each signal in current message print value tables definitions
+      if (s.ValDefs.vpairs.size() > 0)
+      {
+        fwriter->AppendLine(StrPrint("\n// Value tables for @%s signal", s.Name.c_str()), 2);
+
+        for (auto i = 0; i < s.ValDefs.vpairs.size(); i++)
+        {
+          // The value table definition consists of 'signal name + message name + value definition'
+          // This provides reliable way of avoiding issues with same macros names
+          std::string defname = StrPrint("%s_%s_%s", s.Name.c_str(), m.Name.c_str(), s.ValDefs.vpairs[i].first.c_str());
+
+          // @ifndef guard for the case when different values of table have
+          // the same name (it is valid for DBC file format)
+          // For this case only one of same named values will be available as macro
+          fwriter->AppendLine(StrPrint("#ifndef %s", defname.c_str()));
+
+          fwriter->AppendLine(StrPrint("#define %s_%s_%s (%d)",
+              s.Name.c_str(), m.Name.c_str(), s.ValDefs.vpairs[i].first.c_str(),
+              s.ValDefs.vpairs[i].second));
+
+          fwriter->AppendLine(StrPrint("#endif"), 2);
+        }
       }
     }
 
@@ -238,6 +266,13 @@ void CiMainGenerator::Gen_MainSource()
   // include main header file
   fwriter->AppendLine(StrPrint("#include \"%s\"", fdesc->core_h.fname.c_str()), 3);
 
+  fwriter->AppendLine("// DBC file version");
+  fwriter->AppendLine(StrPrint("#if (%s != (%uU)) || (%s != (%uU))",
+      fdesc->verhigh_def.c_str(), p_dlist->ver.hi, fdesc->verlow_def.c_str(), p_dlist->ver.low));
+
+  fwriter->AppendLine(StrPrint("#error The %s dbc source files have different versions", fdesc->DRVNAME.c_str()));
+  fwriter->AppendLine("#endif", 2);
+
   // put diagmonitor ifdef selection for including @drv-fmon header
   // with FMon_* signatures to call from unpack function
   fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usemon_def.c_str()));
@@ -246,7 +281,7 @@ void CiMainGenerator::Gen_MainSource()
     "// Function prototypes to be called each time CAN frame is unpacked\n"
     "// FMon function may detect RC, CRC or DLC violation\n");
 
-  fwriter->AppendLine(StrPrint("#include \"%s-fmon.h\"", fdesc->drvname.c_str()), 2);
+  fwriter->AppendLine(StrPrint("#include <%s-fmon.h>", fdesc->drvname.c_str()), 2);
 
   fwriter->AppendLine(StrPrint("#endif // %s", fdesc->usemon_def.c_str()), 3);
 
@@ -307,7 +342,7 @@ void CiMainGenerator::Gen_ConfigHeader()
   fwriter->AppendLine("#pragma once");
   fwriter->AppendLine("");
   fwriter->AppendLine("/* include common dbccode configurations */");
-  fwriter->AppendLine("#include \"dbccodeconf.h\"");
+  fwriter->AppendLine("#include <dbccodeconf.h>");
   fwriter->AppendLine("");
   fwriter->AppendLine("");
   fwriter->AppendLine("/* ------------------------------------------------------------------------- *");
@@ -427,12 +462,12 @@ void CiMainGenerator::Gen_FMonHeader()
   fwriter->AppendLine(StrPrint("#define %s_FMON (%uU)", fdesc->verhigh_def.c_str(), p_dlist->ver.hi));
   fwriter->AppendLine(StrPrint("#define %s_FMON (%uU)", fdesc->verlow_def.c_str(), p_dlist->ver.low), 2);
 
-  fwriter->AppendLine(StrPrint("#include \"%s-config.h\"", fdesc->drvname.c_str()), 2);
+  fwriter->AppendLine(StrPrint("#include <%s-config.h>", fdesc->drvname.c_str()), 2);
 
   // put diagmonitor ifdef selection for including @drv-fmon header
   // with FMon_* signatures to call from unpack function
   fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usemon_def.c_str()), 2);
-  fwriter->AppendLine("#include \"canmonitorutil.h\"");
+  fwriter->AppendLine("#include <canmonitorutil.h>");
   fwriter->AppendLine("/*\n\
 This file contains the prototypes of all the functions that will be called\n\
 from each Unpack_*name* function to detect DBC related errors\n\
@@ -461,7 +496,7 @@ void CiMainGenerator::Gen_FMonSource()
     fwriter->AppendLine("// " + std::regex_replace(fdesc->start_info, std::regex("\n"), "\n// "));
   }
 
-  fwriter->AppendLine(StrPrint("#include \"%s\"", fdesc->fmon_h.fname.c_str()), 2);
+  fwriter->AppendLine(StrPrint("#include <%s>", fdesc->fmon_h.fname.c_str()), 2);
   // put diagmonitor ifdef selection for including @drv-fmon header
 // with FMon_* signatures to call from unpack function
   fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usemon_def.c_str()), 2);
@@ -618,16 +653,23 @@ void CiMainGenerator::WriteSigStructField(const SignalDescriptor_t& sig, bool bi
 
   fwriter->AppendText(StrPrint(" Bits=%2d", sig.LengthBit));
 
+  size_t offset = 0;
+  std::string infocmnt{};
+
   if (sig.IsDoubleSig)
   {
     if (sig.Offset != 0)
     {
-      fwriter->AppendText(StrPrint(" Offset= %-18f", sig.Offset));
+      infocmnt = IndentedString(offset, infocmnt);
+      offset += 27;
+      infocmnt += StrPrint(" Offset= %f", sig.Offset);
     }
 
     if (sig.Factor != 1)
     {
-      fwriter->AppendText(StrPrint(" Factor= %-15f", sig.Factor));
+      infocmnt = IndentedString(offset, infocmnt);
+      offset += 24;
+      infocmnt += StrPrint(" Factor= %f", sig.Factor);
     }
   }
   else if (sig.IsSimpleSig == false)
@@ -635,19 +677,26 @@ void CiMainGenerator::WriteSigStructField(const SignalDescriptor_t& sig, bool bi
     // 2 type of signal
     if (sig.Offset != 0)
     {
-      fwriter->AppendText(StrPrint(" Offset= %-18d", (int)sig.Offset));
+      infocmnt = IndentedString(offset, infocmnt);
+      offset += 27;
+      infocmnt += StrPrint(" Offset= %d", (int)sig.Offset);
     }
 
     if (sig.Factor != 1)
     {
-      fwriter->AppendText(StrPrint(" Factor= %-15d", (int)sig.Factor));
+      infocmnt = IndentedString(offset, infocmnt);
+      offset += 24;
+      infocmnt += StrPrint(" Factor= %d", (int)sig.Factor);
     }
   }
 
   if (sig.Unit.size() > 0)
   {
-    fwriter->AppendText(StrPrint(" Unit:'%s'", sig.Unit.c_str()));
+    infocmnt = IndentedString(offset, infocmnt);
+    infocmnt += StrPrint(" Unit:'%s'", sig.Unit.c_str());
   }
+
+  fwriter->AppendText(infocmnt);
 
   fwriter->AppendLine("", 2);
 

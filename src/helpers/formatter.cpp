@@ -17,6 +17,19 @@ static const std::string __typeprint[8] =
   "uint64_t"
 };
 
+std::string IndentedString(size_t n, const std::string& source, const char c)
+{
+  if (source.length() >= n)
+  {
+    return source;
+  }
+  else
+  {
+    std::string indent(n - source.length(), c);
+    return source + indent;
+  }
+}
+
 const char* StrPrint(const char* format, ...)
 {
   va_list args;
@@ -86,4 +99,47 @@ std::string str_trim(std::string s)
   }
 
   return s;
+}
+
+template<char L, char U>
+static inline bool in_range(const char c)
+{
+  return ((c >= L) && (c <= U));
+}
+
+static bool is_first_valid(const char c)
+{
+  return in_range<'a', 'z'>(c) || in_range<'A', 'Z'>(c) || c == '_';
+}
+
+static bool is_nonfirst_valid(const char c)
+{
+  return is_first_valid(c) || in_range<'0', '9'>(c);
+}
+
+std::string make_c_name(const std::string& s)
+{
+  std::string ret{};
+
+  if (s.length() == 0)
+  {
+    return ret;
+  }
+
+  for (auto i = 0; i < s.length(); i++)
+  {
+    if ((ret.length() == 0 && is_first_valid(s[i])) ||
+      (ret.length() > 0 && is_nonfirst_valid(s[i])))
+    {
+      // basic C-identifier rule
+      ret += s[i];
+    }
+    else if (s[i] == ' ')
+    {
+      // special case for whitespaces
+      ret += '_';
+    }
+  }
+
+  return ret;
 }

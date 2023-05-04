@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <string>
+#include <vector>
 
 enum class CommentTarget
 {
@@ -27,3 +28,12 @@ typedef struct
   std::string Text;
 
 } Comment_t;
+
+
+typedef struct
+{
+  std::string SigName;
+
+  std::vector<std::pair<std::string, uint32_t>> vpairs{};
+
+} ValTable_t;

@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <algorithm>
 #include <stdlib.h>
+#include <helpers/formatter.h>
 #include "parser/dbcscanner.h"
 #include "codegen/c-main-generator.h"
 #include "codegen/c-util-generator.h"
@@ -70,8 +71,6 @@ std::vector<ParamPair_t> getoptions(int argc, char** argv)
 
 int main(int argc, char* argv[])
 {
-  const std::string arg_ops = "dbc:out:rxnodes:rw";
-
   bool err = false;
   bool dbc_ok = false;
   bool path_ok = false;
@@ -117,6 +116,16 @@ int main(int argc, char* argv[])
   {
     PrintUsage();
     return 0;
+  }
+
+  if (drvname_ok)
+  {
+    dbc_driver_name = make_c_name(dbc_driver_name);
+
+    if (dbc_driver_name.length() == 0)
+    {
+      drvname_ok = false;
+    }
   }
 
   if (drvname_ok && path_ok && dbc_ok)
@@ -201,13 +210,16 @@ int main(int argc, char* argv[])
       {
         std::string util_name = nodes[node] + "_" + dbc_driver_name;
 
+        // set new driver name for current node
+        fscreator->FS.drvname = str_tolower(util_name);
+        fscreator->FS.DRVNAME = str_toupper(fscreator->FS.drvname);
         fscreator->FS.util_c.dir = fscreator->FS.utildir;
         fscreator->FS.util_h.dir = fscreator->FS.utildir;
 
-        fscreator->FS.util_h.fname = util_name + ".h";
+        fscreator->FS.util_h.fname = str_tolower(fscreator->FS.drvname + "-binutil.h");
         fscreator->FS.util_h.fpath = fscreator->FS.utildir + "/" + fscreator->FS.util_h.fname;
 
-        fscreator->FS.util_c.fname = util_name + ".c";
+        fscreator->FS.util_c.fname = str_tolower(fscreator->FS.drvname + "-binutil.c");
         fscreator->FS.util_c.fpath = fscreator->FS.utildir + "/" + fscreator->FS.util_c.fname;
 
         MsgsClassification groups;
@@ -289,7 +301,9 @@ void PrintUsage()
   std::cout <<
     "./dbccoder -dbc /home/user/docs/driveshaft.dbc -out /home/user/docs/gen/ -drvname drivedb -nodeutils -rw" << std::endl;
 
-  std::cout << "./dbccoder -dbc /home/user/docs/driveshaft.dbc -out /home/user/docs/gen/ -drvname drivedb -nodeutils" << std::endl;
+  std::cout <<
+    "./dbccoder -dbc /home/user/docs/driveshaft.dbc -out /home/user/docs/gen/ -drvname drivedb -nodeutils" << std::endl;
+
   std::cout << "./dbccoder -dbc /home/user/docs/driveshaft.dbc -out /home/user/docs/gen/ -drvname drivedb" << std::endl;
   std::cout << std::endl;
 }

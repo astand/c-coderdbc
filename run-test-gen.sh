@@ -1,0 +1,1 @@
+./build/coderdbc -dbc test/testdb.dbc -out test/gencode -drvname testdb -nodeutils -rw
