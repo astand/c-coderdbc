@@ -1,0 +1,1 @@
+(cd test/gencode && rm -r *)

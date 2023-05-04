@@ -26,47 +26,6 @@ void CoderApp::Run()
   }
 }
 
-bool CoderApp::ParseParams()
-{
-  for (size_t i = 0; i < Params.size(); i++)
-  {
-    if (Params[i].first.compare("-dbc") == 0)
-    {
-      dbc.value = Params[i].second;
-      dbc.ok = true;
-    }
-    else if (Params[i].first.compare("-out") == 0)
-    {
-      outdir.value = Params[i].second;
-      outdir.ok = true;
-    }
-    else if (Params[i].first.compare("-drvname") == 0)
-    {
-      drvname.value = make_c_name(Params[i].second);
-      drvname.ok = true;
-
-      if (drvname.value.length() == 0)
-      {
-        drvname.ok = false;
-      }
-    }
-    else if (Params[i].first.compare("-rw") == 0)
-    {
-      rewrite_src = true;
-    }
-    else if (Params[i].first.compare("-nodeutils") == 0)
-    {
-      gen_nodeutils = true;
-    }
-    else if (Params[i].first.compare("-help") == 0)
-    {
-      return false;
-    }
-  }
-
-  return (dbc.ok && outdir.ok && drvname.ok);
-}
-
 void CoderApp::GenerateCode()
 {
   auto scanner = std::make_unique<DbcScanner>();
@@ -76,17 +35,17 @@ void CoderApp::GenerateCode()
 
   std::ifstream reader;
 
-  std::cout << "dbc file : " << dbc.value << std::endl;
-  std::cout << "gen path : " << outdir.value << std::endl;
-  std::cout << "drv name : " << drvname.value << std::endl;
+  std::cout << "dbc file : " << Params.dbc.value << std::endl;
+  std::cout << "gen path : " << Params.outdir.value << std::endl;
+  std::cout << "drv name : " << Params.drvname.value << std::endl;
 
-  if (std::filesystem::exists(dbc.value) == false)
+  if (std::filesystem::exists(Params.dbc.value) == false)
   {
     std::cout << "DBC file is not exists!" << std::endl;
     return;
   }
 
-  reader.open(dbc.value);
+  reader.open(Params.dbc.value);
 
   std::istream& s = reader;
 
@@ -95,7 +54,13 @@ void CoderApp::GenerateCode()
   std::string info("");
 
   // create main destination directory
-  auto ret = fscreator->PrepareDirectory(drvname.value.c_str(), outdir.value.c_str(), rewrite_src, info);
+  fscreator->Configure(Params.drvname.value, Params.outdir.value, info, scanner->dblist.ver.hi, scanner->dblist.ver.low);
+
+  auto ret = fscreator->PrepareDirectory(Params.is_rewrite);
+
+  fscreator->FS.gen.no_config = Params.is_noconfig;
+  fscreator->FS.gen.no_inc = Params.is_nocanmon;
+  fscreator->FS.gen.no_fmon = Params.is_nofmon;
 
   if (ret)
   {
@@ -108,7 +73,7 @@ void CoderApp::GenerateCode()
 
   // check if option --node-utils is requested, when requested binutil generation
   // wiil be performed on each node from DBC file in accordance to its RX / TX subscription
-  if (gen_nodeutils)
+  if (Params.is_nodeutils)
   {
     std::vector<std::string> nodes;
 
@@ -144,7 +109,7 @@ void CoderApp::GenerateCode()
     // for each node in collection perform specific bin-util generation
     for (size_t node = 0; node < nodes.size(); node++)
     {
-      std::string util_name = nodes[node] + "_" + drvname.value;
+      std::string util_name = nodes[node] + "_" + Params.drvname.value;
 
       // set new driver name for current node
       fscreator->FS.gen.drvname = str_tolower(util_name);
@@ -183,7 +148,7 @@ void CoderApp::GenerateCode()
 
       if (ret)
       {
-        ciugen->Generate(scanner->dblist, fscreator->FS, groups, drvname.value);
+        ciugen->Generate(scanner->dblist, fscreator->FS, groups, Params.drvname.value);
       }
     }
   }
@@ -198,11 +163,15 @@ void CoderApp::GenerateCode()
 
     if (ret)
     {
-      ciugen->Generate(scanner->dblist, fscreator->FS, groups, drvname.value);
+      ciugen->Generate(scanner->dblist, fscreator->FS, groups, Params.drvname.value);
     }
   }
 }
 
+bool CoderApp::ParseParams()
+{
+  return (Params.dbc.ok && Params.outdir.ok && Params.drvname.ok) && (Params.is_help == false);
+}
 
 void CoderApp::PrintHelp()
 {
@@ -222,6 +191,9 @@ void CoderApp::PrintHelp()
   std::cout << "   \t\t will create new sud-directory with source files (000, 001, ... etc)" << std::endl;
   std::cout << "   \t\t '-rw' option enables rewriting: all source files previously generated" << std::endl;
   std::cout << "   \t\t will be replaced by new ones" << std::endl;
+  std::cout << "   -noconfig:\t no {drivername}-config and dbccodeconfig generation" << std::endl;
+  std::cout << "   -noinc:\t no canmonitorutil.h generation" << std::endl;
+  std::cout << "   -nofmon:\t no ***-fmon.c generation" << std::endl;
   std::cout << std::endl;
 
   std::cout << "examples:" << std::endl;
