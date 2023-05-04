@@ -217,7 +217,7 @@ void CiUtilGenerator::PrintSource()
     // scope is responsible for deletion these resources
     // tree is the struct tree-view which is used to execute
     // binary search on FrameID for selecting unpacking function
-    auto tree = FillTreeLevel(rx, 0, rx.size());
+    auto tree = FillTreeLevel(rx, 0, static_cast<int32_t>(rx.size()));
 
     tof->AppendLine(StrPrint("uint32_t %s_Receive(%s_rx_t* _m, const uint8_t* _d, uint32_t _id, uint8_t dlc_)",
         fdesc->drvname.c_str(), fdesc->drvname.c_str()));

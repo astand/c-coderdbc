@@ -6,17 +6,20 @@
 #include "codegen/c-main-generator.h"
 #include "codegen/c-util-generator.h"
 #include "codegen/fs-creator.h"
+#include "codegen/version.h"
 
 #define GEN_UTIL_CODE
 
+char verstr[128] = {0};
+
 const char* helptext =
-  "welcome to dbccoder v1.1.\n\n"
-  "author: Andrey Astakhov (https://github.com/astand)\n\n"
-  "to use utility you need to provide 3 arguments:\n\n"
+  "https://github.com/astand/c-coderdbc        (project source code)\n\n"
+  "https://coderdbc.com                        (web application)\n\n"
+  "To use utility you need to provide 3 arguments:\n\n"
   "1. dbc file path\n"
-  "2. directory for generated source codegen\n"
-  "3. prefix (driver name) which will be used in driver elements naming\n\n"
-  "Example: ./dbccoder /home/user/docs/driveshaft.dbc /home/user/docs/gen/ drivedb\n\n";
+  "2. directory for generated source files (existable)\n"
+  "3. prefix (driver name) which will be used for naming dirver parts\n\n"
+  "Usage example:\n\n./dbccoder /home/user/docs/driveshaft.dbc /home/user/docs/gen/ drivedb\n\n";
 
 DbcScanner* scanner;
 CiMainGenerator* cigen;
@@ -33,6 +36,9 @@ int main(int argc, char* argv[])
   cigen = new CiMainGenerator;
   ciugen = new CiUtilGenerator;
   fscreator = new FsCreator;
+
+  std::snprintf(verstr, 128, "\nDbccoder v%u.%u\n\n", CODEGEN_LIB_VERSION_MAJ, CODEGEN_LIB_VERSION_MIN);
+  std::cout << verstr;
 
   if (argc == 4)
   {
