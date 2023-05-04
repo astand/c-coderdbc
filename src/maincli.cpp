@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
 
     scanner->TrimDbcText(s);
 
-    std::string info("this is test");
+    std::string info("");
 
     auto ret = fscreator->PrepareDirectory(dbc_driver_name.c_str(), source_files_out_path.c_str(), true, info);
 

@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v1.4 - 2021-07-13
+### Fixed
+- Removed default into "this is test"
+- Edited README.md
+
 
 ## v1.3 - 2021-07-11
 ### Added
