@@ -117,7 +117,7 @@ bool DbcLineParser::ParseMessageLine(MessageDescriptor_t* msg, const std::string
 
   msg->Name = items[2];
 
-  msg->MsgID = static_cast<uint32_t>(atoi(items[1].c_str()));
+  msg->MsgID = static_cast<uint32_t>(atoll(items[1].c_str()));
 
   msg->DLC = atoi(items[4].c_str());
 
@@ -418,7 +418,7 @@ bool DbcLineParser::ParseCommentLine(Comment_t* cm, const std::string& line)
           // 1 CM_ marker
           // 2 target (message or signal)
           // 3 msg id
-          uint32_t id = ((uint32_t)(atoi(meta[2].c_str())));
+          uint32_t id = static_cast<uint32_t>((atoll(meta[2].c_str())));
 
           // clear message id from high 3 bits
           cm->MsgId = clear_msgid(id);
@@ -475,7 +475,7 @@ bool DbcLineParser::ParseAttributeLine(AttributeDescriptor_t* attr, const std::s
       if (items.size() > 4 && items[1] == "GenMsgCycleTime" && items[2] == "BO_")
       {
         attr->Type = AttributeType::CycleTime;
-        attr->MsgId = clear_msgid(atoi(items[3].c_str()));
+        attr->MsgId = clear_msgid(atoll(items[3].c_str()));
         // read value of ms of cycle time for the current message
         attr->Value = atoi(items[4].c_str());
         ret = true;
@@ -514,9 +514,10 @@ bool DbcLineParser::ParseValTableLine(Comment_t* comm, const std::string& line)
 
       if ((items.size() >= 3) && (items.back() == ";") && (items.size() % 2 == 0))
       {
-        comm->MsgId = (clear_msgid(atoi(items[1].c_str())));
+        comm->MsgId = (clear_msgid(atoll(items[1].c_str())));
         comm->SigName = items[2];
         comm->Text = "";
+        comm->ca_target = CommentTarget::Signal;
 
         for (size_t valpair = 3; valpair < (items.size() - 1); valpair += 2)
         {
