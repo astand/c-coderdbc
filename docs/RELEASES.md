@@ -1,6 +1,16 @@
 # Changelog
 
 
+## v2.1 2022-02-19
+
+### Fixed
+- Some times incorrect _ro and _phys type deduction
+
+### Added 
+- Sign extension for signal which have signed type ([@2Black2](https://github.com/2Black2))
+
+---
+
 ## v2.0 2022-02-02
 
 ### Added

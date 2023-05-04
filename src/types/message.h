@@ -58,7 +58,7 @@ typedef struct
 
   // this flag shows if the signal has factor = 1 and offset = 0
   // to reject any sigfloat or "toS"/"fromS" operations
-  // this only when : IsDoubleSig == true || ((s.Factor != 1) || (s.Offset != 0)
+  // SimpleSig is true when: IsDoubleSig == false && Factor == 1 && Offset == 0
   bool IsSimpleSig;
 
   double Factor;
@@ -71,7 +71,9 @@ typedef struct
 
   bool Signed;
 
-  SigType Type;
+  SigType TypeRo;
+
+  SigType TypePhys;
 
   std::vector<std::string> SigToByte;
 
