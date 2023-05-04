@@ -107,3 +107,22 @@
 
 /* #define TESTDB_AUTO_CSM */
 
+
+/* ------------------------------------------------------------------------- *
+  FMon handling model can be build in two ways: 
+
+  1 - Default. In this case when specific frame unpack is called the 
+  specific FMon_{Frame name}_{driver name} functoin will be called.
+  User's code scope has to define each of these functions. Each function is
+  responsible for the error handling of one frame
+
+  2 - MONO. In this case there is only one function to perform any frame 
+  monitoring. This function has to be implemented in the user's code scope.
+  This function is named as FMon_MONO_{driver name}. It takes frame id
+  which can be used for selection of the logic for a frame monitoring.
+  This mode costs a bit more in runtime but when you often edit you DBC and you 
+  have more than one project it could be more maintanable (there is
+  no necessity to replace source code)
+
+  For using MONO way uncomment line below */
+/* #define TESTDB_USE_MONO_FMON */

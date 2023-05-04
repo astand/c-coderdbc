@@ -14,8 +14,8 @@ static const std::string closeguard = "#ifdef __cplusplus\n\
 CiUtilGenerator::CiUtilGenerator()
 {
   Clear();
-  tof = new FileWriter;
-  condtree = new ConditionalTree;
+  tof = std::make_unique<FileWriter>();
+  condtree = std::make_unique<ConditionalTree>();
 }
 
 void CiUtilGenerator::Clear()
@@ -27,7 +27,7 @@ void CiUtilGenerator::Clear()
 }
 
 
-void CiUtilGenerator::Generate(DbcMessageList_t& dlist, const FsDescriptor_t& fsd,
+void CiUtilGenerator::Generate(DbcMessageList_t& dlist, const AppSettings_t& fsd,
   const MsgsClassification& groups, const std::string& drvname)
 {
   Clear();
@@ -84,7 +84,8 @@ void CiUtilGenerator::Generate(DbcMessageList_t& dlist, const FsDescriptor_t& fs
     return a->MsgID < b->MsgID;
   });
 
-  fdesc = &fsd;
+  fdesc = &fsd.file;
+  gdesc = &fsd.gen;
 
   // print header for util code
   PrintHeader();
@@ -97,119 +98,138 @@ void CiUtilGenerator::PrintHeader()
 {
   tof->Flush();
 
-  if (fdesc->start_info.size() > 0)
+  if (gdesc->start_info.size() > 0)
   {
-    tof->AppendLine("// " + std::regex_replace(fdesc->start_info, std::regex("\n"), "\n// "));
+    tof->Append("// " + std::regex_replace(gdesc->start_info, std::regex("\n"), "\n// "));
   }
 
-  tof->AppendLine("#pragma once", 2);
+  tof->Append("#pragma once");
+  tof->Append();
 
-  tof->AppendLine(openguard.c_str(), 2);
+  tof->Append(openguard);
+  tof->Append();
 
   // include common dbc code config header
-  tof->AppendLine("#include <dbccodeconf.h>", 2);
+  tof->Append("#include <dbccodeconf.h>");
+  tof->Append();
 
   // include c-main driver header
-  tof->AppendLine(StrPrint("#include <%s.h>", file_drvname.c_str()), 2);
+  tof->Append("#include <%s.h>", file_drvname.c_str());
+  tof->Append();
 
 
   if (rx.size() == 0)
   {
-    tof->AppendLine("// There is no any RX mapped massage.", 2);
+    tof->Append("// There is no any RX mapped massage.");
+    tof->Append();
   }
   else
   {
     // print the typedef
-    tof->AppendLine("typedef struct\n{");
+    tof->Append("typedef struct\n{");
 
     for (auto m : rx)
     {
-      tof->AppendLine(StrPrint("  %s_t %s;", m->Name.c_str(), m->Name.c_str()));
+      tof->Append("  %s_t %s;", m->Name.c_str(), m->Name.c_str());
     }
 
-    tof->AppendLine(StrPrint("} %s_rx_t;", fdesc->drvname.c_str()), 2);
+    tof->Append("} %s_rx_t;", gdesc->drvname.c_str());
+    tof->Append();
   }
 
   if (tx.size() == 0)
   {
-    tof->AppendLine("// There is no any TX mapped massage.", 2);
+    tof->Append("// There is no any TX mapped massage.");
+    tof->Append();
   }
   else
   {
     // print the typedef
-    tof->AppendLine("typedef struct\n{");
+    tof->Append("typedef struct\n{");
 
     for (auto m : tx)
     {
-      tof->AppendLine(StrPrint("  %s_t %s;", m->Name.c_str(), m->Name.c_str()));
+      tof->Append("  %s_t %s;", m->Name.c_str(), m->Name.c_str());
     }
 
-    tof->AppendLine(StrPrint("} %s_tx_t;", fdesc->drvname.c_str()), 2);
+    tof->Append("} %s_tx_t;", gdesc->drvname.c_str());
+    tof->Append();
   }
 
   if (rx.size() > 0)
   {
     // receive function necessary only when more than 0 rx messages were mapped
-    tof->AppendLine(StrPrint("uint32_t %s_Receive(%s_rx_t* m, const uint8_t* d, uint32_t msgid, uint8_t dlc);",
-        fdesc->drvname.c_str(), fdesc->drvname.c_str()), 2);
+    tof->Append("uint32_t %s_Receive(%s_rx_t* m, const uint8_t* d, uint32_t msgid, uint8_t dlc);",
+      gdesc->drvname.c_str(), gdesc->drvname.c_str());
+    tof->Append();
   }
 
   // print extern for super structs
   if (rx.size() > 0 || tx.size() > 0)
   {
-    tof->AppendLine(StrPrint("#ifdef __DEF_%s__", fdesc->DRVNAME.c_str()), 2);
+    tof->Append("#ifdef __DEF_%s__", gdesc->DRVNAME.c_str());
+    tof->Append();
 
     if (rx.size() > 0)
     {
-      tof->AppendLine(StrPrint("extern %s_rx_t %s_rx;", fdesc->drvname.c_str(), fdesc->drvname.c_str()), 2);
+      tof->Append("extern %s_rx_t %s_rx;", gdesc->drvname.c_str(), gdesc->drvname.c_str());
+      tof->Append();
     }
 
     if (tx.size() > 0)
     {
-      tof->AppendLine(StrPrint("extern %s_tx_t %s_tx;", fdesc->drvname.c_str(), fdesc->drvname.c_str()), 2);
+      tof->Append("extern %s_tx_t %s_tx;", gdesc->drvname.c_str(), gdesc->drvname.c_str());
+      tof->Append();
     }
 
-    tof->AppendLine(StrPrint("#endif // __DEF_%s__", fdesc->DRVNAME.c_str()), 2);
+    tof->Append("#endif // __DEF_%s__", gdesc->DRVNAME.c_str());
+    tof->Append();
   }
 
-  tof->AppendLine(closeguard.c_str());
+  tof->Append(closeguard);
 
   tof->Flush(fdesc->util_h.fpath);
 }
 
 void CiUtilGenerator::PrintSource()
 {
-  if (fdesc->start_info.size() > 0)
+  if (gdesc->start_info.size() > 0)
   {
-    tof->AppendLine("// " + std::regex_replace(fdesc->start_info, std::regex("\n"), "\n// "));
+    tof->Append("// " + std::regex_replace(gdesc->start_info, std::regex("\n"), "\n// "));
   }
 
-  tof->AppendLine(StrPrint("#include \"%s\"", fdesc->util_h.fname.c_str()), 2);
+  tof->Append("#include \"%s\"", fdesc->util_h.fname.c_str());
+  tof->Append();
 
-  tof->AppendLine("// DBC file version");
-  tof->AppendLine(StrPrint("#if (%s != (%uU)) || (%s != (%uU))",
-      fdesc->verhigh_def.c_str(), p_dlist->ver.hi, fdesc->verlow_def.c_str(), p_dlist->ver.low));
+  tof->Append("// DBC file version");
+  tof->Append("#if (%s != (%uU)) || (%s != (%uU))",
+    gdesc->verhigh_def.c_str(), p_dlist->ver.hi, gdesc->verlow_def.c_str(), p_dlist->ver.low);
 
-  tof->AppendLine(StrPrint("#error The %s binutil source file has inconsistency with core dbc lib!",
-      fdesc->DRVNAME.c_str()));
-  tof->AppendLine("#endif", 2);
+  tof->Append("#error The %s binutil source file has inconsistency with core dbc lib!",
+    gdesc->DRVNAME.c_str());
+  tof->Append("#endif");
+  tof->Append();
 
   // optional RX and TX struct allocations
   if (rx.size() > 0 || tx.size() > 0)
   {
-    tof->AppendLine(StrPrint("#ifdef __DEF_%s__", fdesc->DRVNAME.c_str()), 2);
+    tof->Append("#ifdef __DEF_%s__", gdesc->DRVNAME.c_str());
+    tof->Append();
 
     if (rx.size() > 0)
     {
-      tof->AppendLine(StrPrint("%s_rx_t %s_rx;", fdesc->drvname.c_str(), fdesc->drvname.c_str()), 2);
+      tof->Append("%s_rx_t %s_rx;", gdesc->drvname.c_str(), gdesc->drvname.c_str());
+      tof->Append();
     }
 
     if (tx.size() > 0)
     {
-      tof->AppendLine(StrPrint("%s_tx_t %s_tx;", fdesc->drvname.c_str(), fdesc->drvname.c_str()), 2);
+      tof->Append("%s_tx_t %s_tx;", gdesc->drvname.c_str(), gdesc->drvname.c_str());
+      tof->Append();
     }
 
-    tof->AppendLine(StrPrint("#endif // __DEF_%s__", fdesc->DRVNAME.c_str()), 2);
+    tof->Append("#endif // __DEF_%s__", gdesc->DRVNAME.c_str());
+    tof->Append();
   }
 
   if (rx.size() > 0)
@@ -220,19 +240,20 @@ void CiUtilGenerator::PrintSource()
     // binary search on FrameID for selecting unpacking function
     auto tree = FillTreeLevel(rx, 0, static_cast<int32_t>(rx.size()));
 
-    tof->AppendLine(StrPrint("uint32_t %s_Receive(%s_rx_t* _m, const uint8_t* _d, uint32_t _id, uint8_t dlc_)",
-        fdesc->drvname.c_str(), fdesc->drvname.c_str()));
+    tof->Append("uint32_t %s_Receive(%s_rx_t* _m, const uint8_t* _d, uint32_t _id, uint8_t dlc_)",
+      gdesc->drvname.c_str(), gdesc->drvname.c_str());
 
-    tof->AppendLine("{");
-    tof->AppendLine(" uint32_t recid = 0;");
+    tof->Append("{");
+    tof->Append(" uint32_t recid = 0;");
 
     // put tree-view struct on code (in treestr variable)
     std::string treestr;
     condtree->Clear();
-    tof->AppendLine(condtree->WriteCode(tree, treestr, 1));
-
-    tof->AppendLine(" return recid;");
-    tof->AppendLine("}", 2);
+    tof->Append(condtree->WriteCode(tree, treestr, 1));
+    tof->Append();
+    tof->Append(" return recid;");
+    tof->Append("}");
+    tof->Append();
 
     // clear tree after using
     condtree->DeleteTree(tree);

@@ -1,5 +1,18 @@
 # Changelog
 
+## v2.3 19.07.2022
+
+### Changed
+- The gGeneration and the file configurations are splitted to different structs
+- Specific generators moved to separated files (fmon, config)
+- FileWriter API more simple
+
+### Added
+- FMon driver can be configured for using MONO function approach or
+dedicated function (how it was before) by setting _USE_MONO_FMON macro
+
+---
+
 ## v2.2 2022-05-07
 
 ### Fixed

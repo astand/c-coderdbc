@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <memory>
 #include "c-sigprinter.h"
 #include "helpers/formatter.h"
 
@@ -28,9 +29,9 @@ void CSigPrinter::LoadMessages(const std::vector<MessageDescriptor_t*> message)
 {
   sigs_expr.clear();
 
-  for (size_t i = 0; i < message.size(); i++)
+  for (auto it = message.cbegin(); it != message.cend(); ++it)
   {
-    LoadMessage(*(message[i]));
+    LoadMessage(*(*it));
   }
 }
 
