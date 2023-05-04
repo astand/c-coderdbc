@@ -26,13 +26,13 @@ OPTIONS="--suffix=none \
 --max-continuation-indent=120"
 
 RETURN=0
-ASTYLE='astyle'
+ASTYLE='./astyle'
 if [ $? -ne 0 ]; then
 	echo "[!] astyle not installed. Unable to check source file format policy." >&2
 	exit 1
 fi
 
-FILES=`find . | grep -P "^(?!(.*\/test\/gencode)).*\.(c|cpp|h)$"`
+FILES=`find . | grep -P "^(.*\/src).*\.(c|cpp|h)$"`
 for FILE in $FILES; do
   # compare files
 	# $ASTYLE $OPTIONS < $FILE | cmp -s $FILE -

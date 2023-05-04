@@ -569,14 +569,14 @@ void CiMainGenerator::WriteSigStructField(const SignalDescriptor_t& sig, bool bi
     {
       infocmnt = IndentedString(offset, infocmnt);
       offset += 27;
-      infocmnt += StrPrint(" Offset= %s", prt_double(sig.Offset, 9));
+      infocmnt += " Offset= " + prt_double(sig.Offset, 9);
     }
 
     if (sig.Factor != 1)
     {
       infocmnt = IndentedString(offset, infocmnt);
       offset += 24;
-      infocmnt += StrPrint(" Factor= %s", prt_double(sig.Factor, 9));
+      infocmnt += " Factor= " + prt_double(sig.Factor, 9);
     }
   }
   else if (sig.IsSimpleSig == false)

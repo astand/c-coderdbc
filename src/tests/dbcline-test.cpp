@@ -100,27 +100,48 @@ TEST(TestSigLineParsing, test_prt_double)
 {
   constexpr double v = -124.10001110002220;
 
-  expect_eq((std::string)prt_double(v, 0, false), (std::string)"-124");
-  expect_eq((std::string)prt_double(v, 1, false), (std::string)"-124.1");
-  expect_eq((std::string)prt_double(v, 2, false), (std::string)"-124.1");
-  expect_eq((std::string)prt_double(v, 3, false), (std::string)"-124.1");
-  expect_eq((std::string)prt_double(v, 4, false), (std::string)"-124.1");
-  expect_eq((std::string)prt_double(v, 5, false), (std::string)"-124.10001");
-  expect_eq((std::string)prt_double(v, 6, false), (std::string)"-124.100011");
-  expect_eq((std::string)prt_double(v, 7, false), (std::string)"-124.1000111");
-  expect_eq((std::string)prt_double(v, 8, false), (std::string)"-124.1000111");
-  expect_eq((std::string)prt_double(v, 9, false), (std::string)"-124.1000111");
+  expect_eq(prt_double(v, 0, false), "-124");
+  expect_eq(prt_double(v, 1, false), "-124.1");
+  expect_eq(prt_double(v, 2, false), "-124.1");
+  expect_eq(prt_double(v, 3, false), "-124.1");
+  expect_eq(prt_double(v, 4, false), "-124.1");
+  expect_eq(prt_double(v, 5, false), "-124.10001");
+  expect_eq(prt_double(v, 6, false), "-124.100011");
+  expect_eq(prt_double(v, 7, false), "-124.1000111");
+  expect_eq(prt_double(v, 8, false), "-124.1000111");
+  expect_eq(prt_double(v, 9, false), "-124.1000111");
 
   constexpr double vint = 123.0000;
 
-  expect_eq((std::string)prt_double(vint, 3), (std::string)"123.0");
-  expect_eq((std::string)prt_double(vint, 2), (std::string)"123.0");
-  expect_eq((std::string)prt_double(vint, 1), (std::string)"123.0");
-  expect_eq((std::string)prt_double(vint, 0), (std::string)"123.0");
-  expect_eq((std::string)prt_double(vint, 100), (std::string)"123.0");
-  expect_eq((std::string)prt_double(vint, 1000), (std::string)"123.0");
+  expect_eq(prt_double(vint, 3), "123.0");
+  expect_eq(prt_double(vint, 2), "123.0");
+  expect_eq(prt_double(vint, 1), "123.0");
+  expect_eq(prt_double(vint, 0), "123.0");
+  expect_eq(prt_double(vint, 0, false), "123");
+  expect_eq(prt_double(vint, 1, false), "123");
+  expect_eq(prt_double(vint, 100), "123.0");
+  expect_eq(prt_double(vint, 1000), "123.0");
 
   constexpr double v2 = 0.0110022;
 
-  expect_eq((std::string)prt_double(v2, 0), "0.0");
+  expect_eq(prt_double(v2, 0), "0.0");
+
+  constexpr double v3 = -20.47;
+
+  expect_eq(prt_double(v3, 2), "-20.47");
+  expect_eq(prt_double(v3, 10), "-20.47");
+
+  constexpr double v4 = 20.4699999999;
+
+  expect_eq(prt_double(v4, 9), "20.47");
+  expect_eq(prt_double(v4, 8), "20.47");
+  expect_eq(prt_double(v4, 7), "20.47");
+  expect_eq(prt_double(v4, 3), "20.47");
+
+  constexpr double v5 = -20.4699999999;
+
+  expect_eq(prt_double(v5, 8), "-20.47");
+  expect_eq(prt_double(v5, 7), "-20.47");
+  expect_eq(prt_double(v5, 3), "-20.47");
+  expect_eq(prt_double(v5, 9), "-20.47");
 }

@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.8
+
+### Fixed
+
+- Floating factor/offset values handling (incorrect rounding in some cases).
+
 ## v2.7
 
 ### Fixed
