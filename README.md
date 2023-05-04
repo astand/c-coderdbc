@@ -87,10 +87,10 @@
 
     *inc - file location have to be added to project include path.
 
-  ## "--node-utils" option
+  ## "-nodeutils" option
 
   If your matrix has strict routing setup, where each CAN device (node) has defined collection 
-  of TX frames as well as defined collection of RX frames the "--node-utils" option may be used.
+  of TX frames as well as defined collection of RX frames the "-nodeutils" option may be used.
   In this mode all the nodes defined in CAN matrix will be handled as specific ECU and 
   for each of these specific ECUs dedicated "###-binutil.c/h" pair of source code will be generated.
   

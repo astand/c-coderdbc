@@ -1,6 +1,19 @@
 # Changelog
 
 
+## v2.0 2022-02-02
+
+### Added
+- '-rw' and '-nodeutils' (renamed '--node-utils') options
+
+### Changed
+- Argument passing way to view: 'key' - 'value'
+
+### Fixed
+- Minor warnings
+- Bad source files placement for -rw key
+***
+
 ## v1.10 2021-01-24
 
 ### Changed
