@@ -13,6 +13,12 @@ typedef struct
   // up case driver name
   std::string DRVNAME;
 
+  std::string libdir;
+  std::string usrdir;
+  std::string incdir;
+  std::string confdir;
+  std::string utildir;
+
   OutFileDescriptor_t core_h;
   OutFileDescriptor_t core_c;
 
@@ -48,6 +54,8 @@ class FsCreator {
   FsCreator();
 
   bool PrepareDirectory(std::string drvname, std::string basepath, bool rw, std::string& info);
+
+  std::string CreateSubDir(std::string basepath, std::string subdir, bool rm = true);
 
   FsDescriptor_t FS;
 

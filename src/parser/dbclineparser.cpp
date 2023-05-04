@@ -560,6 +560,12 @@ bool DbcLineParser::ParseValTableLine(Comment_t* comm, const std::string& line)
           comm->Text += items[valpair + 1] + '\n';
         }
 
+        if (comm->Text.size() > 0)
+        {
+          // remove last '\n' symbol in the string end
+          comm->Text.pop_back();
+        }
+
         // value table params were parse successfully
         ret = true;
       }

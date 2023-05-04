@@ -393,7 +393,7 @@ void CiMainGenerator::Gen_ConfigHeader()
   fwriter->AppendLine("");
   fwriter->AppendLine(StrPrint("/* #define %s */", fdesc->usecsm_def.c_str()), 2);
 
-  fwriter->Flush(fdesc->core_c.dir + '/' + fdesc->drvname + "-config.h");
+  fwriter->Flush(fdesc->confdir + '/' + fdesc->drvname + "-config.h");
 }
 
 void CiMainGenerator::Gen_FMonHeader()
@@ -427,7 +427,7 @@ separated .c file. If it won't be done the linkage error will happen\n*/", 2);
   for (size_t num = 0; num < sigprt->sigs_expr.size(); num++)
   {
     auto msg = &(sigprt->sigs_expr[num]->msg);
-    fwriter->AppendLine(StrPrint("void FMon_%s_%s(FrameMonitor_t* _mon);",
+    fwriter->AppendLine(StrPrint("void FMon_%s_%s(FrameMonitor_t* _mon, uint32_t msgid);",
         msg->Name.c_str(), fdesc->drvname.c_str()));
   }
 
@@ -459,7 +459,8 @@ next generation will completely clear all manually added code (!)\n\
   for (size_t num = 0; num < sigprt->sigs_expr.size(); num++)
   {
     auto msg = &(sigprt->sigs_expr[num]->msg);
-    fwriter->AppendLine(StrPrint("void FMon_%s_%s(FrameMonitor_t* _mon)\n{\n  (void)_mon;\n}\n",
+    fwriter->AppendLine(
+      StrPrint("void FMon_%s_%s(FrameMonitor_t* _mon, uint32_t msgid)\n{\n  (void)_mon;\n  (void)msgid;\n}\n",
         msg->Name.c_str(), fdesc->drvname.c_str()));
   }
 
@@ -534,7 +535,7 @@ void CiMainGenerator::Gen_CanMonUtil()
   fwriter->AppendLine("#endif");
   fwriter->AppendLine("");
 
-  fwriter->Flush(fdesc->core_c.dir + '/' + "canmonitorutil.h");
+  fwriter->Flush(fdesc->incdir + '/' + "canmonitorutil.h");
 }
 
 void CiMainGenerator::Gen_DbcCodeConf()
@@ -554,7 +555,7 @@ void CiMainGenerator::Gen_DbcCodeConf()
   fwriter->AppendLine("// #define __DEF_{your_driver_name}__");
   fwriter->AppendLine("");
 
-  fwriter->Flush(fdesc->core_c.dir + '/' + "dbccodeconf.h");
+  fwriter->Flush(fdesc->confdir + '/' + "dbccodeconf.h");
 }
 
 void CiMainGenerator::WriteSigStructField(const SignalDescriptor_t& sig, bool bits, size_t padwidth)
@@ -730,7 +731,7 @@ void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
 
   auto Fmon_func = "FMon_" + sgs->msg.Name + "_" + fdesc->drvname;
 
-  fwriter->AppendLine(StrPrint("  %s(&_m->mon1);", Fmon_func.c_str()));
+  fwriter->AppendLine(StrPrint("  %s(&_m->mon1, %s_CANID);", Fmon_func.c_str(), sgs->msg.Name.c_str()));
 
   fwriter->AppendLine(StrPrint("#endif // %s", fdesc->usemon_def.c_str()), 2);
 

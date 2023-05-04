@@ -6,8 +6,8 @@
 
   ## Build and run
 
-  Below setup works on Ubuntu 20.04 and Windows 10. You need to ensure that your system has
-  C++ compile and builing toolchain (in my case for windows - VS Studio 2019 Community)
+  This manual works on Ubuntu 20.04 and Windows 10. You need to ensure that your system has
+  C++ compile and builing toolchain (**c++17**)
 
   To build coderdbc you need to make next steps:
   
@@ -44,8 +44,9 @@
       
      ecudb.c / ecudb.h                             (1) RO / lib
 
-    Main driver which has all dbc frames structs / pack functions / unpack functions these source
-    files preferably to place in lib level directory because they are RO using model and can be 
+    Main driver which has all dbc frames structs / pack functions / unpack functions these 
+    source files preferably to place in lib level directory because they are RO using model
+    and can be 
     shared among few separated projects.
 
       ecudb-fmon.h                                 (2) RO / lib
@@ -85,3 +86,12 @@
     -----------------------------------------------------------------------------------------------
 
     *inc - file location have to be added to project include path.
+
+  ## "--node-utils" option
+
+  If your matrix has strict routing setup, where each CAN device (node) has defined collection 
+  of TX frames as well as defined collection of RX frames the "--node-utils" option may be used.
+  In this mode all the nodes defined in CAN matrix will be handled as specific ECU and 
+  for each of these specific ECUs dedicated "###-binutil.c/h" pair of source code will be generated.
+  
+  See help output using details.
