@@ -121,7 +121,9 @@ void CiMainGenerator::Gen_MainHeader()
       }
 
       if (s.Name.size() > max_sig_name_len)
+      {
         max_sig_name_len = s.Name.size();
+      }
     }
 
     fwriter->AppendText("\n");
@@ -229,7 +231,7 @@ void CiMainGenerator::Gen_MainSource()
 
   fwriter->AppendText(
     "// Function prototypes to be called each time CAN frame is unpacked\n"
-    "// FMon function may detect RC, CRC or DLC violation \n");
+    "// FMon function may detect RC, CRC or DLC violation\n");
 
   fwriter->AppendLine(StrPrint("#include \"%s-fmon.h\"", fdesc->drvname.c_str()), 2);
 
@@ -387,7 +389,7 @@ void CiMainGenerator::Gen_ConfigHeader()
   fwriter->AppendLine("  and loaded to payload");
   fwriter->AppendLine("");
   fwriter->AppendLine("  In unpack function checksum signal is checked with calculated.");
-  fwriter->AppendLine("  (result may be tested in dedicated Fmon_*** function).");
+  fwriter->AppendLine("  (result may be tested in dedicated Fmon_*** function). */");
   fwriter->AppendLine("");
   fwriter->AppendLine(StrPrint("/* #define %s */", fdesc->usecsm_def.c_str()), 2);
 
@@ -648,9 +650,13 @@ void CiMainGenerator::WriteSigStructField(const SignalDescriptor_t& sig, bool bi
     fwriter->AppendLine(StrPrint("#ifdef %s", fdesc->usesigfloat_def.c_str()));
 
     if (sig.IsDoubleSig)
+    {
       fwriter->AppendLine(StrPrint("  sigfloat_t %s;", sig.NameFloat.c_str()));
+    }
     else
+    {
       fwriter->AppendLine(StrPrint("  %s %s;", PrintType((int)sig.Type).c_str(), sig.NameFloat.c_str()));
+    }
 
     fwriter->AppendLine(StrPrint("#endif // %s", fdesc->usesigfloat_def.c_str()), 2);
   }
@@ -728,7 +734,7 @@ void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
 
   fwriter->AppendLine(StrPrint("#endif // %s", fdesc->usemon_def.c_str()), 2);
 
-  fwriter->AppendLine(StrPrint(" return %s_CANID;", sgs->msg.Name.c_str()));
+  fwriter->AppendLine(StrPrint("  return %s_CANID;", sgs->msg.Name.c_str()));
 }
 
 void CiMainGenerator::WritePackStructBody(const CiExpr_t* sgs)
@@ -800,7 +806,9 @@ void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExp
   for (size_t i = 0; i < sgs->to_bytes.size(); i++)
   {
     if (sgs->to_bytes[i].size() < 2)
+    {
       continue;
+    }
 
     fwriter->AppendLine(StrPrint("  %s[%d] |= %s;", arrtxt.c_str(), i, sgs->to_bytes[i].c_str()));
   }
@@ -816,7 +824,7 @@ void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExp
         sgs->msg.CsmSig->Name.c_str(), arrtxt.c_str(), sgs->msg.Name.c_str(),
         sgs->msg.Name.c_str(), sgs->msg.CsmMethod.c_str(), sgs->msg.CsmOp));
 
-    fwriter->AppendLine(StrPrint("  %s[%d] = %s;", arrtxt.c_str(), sgs->msg.CsmByteNum, sgs->msg.CsmToByteExpr.c_str()));
+    fwriter->AppendLine(StrPrint("  %s[%d] |= %s;", arrtxt.c_str(), sgs->msg.CsmByteNum, sgs->msg.CsmToByteExpr.c_str()));
 
     fwriter->AppendLine(StrPrint("#endif // %s", fdesc->usecsm_def.c_str()), 2);
   }

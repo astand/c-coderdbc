@@ -13,15 +13,19 @@ MessageDescriptor_t* find_message(vector<MessageDescriptor_t*> msgs, uint32_t ID
   MessageDescriptor_t* ret = nullptr;
 
   if (msgs.size() == 0)
+  {
     return ret;
+  }
 
   for (size_t i = 0; i < msgs.size(); i++)
   {
     ret = msgs[i];
 
     if (ret->MsgID == ID)
+    {
       // Frame found
       break;
+    }
   }
 
   return ret;
@@ -104,7 +108,37 @@ void DbcScanner::ParseMessageInfo(istream& readstrm)
         pMsg->Signals.push_back(sig);
 
         if (sig.IsDoubleSig || sig.IsSimpleSig != true)
+        {
           pMsg->hasPhys = true;
+        }
+      }
+    }
+
+    std::vector<std::string> tx_nodes;
+    tx_nodes.clear();
+
+    uint32_t msgid = lparser.ParseMultiTrans(tx_nodes, sline);
+
+    if (msgid != 0)
+    {
+      // In this place no messages will captured after,
+      // so put temp pMsg as last message and null it
+      AddMessage(pMsg);
+      pMsg = nullptr;
+
+      // Multi TXs line detected, expand information
+      auto msg = find_message(dblist.msgs, msgid);
+
+      if (msg != nullptr)
+      {
+        for (size_t i = 0; i < tx_nodes.size(); i++)
+        {
+          if (std::find(msg->TranS.begin(), msg->TranS.end(), tx_nodes[i]) == msg->TranS.end())
+          {
+            // add another one RX node
+            msg->TranS.push_back(tx_nodes[i]);
+          }
+        }
       }
     }
   }
@@ -283,7 +317,7 @@ void DbcScanner::SetDefualtMessage(MessageDescriptor_t* message)
   message->Name = "";
   message->RecS.clear();
   message->Signals.clear();
-  message->Transmitter = "";
+  message->TranS.clear();
   message->hasPhys = false;
   message->RollSig = nullptr;
   message->CsmSig = nullptr;
@@ -300,7 +334,9 @@ void DbcScanner::FindVersion(const std::string& instr)
   char marker[9];
 
   if (instr[0] != 'V' && instr[1] != 'E')
+  {
     return;
+  }
 
   int32_t ret = std::sscanf(instr.c_str(), "%8s \"%u.%u\"", marker, &h, &l);
 

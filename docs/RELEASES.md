@@ -1,6 +1,25 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v1.9 2021-11-09
+### Fixed
+- Closing last comment section in -config.h ([@SamFisher940425](https://github.com/SamFisher940425))
+- A few minor style changes in generated code
+- All sources of repo processed by code style formatting tool
+
+
+## v1.8 2021-11-01
+### Fixed
+- Issue #6. Incorrect checksum signal assigning.
+
+
+## v1.7 2021-10-10
+### Fixed
+- Potential issue when node is only Receiver (presumably will be skipped in node-util struct)
+
+### Added
+- Support multiple transmitters on single frame (for --node-utils generation variant)
+
 ## v1.6 2021-09-09
 ### Added
 - 4th CLI param '--node-utils' for generation pairs of binutil for each 

@@ -40,7 +40,9 @@ void FileWriter::AppendLine(const char* text, int32_t post_empty_lines)
   AppendText(text);
 
   for (int32_t i = 0; i < post_empty_lines; i++)
+  {
     AppendText("\n");
+  }
 }
 
 

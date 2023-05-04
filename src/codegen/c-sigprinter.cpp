@@ -56,9 +56,13 @@ std::string CSigPrinter::PrintPhysicalToRaw(const SignalDescriptor_t* sig, const
   retstr = StrPrint("// signal: @%s\n", sig->Name.c_str());
 
   if (sig->IsDoubleSig)
+  {
     retstr += StrPrint("#define %s_%s_CovFactor (%f)\n", drvname.c_str(), sig->Name.c_str(), sig->Factor);
+  }
   else
+  {
     retstr += StrPrint("#define %s_%s_CovFactor (%d)\n", drvname.c_str(), sig->Name.c_str(), (int32_t)sig->Factor);
+  }
 
   retstr += StrPrint("#define %s_%s_toS(x) ( (%s) ", drvname.c_str(), sig->Name.c_str(),
       PrintType((uint8_t)sig->Type).c_str());
@@ -183,7 +187,9 @@ std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig, std::vec
       (sig->StartBit + (sig->LengthBit - 1)) : (sig->StartBit));
 
   if (startb > 63)
+  {
     startb = 63;
+  }
 
   uint32_t bn = (startb / 8);
 

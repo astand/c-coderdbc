@@ -61,7 +61,6 @@ void CiUtilGenerator::Generate(DbcMessageList_t& dlist, const FsDescriptor_t& fs
     if (v != std::end(groups.Rx))
     {
       rx.push_back(m);
-      continue;
     }
 
     v = std::find_if(groups.Tx.begin(), groups.Tx.end(), [&](const uint32_t& msgid)
@@ -72,7 +71,6 @@ void CiUtilGenerator::Generate(DbcMessageList_t& dlist, const FsDescriptor_t& fs
     if (v != std::end(groups.Tx))
     {
       tx.push_back(m);
-      continue;
     }
   }
 
@@ -274,9 +272,13 @@ ConditionalTree_t* CiUtilGenerator::FillTreeLevel(std::vector<MessageDescriptor_
     ret->Type = ConditionalType::Cond;
 
     if (lowhalf > 1)
+    {
       ret->ConditionExpresion = StrPrint("(_id >= 0x%XU) && (_id < 0x%XU)", list[l]->MsgID, list[(l + lowhalf)]->MsgID);
+    }
     else
+    {
       ret->ConditionExpresion = StrPrint("_id == 0x%XU", list[l]->MsgID);
+    }
 
     ret->High = FillTreeLevel(list, l, l + lowhalf, true);
     ret->Low = FillTreeLevel(list, l + lowhalf, h, true);
