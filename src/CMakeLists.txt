@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(coderdbc-cli LANGUAGES CXX)
+project(${project} LANGUAGES C CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 17)
@@ -51,3 +51,18 @@ target_link_libraries(
 
 include(GoogleTest)
 gtest_discover_tests(cctest)
+
+
+add_library(
+  dummy OBJECT 
+  ${CMAKE_CURRENT_SOURCE_DIR}/../test/gencode/usr/testdb-fmon.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/../test/gencode/lib/testdb.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/../test/gencode/butl/bms_testdb-binutil.c
+)
+
+target_include_directories(
+  dummy PRIVATE 
+  ${CMAKE_CURRENT_SOURCE_DIR}/../test/gencode/conf
+  ${CMAKE_CURRENT_SOURCE_DIR}/../test/gencode/lib
+  ${CMAKE_CURRENT_SOURCE_DIR}/../test/gencode/inc
+)

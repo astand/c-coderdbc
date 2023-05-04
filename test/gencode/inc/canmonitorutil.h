@@ -12,6 +12,9 @@ typedef enum
   // XOR8 = 0,
   // XOR4 = 1,
   // etc
+
+  // it is up to user to have or to skip final enum value - @CRC_ALG_COUNT
+  CRC_ALG_COUNT
 } DbcCanCrcMethods;
 
 typedef struct
@@ -43,19 +46,6 @@ typedef struct
   uint32_t dlc_error : 1;
 
 } FrameMonitor_t;
-
-/* ----------------------------------------------------------------------------- */
-// @d - buff for hash calculation
-// @len - number of bytes for hash calculation
-// @method - hash algorythm.
-// @op - optional value
-uint8_t GetFrameHash(const uint8_t* data_ptr, uint8_t len, uint32_t msgid, DbcCanCrcMethods type, uint32_t option);
-
-/* ----------------------------------------------------------------------------- */
-// this function will be called when unpacking is performing. Value will be saved
-// in @last_cycle variable
-uint32_t GetSystemTick(void);
-
 
 #ifdef __cplusplus
 }

@@ -13,6 +13,22 @@
 
 #endif // TESTDB_USE_DIAG_MONITORS
 
+// This macro guard for the case when you need to enable
+// using diag monitors but there is no necessity in proper
+// SysTick provider. For providing one you need define macro
+// before this line - in dbccodeconf.h
+
+#ifndef GetSystemTick
+#define GetSystemTick() (0u)
+#endif
+
+// This macro guard is for the case when you want to build
+// app with enabled optoin auto CSM, but don't yet have
+// proper getframehash implementation
+
+#ifndef GetFrameHash
+#define GetFrameHash(a,b,c,d,e) (0u)
+#endif
 
 // This function performs extension of sign for the signals
 // which have non-aligned to power of 2 bit's width.

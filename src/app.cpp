@@ -16,6 +16,8 @@
 
 void CoderApp::Run()
 {
+  std::cout << "coderdbc v" << CODEGEN_LIB_VERSION_MAJ << "." << CODEGEN_LIB_VERSION_MIN << std::endl << std::endl;
+
   if (ParseParams())
   {
     GenerateCode();
@@ -175,7 +177,6 @@ bool CoderApp::ParseParams()
 
 void CoderApp::PrintHelp()
 {
-  std::cout << "coderdbc v" << CODEGEN_LIB_VERSION_MAJ << "." << CODEGEN_LIB_VERSION_MIN << std::endl << std::endl;
   std::cout << "project source code:\thttps://github.com/astand/c-coderdbc\t\t" << std::endl;
   std::cout << "free web application:\thttps://coderdbc.com" << std::endl;
   std::cout << std::endl;
