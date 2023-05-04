@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file.
 
 
+## v1.3 - 2021-07-11
+### Added
+- Printing template canmonitorutil.h
+- Printing template dbccodeconf.h
+- Updated driver-config comment text
+
+
 ## v1.2 - 2021-07-11
 ### Added
 - Option for rewriting generated files
