@@ -143,3 +143,60 @@ std::string make_c_name(const std::string& s)
 
   return ret;
 }
+
+const char* prt_double(double value, size_t presicsion, bool usedot)
+{
+  constexpr size_t MAX_CAP = 1024u;
+
+  static char buff[MAX_CAP] = {0};
+
+  // sprint value with max precision (currently 15 digits)
+  snprintf(buff, MAX_CAP, "%.15f", value);
+
+  size_t last_non_zero_id = 0u;
+  size_t dot_id = 0u;
+  size_t left_to_check = presicsion;
+
+  for (size_t i = 0u; i < MAX_CAP - 1u; i++)
+  {
+    if ((buff[i] == '.') && (last_non_zero_id == 0u))
+    {
+      // dot is detected
+      last_non_zero_id = i;
+
+      if (usedot)
+      {
+        // forcibly leave at least 1 position after dot
+        last_non_zero_id = i + 1u;
+      }
+
+      dot_id = i;
+    }
+    else if (last_non_zero_id != 0u)
+    {
+      if ((left_to_check == 0u) || (buff[i] < '0') || (buff[i] > '9'))
+      {
+        break;
+      }
+
+      if ((buff[i] > '0') && (buff[i] < '9'))
+      {
+        last_non_zero_id = i;
+      }
+
+      left_to_check--;
+    }
+  }
+
+  if (last_non_zero_id == dot_id)
+  {
+    buff[dot_id] = '\0';
+  }
+  else
+  {
+    buff[last_non_zero_id + 1u] = '\0';
+  }
+
+  return buff;
+}
+

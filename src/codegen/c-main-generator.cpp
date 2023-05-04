@@ -6,6 +6,7 @@
 #include <stdarg.h>
 #include <filesystem>
 #include <algorithm>
+#include <set>
 #include <regex>
 #include "helpers/formatter.h"
 #include "mon-generator.h"
@@ -84,6 +85,8 @@ void CiMainGenerator::Generate(DbcMessageList_t& dlist, const AppSettings_t& fsd
 
 void CiMainGenerator::Gen_MainHeader()
 {
+  std::set<std::string> passed_sigs;
+
   // write comment start text
   if (fdesc->gen.start_info.size() > 0)
   {
@@ -148,7 +151,12 @@ void CiMainGenerator::Gen_MainHeader()
 
       if (!s.IsSimpleSig)
       {
-        fwriter->Append(sigprt->PrintPhysicalToRaw(&s, fdesc->gen.DRVNAME));
+        if (passed_sigs.find(s.Name) == passed_sigs.end())
+        {
+          // print signal macroses only it was not printed before
+          fwriter->Append(sigprt->PrintPhysicalToRaw(&s, fdesc->gen.DRVNAME));
+          passed_sigs.insert(s.Name);
+        }
       }
 
       if (s.Name.size() > max_sig_name_len)
@@ -561,14 +569,14 @@ void CiMainGenerator::WriteSigStructField(const SignalDescriptor_t& sig, bool bi
     {
       infocmnt = IndentedString(offset, infocmnt);
       offset += 27;
-      infocmnt += StrPrint(" Offset= %f", sig.Offset);
+      infocmnt += StrPrint(" Offset= %s", prt_double(sig.Offset, 9));
     }
 
     if (sig.Factor != 1)
     {
       infocmnt = IndentedString(offset, infocmnt);
       offset += 24;
-      infocmnt += StrPrint(" Factor= %f", sig.Factor);
+      infocmnt += StrPrint(" Factor= %s", prt_double(sig.Factor, 9));
     }
   }
   else if (sig.IsSimpleSig == false)

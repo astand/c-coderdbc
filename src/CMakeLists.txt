@@ -40,8 +40,10 @@ add_executable(
   cctest
   ${CMAKE_CURRENT_SOURCE_DIR}/helpers/formatter.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/options-parser.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/parser/dbclineparser.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/tests/args-test.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/tests/bitext-test.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/tests/dbcline-test.cpp
 )
 
 target_link_libraries(

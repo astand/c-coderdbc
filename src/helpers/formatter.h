@@ -17,6 +17,13 @@ std::string str_tolower(std::string s);
 
 std::string str_trim(std::string s);
 
+/// @brief Function prints double value with dropping tailing zeros
+/// @param value value to format
+/// @param presicsion maximal precision length
+/// @param usedot true for forcibly print presicion 1 (one digit after dot)
+/// @return pointer to internal char array with value representation
+const char* prt_double(double value, size_t presicsion, bool usedot = true);
+
 /**
  * @brief Makes input string valid C-identifier
  *
