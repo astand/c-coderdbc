@@ -297,7 +297,7 @@ void DbcScanner::FindVersion(const std::string& instr)
 {
   // try to find version string which looks like: VERSION "x.x"
   uint32_t h = 0, l = 0;
-  char marker[8];
+  char marker[9];
 
   if (instr[0] != 'V' && instr[1] != 'E')
     return;
