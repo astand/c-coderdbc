@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.9 
+
+- prt_double refactored
+
 ## v2.8
 
 ### Fixed
