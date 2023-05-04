@@ -37,7 +37,7 @@ std::string ConditionalTree::WriteCode(const ConditionalTree_t* tree, std::strin
       }
       else
       {
-        temp = "} else {";
+        temp = "}";
         PrintCode(temp, intend);
       }
 

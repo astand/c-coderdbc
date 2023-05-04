@@ -1,6 +1,15 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v1.6 2021-09-09
+### Added
+- 4th CLI param '--node-utils' for generation pairs of binutil for each 
+network node defined in DBC
+
+### Fixed
+- Bad *_Receive() function body when there is only 1 frame in RX struct
+
+
 ## v1.5 - 2021-08-26
 ### Fixed
 - Fixed 'atoi' with Extended ID on Windows OS ([@shevu](https://github.com/shevu))
