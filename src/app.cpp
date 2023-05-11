@@ -189,7 +189,7 @@ void CoderApp::PrintHelp()
   std::cout << "optional parameters:" << std::endl;
   std::cout << "   -nodeutils\t will generate specific pairs of binutils drivers for each node" << std::endl;
   std::cout << "   -rw\t\t by default each new generation with previously used params" << std::endl;
-  std::cout << "   \t\t will create new sud-directory with source files (000, 001, ... etc)" << std::endl;
+  std::cout << "   \t\t will create new sub-directory with source files (000, 001, ... etc)" << std::endl;
   std::cout << "   \t\t '-rw' option enables rewriting: all source files previously generated" << std::endl;
   std::cout << "   \t\t will be replaced by new ones" << std::endl;
   std::cout << "   -noconfig:\t no {drivername}-config and dbccodeconfig generation" << std::endl;
