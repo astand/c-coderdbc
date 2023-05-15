@@ -61,7 +61,11 @@ void FileWriter::AppendText(const std::string& str)
 void FileWriter::Append(const std::string& str)
 {
   AppendText(str);
-  NewLine(str.back());
+
+  if (str.empty() == false)
+  {
+    NewLine(str.back());
+  }
 }
 
 void FileWriter::Append(size_t empty_lines)
