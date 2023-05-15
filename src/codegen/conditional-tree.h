@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <stdint.h>
 
 enum class ConditionalType { Cond, Express, Single };
 
