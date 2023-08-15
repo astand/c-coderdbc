@@ -11,20 +11,44 @@ extern "C" {
 #define VER_TESTDB_MIN (10U)
 
 // include current dbc-driver compilation config
-#include <testdb-config.h>
+#include "testdb-config.h"
 
 #ifdef TESTDB_USE_DIAG_MONITORS
 // This file must define:
 // base monitor struct
-#include <canmonitorutil.h>
+#include "canmonitorutil.h"
 
 #endif // TESTDB_USE_DIAG_MONITORS
 
 
+// DLC maximum value which is used as the limit for frame's data buffer size.
+// Client can set its own value (not sure why) in driver-config
+// or can test it on some limit specified by application
+// e.g.: static_assert(TESTDB_MAX_DLC_VALUE <= APPLICATION_FRAME_DATA_SIZE, "Max DLC value in the driver is too big")
+#ifndef TESTDB_MAX_DLC_VALUE
+// The value which was found out by generator (real max value)
+#define TESTDB_MAX_DLC_VALUE 8U
+#endif
+
+// The limit is used for setting frame's data bytes
+#define TESTDB_VALIDATE_DLC(msgDlc) (((msgDlc) <= (TESTDB_MAX_DLC_VALUE)) ? (msgDlc) : (TESTDB_MAX_DLC_VALUE))
+
+// Initial byte value to be filles in data bytes of the frame before pack signals
+// User can define its own custom value in driver-config file
+#ifndef TESTDB_INITIAL_BYTE_VALUE
+#define TESTDB_INITIAL_BYTE_VALUE 0U
+#endif
+
+
+// def @NO_SIGS_MSG CAN Message (273  0x111)
+#define NO_SIGS_MSG_IDE (0U)
+#define NO_SIGS_MSG_DLC (8U)
+#define NO_SIGS_MSG_CANID (0x111U)
+
 // def @UTEST_2 CAN Message (333  0x14d)
 #define UTEST_2_IDE (0U)
 #define UTEST_2_DLC (8U)
-#define UTEST_2_CANID (0x14d)
+#define UTEST_2_CANID (0x14dU)
 
 // Value tables for @ValTest signal
 
@@ -114,7 +138,7 @@ typedef struct
 // def @EMPTY_0 CAN Message (352  0x160)
 #define EMPTY_0_IDE (0U)
 #define EMPTY_0_DLC (8U)
-#define EMPTY_0_CANID (0x160)
+#define EMPTY_0_CANID (0x160U)
 #define EMPTY_0_CYC (101U)
 
 typedef struct
@@ -160,7 +184,7 @@ typedef struct
 // def @UTEST_3 CAN Message (555  0x22b)
 #define UTEST_3_IDE (0U)
 #define UTEST_3_DLC (8U)
-#define UTEST_3_CANID (0x22b)
+#define UTEST_3_CANID (0x22bU)
 
 // Value tables for @TestValTableID signal
 
@@ -246,7 +270,7 @@ typedef struct
 // def @FLT_TEST_1 CAN Message (864  0x360)
 #define FLT_TEST_1_IDE (0U)
 #define FLT_TEST_1_DLC (8U)
-#define FLT_TEST_1_CANID (0x360)
+#define FLT_TEST_1_CANID (0x360U)
 #define FLT_TEST_1_CYC (101U)
 
 // Value tables for @ValTable signal
@@ -427,7 +451,7 @@ typedef struct
 // def @SIG_TEST_1 CAN Message (1911 0x777)
 #define SIG_TEST_1_IDE (0U)
 #define SIG_TEST_1_DLC (8U)
-#define SIG_TEST_1_CANID (0x777)
+#define SIG_TEST_1_CANID (0x777U)
 // signal: @sig15_ro
 #define TESTDB_sig15_ro_CovFactor (3)
 #define TESTDB_sig15_ro_toS(x) ( (int16_t) (((x) - (-1024)) / (3)) )
@@ -524,7 +548,7 @@ typedef struct
 // def @EMPTY_EXT_ID CAN Message (536870902 0x1ffffff6)
 #define EMPTY_EXT_ID_IDE (1U)
 #define EMPTY_EXT_ID_DLC (8U)
-#define EMPTY_EXT_ID_CANID (0x1ffffff6)
+#define EMPTY_EXT_ID_CANID (0x1ffffff6U)
 
 // Value tables for @ValTest signal
 

@@ -69,7 +69,7 @@ std::string CSigPrinter::PrintPhysicalToRaw(const SignalDescriptor_t* sig, const
   }
 
   retstr += StrPrint("#define %s_%s_toS(x) ( (%s) ", drvname.c_str(), sig->Name.c_str(),
-      PrintType((uint8_t)sig->TypeRo).c_str());
+    PrintType((uint8_t)sig->TypeRo).c_str());
 
   if (sig->IsDoubleSig)
   {
@@ -188,7 +188,7 @@ std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig, std::vec
   }
 
   uint16_t startb = (uint16_t)((sig->Order == BitLayout::kIntel) ?
-      (sig->StartBit + (sig->LengthBit - 1)) : (sig->StartBit));
+    (sig->StartBit + (sig->LengthBit - 1)) : (sig->StartBit));
 
   if (startb > 63)
   {
@@ -211,10 +211,10 @@ std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig, std::vec
 
   if (bbc > slen)
   {
-    snprintf(workbuff, WBUFF_LEN, "((_d[%d] >> %d) & (%s))", bn, bbc - slen, msk[slen].c_str());
+    snprintf(workbuff, WBUFF_LEN, "((_d[%d] >> %dU) & (%s))", bn, bbc - slen, msk[slen].c_str());
     tosigexpr += workbuff;
 
-    snprintf(workbuff, WBUFF_LEN, "((_m->%s & (%s)) << %d)", sig->Name.c_str(), msk[slen].c_str(), bbc - slen);
+    snprintf(workbuff, WBUFF_LEN, "((_m->%s & (%s)) << %dU)", sig->Name.c_str(), msk[slen].c_str(), bbc - slen);
     AppendToByteLine(to_bytes[bn], workbuff);
   }
   else if (bbc == slen)
@@ -236,10 +236,10 @@ std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig, std::vec
       t64 = "(uint64_t)";
     }
 
-    snprintf(workbuff, WBUFF_LEN, "(%s(_d[%d] & (%s)) << %d)", t64.c_str(), bn, msk[bbc].c_str(), slen);
+    snprintf(workbuff, WBUFF_LEN, "(%s(_d[%d] & (%s)) << %dU)", t64.c_str(), bn, msk[bbc].c_str(), slen);
     tosigexpr += workbuff;
 
-    snprintf(workbuff, WBUFF_LEN, "((_m->%s >> %d) & (%s))", sig->Name.c_str(), slen, msk[bbc].c_str());
+    snprintf(workbuff, WBUFF_LEN, "((_m->%s >> %dU) & (%s))", sig->Name.c_str(), slen, msk[bbc].c_str());
     AppendToByteLine(to_bytes[bn], workbuff);
 
     while ((slen - 8) >= 0)
@@ -277,10 +277,10 @@ std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig, std::vec
           t64 = "(uint64_t)";
         }
 
-        snprintf(workbuff, WBUFF_LEN, "(%s(_d[%d] & (%s)) << %d)", t64.c_str(), bn, msk[8].c_str(), slen);
+        snprintf(workbuff, WBUFF_LEN, "(%s(_d[%d] & (%s)) << %dU)", t64.c_str(), bn, msk[8].c_str(), slen);
         tosigexpr += workbuff;
 
-        snprintf(workbuff, WBUFF_LEN, "((_m->%s >> %d) & (%s))", sig->Name.c_str(), slen, msk[8].c_str());
+        snprintf(workbuff, WBUFF_LEN, "((_m->%s >> %dU) & (%s))", sig->Name.c_str(), slen, msk[8].c_str());
         AppendToByteLine(to_bytes[bn], workbuff);
       }
     }
@@ -289,10 +289,10 @@ std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig, std::vec
     {
       bn = ShiftByte(sig, bn);
 
-      snprintf(workbuff, WBUFF_LEN, " | ((_d[%d] >> %d) & (%s))", bn, 8 - slen, msk[slen].c_str());
+      snprintf(workbuff, WBUFF_LEN, " | ((_d[%d] >> %dU) & (%s))", bn, 8 - slen, msk[slen].c_str());
       tosigexpr += workbuff;
 
-      snprintf(workbuff, WBUFF_LEN, "((_m->%s & (%s)) << %d)", sig->Name.c_str(), msk[slen].c_str(),
+      snprintf(workbuff, WBUFF_LEN, "((_m->%s & (%s)) << %dU)", sig->Name.c_str(), msk[slen].c_str(),
         8 - slen);
       AppendToByteLine(to_bytes[bn], workbuff);
     }

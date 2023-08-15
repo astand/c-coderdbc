@@ -6,8 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [v3.0] - 2023-10-09
+
+### Added
+
+- Added explicit type casting on:
+  * Writing data bytes, IDE, DLC and MsgId on pack step
+  * Explicit unsigned nature ('U') to message CANID macro value
+- ```-Wpedantic``` doesn't complain anymore on generated code (tested on test.dbc only)
+- Added 'define' with value for filling initial value in frame's bytes before packing signals.
+  The value can be set in the user scope configuration file (driver-config)
+- Added enhanced DLC handling:
+  * Added max detected DLC value (as a macro in main driver)
+  * User can specify its own max DLC value if necessary (by setting corresponding macro in driver-config file)
+  * Functions use new 'VALIDATE_DLC' test when checks the limit of frame data bytes count
+
 ### Changed
 
+- Include files in quotes instead of angle brackets
 - This changelog file format has been changed
 - Added style option file
 - Changed git flow
@@ -15,7 +31,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Fixed
 
-- Fixed an issue in findversion function
+- No more struct, pack and unpack for frames with no signals (empty frames). IDs and frame related info is left
+- Fixed an issue in 'findversion' function
 - Fixed issue on appending new string which is empty
 
 ## [v2.9] - 2023-01-27 
@@ -197,7 +214,8 @@ network node defined in DBC
 - Fixed some warnings
 
 
-[Unreleased]: https://github.com/astand/c-coderdbc/compare/v2.9...HEAD
+[Unreleased]: https://github.com/astand/c-coderdbc/compare/v3.0...HEAD
+[v3.0]: https://github.com/astand/c-coderdbc/compare/v2.9...v3.0
 [v2.9]: https://github.com/astand/c-coderdbc/compare/v2.8...v2.9
 [v2.8]: https://github.com/astand/c-coderdbc/compare/v2.7...v2.8
 [v2.7]: https://github.com/astand/c-coderdbc/compare/v2.6...v2.7

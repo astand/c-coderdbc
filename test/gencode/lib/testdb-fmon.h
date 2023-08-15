@@ -8,11 +8,11 @@ extern "C" {
 #define VER_TESTDB_MAJ_FMON (1U)
 #define VER_TESTDB_MIN_FMON (10U)
 
-#include <testdb-config.h>
+#include "testdb-config.h"
 
 #ifdef TESTDB_USE_DIAG_MONITORS
 
-#include <canmonitorutil.h>
+#include "canmonitorutil.h"
 /*
 This file contains the prototypes of all the functions that will be called
 from each Unpack_*name* function to detect DBC related errors
@@ -24,6 +24,7 @@ separated .c file. If it won't be done the linkage error will happen
 
 void _FMon_MONO_testdb(FrameMonitor_t* _mon, uint32_t msgid);
 
+#define FMon_NO_SIGS_MSG_testdb(x, y) _FMon_MONO_testdb((x), (y))
 #define FMon_UTEST_2_testdb(x, y) _FMon_MONO_testdb((x), (y))
 #define FMon_EMPTY_0_testdb(x, y) _FMon_MONO_testdb((x), (y))
 #define FMon_UTEST_3_testdb(x, y) _FMon_MONO_testdb((x), (y))
@@ -33,6 +34,7 @@ void _FMon_MONO_testdb(FrameMonitor_t* _mon, uint32_t msgid);
 
 #else
 
+void _FMon_NO_SIGS_MSG_testdb(FrameMonitor_t* _mon, uint32_t msgid);
 void _FMon_UTEST_2_testdb(FrameMonitor_t* _mon, uint32_t msgid);
 void _FMon_EMPTY_0_testdb(FrameMonitor_t* _mon, uint32_t msgid);
 void _FMon_UTEST_3_testdb(FrameMonitor_t* _mon, uint32_t msgid);
@@ -40,6 +42,7 @@ void _FMon_FLT_TEST_1_testdb(FrameMonitor_t* _mon, uint32_t msgid);
 void _FMon_SIG_TEST_1_testdb(FrameMonitor_t* _mon, uint32_t msgid);
 void _FMon_EMPTY_EXT_ID_testdb(FrameMonitor_t* _mon, uint32_t msgid);
 
+#define FMon_NO_SIGS_MSG_testdb(x, y) _FMon_NO_SIGS_MSG_testdb((x), (y))
 #define FMon_UTEST_2_testdb(x, y) _FMon_UTEST_2_testdb((x), (y))
 #define FMon_EMPTY_0_testdb(x, y) _FMon_EMPTY_0_testdb((x), (y))
 #define FMon_UTEST_3_testdb(x, y) _FMon_UTEST_3_testdb((x), (y))

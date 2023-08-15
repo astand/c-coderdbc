@@ -123,6 +123,9 @@ typedef struct
   // flag about having sigfloat fields
   bool hasPhys;
 
+  // flag if frame has at least one signal (not empty)
+  bool frameNotEmpty;
+
   // pointer to rolling counter signal
   SignalDescriptor_t* RollSig;
 
@@ -164,6 +167,10 @@ typedef struct
 
 typedef struct
 {
+  // Array of all the parsed messages from DBC file
   std::vector<MessageDescriptor_t*> msgs;
+  // The value of maximum DLC value among the parsed messages
+  size_t maxDlcValue;
+  // DBC file version values to be printed as macro values inside driver source code
   DbcFileVersion_t ver;
 } DbcMessageList_t;

@@ -32,5 +32,11 @@ class CiMainGenerator {
  private:
   CSigPrinter sigprt;
   FileWriter fwriter;
+  // Actual max DLC value from dbc list instance
+  size_t val_maxDlcValueFromDbcList;
+  // Macro for default initial frame's data bytes value
+  std::string prt_initialDataByteValueName;
+  // Macro for frame DLC validation
+  std::string prt_dlcValidateMacroName;
   const AppSettings_t* fdesc;
 };

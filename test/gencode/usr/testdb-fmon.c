@@ -1,4 +1,4 @@
-#include <testdb-fmon.h>
+#include "testdb-fmon.h"
 
 #ifdef TESTDB_USE_DIAG_MONITORS
 
@@ -16,6 +16,12 @@ void _FMon_MONO_testdb(FrameMonitor_t* _mon, uint32_t msgid)
 }
 
 #else
+
+void _FMon_NO_SIGS_MSG_testdb(FrameMonitor_t* _mon, uint32_t msgid)
+{
+  (void)_mon;
+  (void)msgid;
+}
 
 void _FMon_UTEST_2_testdb(FrameMonitor_t* _mon, uint32_t msgid)
 {

@@ -38,6 +38,12 @@ void CiUtilGenerator::Generate(DbcMessageList_t& dlist, const AppSettings_t& fsd
   // 1 step is to prepare vectors of message's groups
   for (auto m : dlist.msgs)
   {
+    if (!m->frameNotEmpty)
+    {
+      // skip frame when it is empty
+      continue;
+    }
+
     auto v = std::find_if(groups.Both.begin(), groups.Both.end(), [&](const uint32_t& msgid)
     {
       return msgid == m->MsgID;
@@ -108,11 +114,11 @@ void CiUtilGenerator::PrintHeader()
   tof.Append();
 
   // include common dbc code config header
-  tof.Append("#include <dbccodeconf.h>");
+  tof.Append("#include \"dbccodeconf.h\"");
   tof.Append();
 
   // include c-main driver header
-  tof.Append("#include <%s.h>", file_drvname.c_str());
+  tof.Append("#include \"%s.h\"", file_drvname.c_str());
   tof.Append();
 
 
@@ -285,7 +291,7 @@ ConditionalTree_t* CiUtilGenerator::FillTreeLevel(std::vector<MessageDescriptor_
     ret->High = new ConditionalTree_t;
     ret->High->Type = ConditionalType::Single;
     ret->High->UtilCodeBody = StrPrint("recid = Unpack_%s_%s(&(_m->%s), _d, dlc_);",
-        msg->Name.c_str(), code_drvname.c_str(), msg->Name.c_str());
+      msg->Name.c_str(), code_drvname.c_str(), msg->Name.c_str());
     return ret;
   }
 
@@ -311,7 +317,7 @@ ConditionalTree_t* CiUtilGenerator::FillTreeLevel(std::vector<MessageDescriptor_
     auto msg = list[l];
     ret->ConditionExpresion = StrPrint("_id == 0x%XU", msg->MsgID);
     ret->UtilCodeBody = StrPrint("recid = Unpack_%s_%s(&(_m->%s), _d, dlc_);",
-        msg->Name.c_str(), code_drvname.c_str(), msg->Name.c_str());
+      msg->Name.c_str(), code_drvname.c_str(), msg->Name.c_str());
   }
 
   return ret;

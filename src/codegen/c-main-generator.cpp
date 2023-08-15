@@ -36,6 +36,9 @@ void CiMainGenerator::Generate(DbcMessageList_t& dlist, const AppSettings_t& fsd
   // Load income messages to sig printer
   sigprt.LoadMessages(dlist.msgs);
 
+  // save max dlc value from message list for printing on the following generation steps
+  val_maxDlcValueFromDbcList = dlist.maxDlcValue;
+
   // save pointer to output file descriptor struct to
   // enable using this information inside class member functions
   fdesc = &fsd;
@@ -101,7 +104,7 @@ void CiMainGenerator::Gen_MainHeader()
   fwriter.Append();
 
   fwriter.Append("// include current dbc-driver compilation config");
-  fwriter.Append("#include <%s-config.h>", fdesc->gen.drvname.c_str());
+  fwriter.Append("#include \"%s-config.h\"", fdesc->gen.drvname.c_str());
   fwriter.Append();
 
   fwriter.Append("#ifdef %s", fdesc->gen.usemon_def.c_str());
@@ -109,14 +112,48 @@ void CiMainGenerator::Gen_MainHeader()
   fwriter.Append(
     "// This file must define:\n"
     "// base monitor struct\n"
-    "#include <canmonitorutil.h>\n"
+    "#include \"canmonitorutil.h\"\n"
     "\n"
   );
 
   fwriter.Append("#endif // %s", fdesc->gen.usemon_def.c_str());
   fwriter.Append(2);
 
-  for (size_t num = 0; num < sigprt.sigs_expr.size(); num++)
+  // set macro name for max dlc value based on driver name
+  std::string maxDlcMacroName = fdesc->gen.DRVNAME + "_MAX_DLC_VALUE";
+
+  // set macro name for dlc validation
+  prt_dlcValidateMacroName = fdesc->gen.DRVNAME + "_VALIDATE_DLC";
+
+  // set macro name for initial data byte value based on driver name
+  prt_initialDataByteValueName = fdesc->gen.DRVNAME + "_INITIAL_BYTE_VALUE";
+
+  // print part with max DLC macro
+  fwriter.Append("// DLC maximum value which is used as the limit for frame's data buffer size.");
+  fwriter.Append("// Client can set its own value (not sure why) in driver-config");
+  fwriter.Append("// or can test it on some limit specified by application");
+  fwriter.Append("// e.g.: static_assert(TESTDB_MAX_DLC_VALUE <= APPLICATION_FRAME_DATA_SIZE, \"Max DLC value in the driver is too big\")");
+  fwriter.Append("#ifndef %s", maxDlcMacroName.c_str());
+  fwriter.Append("// The value which was found out by generator (real max value)");
+  fwriter.Append("#define %s %uU", maxDlcMacroName.c_str(), val_maxDlcValueFromDbcList);
+  fwriter.Append("#endif");
+  fwriter.Append(1);
+
+  // actual macro for final DLC validation in the driver
+  fwriter.Append("// The limit is used for setting frame's data bytes");
+  fwriter.Append("#define %s(msgDlc) (((msgDlc) <= (%s)) ? (msgDlc) : (%s))",
+    prt_dlcValidateMacroName.c_str(), maxDlcMacroName.c_str(), maxDlcMacroName.c_str());
+
+  // print initial data byte section
+  fwriter.Append(1);
+  fwriter.Append("// Initial byte value to be filles in data bytes of the frame before pack signals");
+  fwriter.Append("// User can define its own custom value in driver-config file");
+  fwriter.Append("#ifndef %s", prt_initialDataByteValueName.c_str());
+  fwriter.Append("#define %s 0U", prt_initialDataByteValueName.c_str());
+  fwriter.Append("#endif");
+  fwriter.Append(2);
+
+  for (size_t num = 0u; num < sigprt.sigs_expr.size(); num++)
   {
     // write message typedef s and additional expressions
     MessageDescriptor_t& m = sigprt.sigs_expr[num]->msg;
@@ -130,7 +167,7 @@ void CiMainGenerator::Gen_MainHeader()
     fwriter.Append("// def @%s CAN Message (%-4d %#x)", m.Name.c_str(), m.MsgID, m.MsgID);
     fwriter.Append("#define %s_IDE (%uU)", m.Name.c_str(), m.IsExt);
     fwriter.Append("#define %s_DLC (%uU)", m.Name.c_str(), m.DLC);
-    fwriter.Append("#define %s_CANID (%#x)", m.Name.c_str(), m.MsgID);
+    fwriter.Append("#define %s_CANID (%#xU)", m.Name.c_str(), m.MsgID);
 
     if (m.Cycle > 0)
     {
@@ -138,6 +175,13 @@ void CiMainGenerator::Gen_MainHeader()
     }
 
     size_t max_sig_name_len = 27;
+
+    if (!m.frameNotEmpty)
+    {
+      // do nothing with empty frame, leave only id other relevant constants
+      fwriter.Append();
+      continue;
+    }
 
     for (size_t signum = 0; signum < m.Signals.size(); signum++)
     {
@@ -261,6 +305,12 @@ void CiMainGenerator::Gen_MainHeader()
     // write message typedef s and additional expressions
     MessageDescriptor_t& m = sigprt.sigs_expr[num]->msg;
 
+    if (!m.frameNotEmpty)
+    {
+      // do nothing with empty frame
+      continue;
+    }
+
     fwriter.Append("uint32_t Unpack_%s_%s(%s_t* _m, const uint8_t* _d, uint8_t dlc_);",
       m.Name.c_str(), fdesc->gen.DrvName_orig.c_str(), m.Name.c_str());
 
@@ -312,7 +362,7 @@ void CiMainGenerator::Gen_MainSource()
     "// Function prototypes to be called each time CAN frame is unpacked\n"
     "// FMon function may detect RC, CRC or DLC violation\n");
 
-  fwriter.Append("#include <%s-fmon.h>", fdesc->gen.drvname.c_str());
+  fwriter.Append("#include \"%s-fmon.h\"", fdesc->gen.drvname.c_str());
   fwriter.Append();
 
   fwriter.Append("#endif // %s", fdesc->gen.usemon_def.c_str());
@@ -344,6 +394,12 @@ void CiMainGenerator::Gen_MainSource()
   {
     // write message typedef s and additional expressions
     MessageDescriptor_t& m = sigprt.sigs_expr[num]->msg;
+
+    if (!m.frameNotEmpty)
+    {
+      // do nothing, no pack and unpack functions for empty frames
+      continue;
+    }
 
     // first function
     fwriter.Append("uint32_t Unpack_%s_%s(%s_t* _m, const uint8_t* _d, uint8_t dlc_)\n{",
@@ -641,12 +697,14 @@ void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
 
     if (sgs->msg.Signals[num].Signed)
     {
-      fwriter.Append("  _m->%s = %s(( %s ), %d);",
-        sname, ext_sig_func_name, expr.c_str(), (int32_t)sgs->msg.Signals[num].LengthBit);
+      fwriter.Append("  _m->%s = (%s) %s(( %s ), %d);",
+        sname, PrintType((int)sgs->msg.Signals[num].TypeRo).c_str(),
+        ext_sig_func_name, expr.c_str(), (int32_t)sgs->msg.Signals[num].LengthBit);
     }
     else
     {
-      fwriter.Append("  _m->%s = %s;", sname, expr.c_str());
+      fwriter.Append("  _m->%s = (%s) ( %s );", sname,
+        PrintType((int)sgs->msg.Signals[num].TypeRo).c_str(), expr.c_str());
     }
 
     // print sigfloat conversion
@@ -662,8 +720,10 @@ void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
       }
       else
       {
-        fwriter.Append("  _m->%s = %s_%s_fromS(_m->%s);",
-          sgs->msg.Signals[num].NameFloat.c_str(), fdesc->gen.DRVNAME.c_str(), sname, sname);
+        fwriter.Append("  _m->%s = (%s) %s_%s_fromS(_m->%s);",
+          sgs->msg.Signals[num].NameFloat.c_str(),
+          PrintType((int)sgs->msg.Signals[num].TypePhys).c_str(),
+          fdesc->gen.DRVNAME.c_str(), sname, sname);
       }
 
       fwriter.Append("#endif // %s", fdesc->gen.usesigfloat_def.c_str());
@@ -721,9 +781,9 @@ void CiMainGenerator::WritePackStructBody(const CiExpr_t* sgs)
 {
   fwriter.Append("{");
   PrintPackCommonText("cframe->Data", sgs);
-  fwriter.Append("  cframe->MsgId = %s_CANID;", sgs->msg.Name.c_str());
-  fwriter.Append("  cframe->DLC = %s_DLC;", sgs->msg.Name.c_str());
-  fwriter.Append("  cframe->IDE = %s_IDE;", sgs->msg.Name.c_str());
+  fwriter.Append("  cframe->MsgId = (uint32_t) %s_CANID;", sgs->msg.Name.c_str());
+  fwriter.Append("  cframe->DLC = (uint8_t) %s_DLC;", sgs->msg.Name.c_str());
+  fwriter.Append("  cframe->IDE = (uint8_t) %s_IDE;", sgs->msg.Name.c_str());
   fwriter.Append("  return %s_CANID;", sgs->msg.Name.c_str());
   fwriter.Append("}");
   fwriter.Append();
@@ -733,8 +793,8 @@ void CiMainGenerator::WritePackArrayBody(const CiExpr_t* sgs)
 {
   fwriter.Append("{");
   PrintPackCommonText("_d", sgs);
-  fwriter.Append("  *_len = %s_DLC;", sgs->msg.Name.c_str());
-  fwriter.Append("  *_ide = %s_IDE;", sgs->msg.Name.c_str());
+  fwriter.Append("  *_len = (uint8_t) %s_DLC;", sgs->msg.Name.c_str());
+  fwriter.Append("  *_ide = (uint8_t) %s_IDE;", sgs->msg.Name.c_str());
   fwriter.Append("  return %s_CANID;", sgs->msg.Name.c_str());
   fwriter.Append("}");
   fwriter.Append();
@@ -742,12 +802,13 @@ void CiMainGenerator::WritePackArrayBody(const CiExpr_t* sgs)
 
 void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExpr_t* sgs)
 {
-  // this function will print part of pack function
-  // which is differs only by arra var name
+  // this function will print body of packing function
 
   // pring array content clearin loop
-  fwriter.Append("  uint8_t i; for (i = 0; (i < %s_DLC) && (i < 8); %s[i++] = 0);",
-    sgs->msg.Name.c_str(), arrtxt.c_str());
+  fwriter.Append("  uint8_t i; for (i = 0u; i < %s(%s_DLC); %s[i++] = %s);",
+    prt_dlcValidateMacroName.c_str(),
+    sgs->msg.Name.c_str(), arrtxt.c_str(),
+    prt_initialDataByteValueName.c_str());
   fwriter.Append();
 
   if (sgs->msg.RollSig != nullptr)
@@ -763,7 +824,7 @@ void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExp
   {
     // code for clearing checksum
     fwriter.Append("#ifdef %s", fdesc->gen.usecsm_def.c_str());
-    fwriter.Append("  _m->%s = 0U;", sgs->msg.CsmSig->Name.c_str());
+    fwriter.Append("  _m->%s = (%s) 0;", sgs->msg.CsmSig->Name.c_str(), PrintType((int)sgs->msg.CsmSig->TypeRo).c_str());
     fwriter.Append("#endif // %s", fdesc->gen.usecsm_def.c_str());
     fwriter.Append();
   }
@@ -779,8 +840,10 @@ void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExp
       if (sgs->msg.Signals[n].IsSimpleSig == false)
       {
         // print toS from *_phys to original named sigint (integer duplicate of signal)
-        fwriter.Append("  _m->%s = %s_%s_toS(_m->%s);",
-          sgs->msg.Signals[n].Name.c_str(), fdesc->gen.DRVNAME.c_str(),
+        fwriter.Append("  _m->%s = (%s) %s_%s_toS(_m->%s);",
+          sgs->msg.Signals[n].Name.c_str(),
+          PrintType((int) sgs->msg.Signals[n].TypeRo).c_str(),
+          fdesc->gen.DRVNAME.c_str(),
           sgs->msg.Signals[n].Name.c_str(), sgs->msg.Signals[n].NameFloat.c_str());
       }
     }
@@ -796,7 +859,7 @@ void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExp
       continue;
     }
 
-    fwriter.Append("  %s[%d] |= %s;", arrtxt.c_str(), i, sgs->to_bytes[i].c_str());
+    fwriter.Append("  %s[%d] |= (uint8_t) ( %s );", arrtxt.c_str(), i, sgs->to_bytes[i].c_str());
   }
 
   fwriter.Append("");
@@ -810,7 +873,7 @@ void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExp
       sgs->msg.CsmSig->Name.c_str(), arrtxt.c_str(), sgs->msg.Name.c_str(),
       sgs->msg.Name.c_str(), sgs->msg.CsmMethod.c_str(), sgs->msg.CsmOp);
 
-    fwriter.Append("  %s[%d] |= %s;", arrtxt.c_str(), sgs->msg.CsmByteNum, sgs->msg.CsmToByteExpr.c_str());
+    fwriter.Append("  %s[%d] |= (uint8_t) ( %s );", arrtxt.c_str(), sgs->msg.CsmByteNum, sgs->msg.CsmToByteExpr.c_str());
 
     fwriter.Append("#endif // %s", fdesc->gen.usecsm_def.c_str());
     fwriter.Append();

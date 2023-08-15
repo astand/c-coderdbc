@@ -29,6 +29,7 @@ MessageDescriptor_t* find_message(vector<MessageDescriptor_t*> msgs, uint32_t ID
 
 DbcScanner::DbcScanner()
 {
+  dblist.maxDlcValue = 0u;
 }
 
 DbcScanner::~DbcScanner()
@@ -77,7 +78,13 @@ void DbcScanner::ParseMessageInfo(istream& readstrm)
     // New message line has been found
     if (lparser.IsMessageLine(sline))
     {
-      // check if the pMsg takes previous message
+      // if actual message, check DLC value for being max
+      if ((pMsg != nullptr) && (pMsg->DLC > dblist.maxDlcValue))
+      {
+        dblist.maxDlcValue = pMsg->DLC;
+      }
+
+      // the message will be added only if pMsg is not nullptr
       AddMessage(pMsg);
 
       // create instance for the detected message
@@ -100,6 +107,9 @@ void DbcScanner::ParseMessageInfo(istream& readstrm)
       // parse signal line
       if (lparser.ParseSignalLine(&sig, sline))
       {
+        // set non empty flag to true once signal has been found and ready to be added into message
+        pMsg->frameNotEmpty = true;
+
         // put successfully parsed  signal to the message signals
         pMsg->Signals.push_back(sig);
 
@@ -319,6 +329,7 @@ void DbcScanner::SetDefualtMessage(MessageDescriptor_t* message)
   message->Signals.clear();
   message->TranS.clear();
   message->hasPhys = false;
+  message->frameNotEmpty = false;
   message->RollSig = nullptr;
   message->CsmSig = nullptr;
   message->CsmMethod = "";
