@@ -5,16 +5,20 @@
 #include <string>
 #include <options-parser.h>
 
+/// @brief App wrapper class
 class CoderApp {
  public:
-  CoderApp(const OptionsParser::Pairs& params) : Params(params) {}
+  /// @brief Constructor
+  /// @param params - general generation configuration
+  CoderApp(const OptionsParser::GenOptions& params) : Params(params) {}
 
+  /// @brief Main generation process
   void Run();
 
  private:
-  bool ParseParams();
+  bool AreParamsValid();
   void GenerateCode();
   void PrintHelp();
 
-  const OptionsParser::Pairs& Params;
+  const OptionsParser::GenOptions& Params;
 };

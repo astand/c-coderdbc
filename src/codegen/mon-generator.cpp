@@ -20,14 +20,14 @@ uint32_t MonGenerator::FillHeader(FileWriter& wr, std::vector<CiExpr_t*>& sigs,
   wr.Append("#define %s_FMON (%uU)", aset.gen.verlow_def.c_str(), aset.gen.lowver);
   wr.Append();
 
-  wr.Append("#include <%s-config.h>", aset.gen.drvname.c_str());
+  wr.Append("#include \"%s-config.h\"", aset.gen.drvname.c_str());
   wr.Append();
 
   // put diagmonitor ifdef selection for including @drv-fmon header
   // with FMon_* signatures to call from unpack function
   wr.Append("#ifdef %s", aset.gen.usemon_def.c_str());
   wr.Append();
-  wr.Append("#include <canmonitorutil.h>");
+  wr.Append("#include \"canmonitorutil.h\"");
   wr.Append("/*\n\
 This file contains the prototypes of all the functions that will be called\n\
 from each Unpack_*name* function to detect DBC related errors\n\
@@ -91,7 +91,7 @@ uint32_t MonGenerator::FillSource(FileWriter& wr, std::vector<CiExpr_t*>& sigs,
     wr.Append(aset.gen.start_info);
   }
 
-  wr.Append("#include <%s>", aset.file.fmon_h.fname.c_str());
+  wr.Append("#include \"%s\"", aset.file.fmon_h.fname.c_str());
   wr.Append();
   // put diagmonitor ifdef selection for including @drv-fmon header
   // with FMon_* signatures to call from unpack function

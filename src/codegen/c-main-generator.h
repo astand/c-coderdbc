@@ -10,8 +10,6 @@
 
 class CiMainGenerator {
  public:
-  CiMainGenerator();
-
   void Generate(DbcMessageList_t& dlist, const AppSettings_t& fsd);
 
  private:
@@ -32,7 +30,13 @@ class CiMainGenerator {
   void PrintPackCommonText(const std::string& arrtxt, const CiExpr_t* sgs);
 
  private:
-  std::unique_ptr<CSigPrinter> sigprt;
-  std::unique_ptr<FileWriter> fwriter;
+  CSigPrinter sigprt;
+  FileWriter fwriter;
+  // Actual max DLC value from dbc list instance
+  size_t val_maxDlcValueFromDbcList;
+  // Macro for default initial frame's data bytes value
+  std::string prt_initialDataByteValueName;
+  // Macro for frame DLC validation
+  std::string prt_dlcValidateMacroName;
   const AppSettings_t* fdesc;
 };

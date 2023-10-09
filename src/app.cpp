@@ -18,7 +18,7 @@ void CoderApp::Run()
 {
   std::cout << "coderdbc v" << CODEGEN_LIB_VERSION_MAJ << "." << CODEGEN_LIB_VERSION_MIN << std::endl << std::endl;
 
-  if (ParseParams())
+  if (AreParamsValid())
   {
     GenerateCode();
   }
@@ -28,45 +28,46 @@ void CoderApp::Run()
   }
 }
 
+/// @brief Main generation process
 void CoderApp::GenerateCode()
 {
-  auto scanner = std::make_unique<DbcScanner>();
-  auto cigen = std::make_unique<CiMainGenerator>();
-  auto ciugen = std::make_unique<CiUtilGenerator>();
-  auto fscreator = std::make_unique<FsCreator>();
+  DbcScanner scanner;
+  CiMainGenerator cigen;
+  CiUtilGenerator ciugen;
+  FsCreator fscreator;
 
   std::ifstream reader;
 
-  std::cout << "dbc file : " << Params.dbc.value << std::endl;
-  std::cout << "gen path : " << Params.outdir.value << std::endl;
-  std::cout << "drv name : " << Params.drvname.value << std::endl;
+  std::cout << "dbc file : " << Params.dbc.first << std::endl;
+  std::cout << "gen path : " << Params.outdir.first << std::endl;
+  std::cout << "drv name : " << Params.drvname.first << std::endl;
 
-  if (std::filesystem::exists(Params.dbc.value) == false)
+  if (std::filesystem::exists(Params.dbc.first) == false)
   {
     std::cout << "DBC file is not exists!" << std::endl;
     return;
   }
 
-  reader.open(Params.dbc.value);
+  reader.open(Params.dbc.first);
 
   std::istream& s = reader;
 
-  scanner->TrimDbcText(s);
+  scanner.TrimDbcText(s);
 
   std::string info("");
 
   // create main destination directory
-  fscreator->Configure(Params.drvname.value, Params.outdir.value, info, scanner->dblist.ver.hi, scanner->dblist.ver.low);
+  fscreator.Configure(Params.drvname.first, Params.outdir.first, info, scanner.dblist.ver.hi, scanner.dblist.ver.low);
 
-  auto ret = fscreator->PrepareDirectory(Params.is_rewrite);
+  auto ret = fscreator.PrepareDirectory(Params.is_rewrite);
 
-  fscreator->FS.gen.no_config = Params.is_noconfig;
-  fscreator->FS.gen.no_inc = Params.is_nocanmon;
-  fscreator->FS.gen.no_fmon = Params.is_nofmon;
+  fscreator.FS.gen.no_config = Params.is_noconfig;
+  fscreator.FS.gen.no_inc = Params.is_nocanmon;
+  fscreator.FS.gen.no_fmon = Params.is_nofmon;
 
   if (ret)
   {
-    cigen->Generate(scanner->dblist, fscreator->FS);
+    cigen.Generate(scanner.dblist, fscreator.FS);
   }
   else
   {
@@ -79,10 +80,10 @@ void CoderApp::GenerateCode()
   {
     std::vector<std::string> nodes;
 
-    for (size_t num = 0; num < scanner->dblist.msgs.size(); num++)
+    for (size_t num = 0; num < scanner.dblist.msgs.size(); num++)
     {
       // iterate all messages and collect All nodes assign to at least one message
-      auto m = scanner->dblist.msgs[num];
+      auto m = scanner.dblist.msgs[num];
 
       for (size_t txs = 0; txs < m->TranS.size(); txs++)
       {
@@ -111,25 +112,25 @@ void CoderApp::GenerateCode()
     // for each node in collection perform specific bin-util generation
     for (size_t node = 0; node < nodes.size(); node++)
     {
-      std::string util_name = nodes[node] + "_" + Params.drvname.value;
+      std::string util_name = nodes[node] + "_" + Params.drvname.first;
 
       // set new driver name for current node
-      fscreator->FS.gen.drvname = str_tolower(util_name);
-      fscreator->FS.gen.DRVNAME = str_toupper(fscreator->FS.gen.drvname);
-      fscreator->FS.file.util_c.dir = fscreator->FS.file.utildir;
-      fscreator->FS.file.util_h.dir = fscreator->FS.file.utildir;
+      fscreator.FS.gen.drvname = str_tolower(util_name);
+      fscreator.FS.gen.DRVNAME = str_toupper(fscreator.FS.gen.drvname);
+      fscreator.FS.file.util_c.dir = fscreator.FS.file.utildir;
+      fscreator.FS.file.util_h.dir = fscreator.FS.file.utildir;
 
-      fscreator->FS.file.util_h.fname = str_tolower(fscreator->FS.gen.drvname + "-binutil.h");
-      fscreator->FS.file.util_h.fpath = fscreator->FS.file.utildir + "/" + fscreator->FS.file.util_h.fname;
+      fscreator.FS.file.util_h.fname = str_tolower(fscreator.FS.gen.drvname + "-binutil.h");
+      fscreator.FS.file.util_h.fpath = fscreator.FS.file.utildir + "/" + fscreator.FS.file.util_h.fname;
 
-      fscreator->FS.file.util_c.fname = str_tolower(fscreator->FS.gen.drvname + "-binutil.c");
-      fscreator->FS.file.util_c.fpath = fscreator->FS.file.utildir + "/" + fscreator->FS.file.util_c.fname;
+      fscreator.FS.file.util_c.fname = str_tolower(fscreator.FS.gen.drvname + "-binutil.c");
+      fscreator.FS.file.util_c.fpath = fscreator.FS.file.utildir + "/" + fscreator.FS.file.util_c.fname;
 
       MsgsClassification groups;
 
-      for (size_t i = 0; i < scanner->dblist.msgs.size(); i++)
+      for (size_t i = 0; i < scanner.dblist.msgs.size(); i++)
       {
-        auto m = scanner->dblist.msgs[i];
+        auto m = scanner.dblist.msgs[i];
 
         bool found = (std::find(m->TranS.begin(), m->TranS.end(), nodes[node]) != m->TranS.end());
 
@@ -150,7 +151,7 @@ void CoderApp::GenerateCode()
 
       if (ret)
       {
-        ciugen->Generate(scanner->dblist, fscreator->FS, groups, Params.drvname.value);
+        ciugen.Generate(scanner.dblist, fscreator.FS, groups, Params.drvname.first);
       }
     }
   }
@@ -158,23 +159,26 @@ void CoderApp::GenerateCode()
   {
     MsgsClassification groups;
 
-    for (size_t i = 0; i < scanner->dblist.msgs.size(); i++)
+    for (size_t i = 0; i < scanner.dblist.msgs.size(); i++)
     {
-      groups.Rx.push_back(scanner->dblist.msgs[i]->MsgID);
+      groups.Rx.push_back(scanner.dblist.msgs[i]->MsgID);
     }
 
     if (ret)
     {
-      ciugen->Generate(scanner->dblist, fscreator->FS, groups, Params.drvname.value);
+      ciugen.Generate(scanner.dblist, fscreator.FS, groups, Params.drvname.first);
     }
   }
 }
 
-bool CoderApp::ParseParams()
+/// @brief Checks if all mandatory configuration parameters are provided
+/// @return TRUE if configuration valid, otherwise FALSE
+bool CoderApp::AreParamsValid()
 {
-  return (Params.dbc.ok && Params.outdir.ok && Params.drvname.ok) && (Params.is_help == false);
+  return (Params.dbc.second && Params.outdir.second && Params.drvname.second) && (Params.is_help == false);
 }
 
+/// @brief Help message printer
 void CoderApp::PrintHelp()
 {
   std::cout << "project source code:\thttps://github.com/astand/c-coderdbc\t\t" << std::endl;

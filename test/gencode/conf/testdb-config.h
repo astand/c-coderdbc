@@ -1,7 +1,7 @@
 #pragma once
 
 /* include common dbccode configurations */
-#include <dbccodeconf.h>
+#include "dbccodeconf.h"
 
 
 /* ------------------------------------------------------------------------- *

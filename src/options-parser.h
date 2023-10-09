@@ -1,36 +1,54 @@
 #pragma once
 
+#include <memory>
 #include <stdlib.h>
 #include <string>
-#include <memory>
+#include <utility>
 #include <vector>
 
-typedef struct
-{
-  std::string value;
-  bool ok{false};
-} StrParam_t;
-
-typedef struct
-{
-  StrParam_t dbc;
-  StrParam_t outdir;
-  StrParam_t drvname;
-  bool is_rewrite{false};
-  bool is_nodeutils{false};
-  bool is_noconfig{false};
-  bool is_nocanmon{false};
-  bool is_nofmon{false};
-  bool is_help{false};
-} ParamConfig_t;
-
+/// @brief CLI arguments parser
 class OptionsParser {
  public:
 
-  using OnePair = std::pair<std::string, std::string>;
-  using Pairs = ParamConfig_t;
+  /// @brief key/value type wrapper
+  using dualparam_t = std::pair<std::string, bool>;
 
-  ParamConfig_t GetOptions(int argc, char** argv);
+  /// @brief Arguments description struct
+  struct GenOptions
+  {
+    /// @brief dbc file name
+    dualparam_t dbc;
+
+    /// @brief output directory for generated files
+    dualparam_t outdir;
+
+    /// @brief main driver name
+    dualparam_t drvname;
+
+    /// @brief rewrite previously generated files or generate to next subdirectory
+    bool is_rewrite{false};
+
+    /// @brief generate specific utility drivers for each ECU defined in the matrix
+    bool is_nodeutils{false};
+
+    /// @brief do not generate configuration file
+    bool is_noconfig{false};
+
+    /// @brief do not generate canmonitorutil header
+    bool is_nocanmon{false};
+
+    /// @brief do not generate fmon header
+    bool is_nofmon{false};
+
+    /// @brief help is requested
+    bool is_help{false};
+  };
+
+  /// @brief Parses arguments and theirs optional values
+  /// @param argc arguments number
+  /// @param argv pointer to array with arguments
+  /// @return parsed arguments in structured form
+  GenOptions GetOptions(int argc, char** argv);
 
 };
 

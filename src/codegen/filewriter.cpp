@@ -60,8 +60,16 @@ void FileWriter::AppendText(const std::string& str)
 
 void FileWriter::Append(const std::string& str)
 {
-  AppendText(str);
-  NewLine(str.back());
+  if (str.empty())
+  {
+    // the line is empty, just put 1 new empty line
+    Append();
+  }
+  else
+  {
+    AppendText(str);
+    NewLine(str.back());
+  }
 }
 
 void FileWriter::Append(size_t empty_lines)

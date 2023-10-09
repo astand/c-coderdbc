@@ -4,21 +4,24 @@
 #include <vector>
 #include <string>
 
+/// @brief Message attributes
 enum class AttributeType
 {
+  /// @brief Message cycle time attribute
   CycleTime,
+
+  /// @brief Undefined attribute
   Undefined
 };
 
-typedef struct
+struct AttributeDescriptor_t
 {
-  // message id of the attribute
+  /// @brief Attribute message ID
   uint32_t MsgId;
 
-  // value of the comment from line
+  /// @brief Attribute type
   AttributeType Type;
 
-  // attribute value
+  /// @brief Attribute value
   int32_t Value;
-
-} AttributeDescriptor_t;
+};

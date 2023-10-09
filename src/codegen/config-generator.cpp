@@ -5,7 +5,7 @@ void ConfigGenerator::FillHeader(FileWriter& wr, const GenDescriptor_t& gsett)
   wr.Append("#pragma once");
   wr.Append("");
   wr.Append("/* include common dbccode configurations */");
-  wr.Append("#include <dbccodeconf.h>");
+  wr.Append("#include \"dbccodeconf.h\"");
   wr.Append("");
   wr.Append("");
   wr.Append("/* ------------------------------------------------------------------------- *");

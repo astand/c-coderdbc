@@ -37,6 +37,8 @@ BU_: EPS ESP BMS BCM
 VAL_TABLE_ VtTestSig -2 "Description for the value '0x7'" -1 "Udef" 6 "Udef" 5 "Udef" 4 "Udef" 3 "Error" 2 "Ok" 1 "State one" 0 "State 1" ;
 
 
+BO_ 273 NO_SIGS_MSG: 8 BCM
+
 BO_ 1911 SIG_TEST_1: 8 EPS
  SG_ U7_TEST_1 : 55|7@0+ (1,-255) [-255|-128] ""  BCM
  SG_ sig_7 : 40|7@1- (1.2,0) [-76.8|75.6] ""  BCM
@@ -122,10 +124,10 @@ BA_DEF_DEF_  "GenSigInactiveValue" 0;
 BA_DEF_DEF_  "GenSigStartValue" 0;
 BA_ "DBName" "ceedselector";
 BA_ "GenMsgSendType" BO_ 2684354550 0;
-BA_ "GenMsgSendType" BO_ 864 0;
 BA_ "GenMsgCycleTime" BO_ 864 101;
-BA_ "GenMsgSendType" BO_ 352 0;
+BA_ "GenMsgSendType" BO_ 864 0;
 BA_ "GenMsgCycleTime" BO_ 352 101;
+BA_ "GenMsgSendType" BO_ 352 0;
 BA_ "GenSigStartValue" SG_ 1911 sig15_2 1315.78947368421;
 BA_ "GenSigStartValue" SG_ 1911 sig15 341.333333333333;
 BA_ "GenSigStartValue" SG_ 864 INT_TEST_2 0.6;

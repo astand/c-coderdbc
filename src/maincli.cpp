@@ -8,6 +8,6 @@ int main(int argc, char* argv[])
 {
   OptionsParser parser;
   auto opts = parser.GetOptions(argc, argv);
-  auto app = std::make_unique<CoderApp>(opts);
-  app->Run();
+  CoderApp app(opts);
+  app.Run();
 }

@@ -4,9 +4,9 @@
 extern "C" {
 #endif
 
-#include <dbccodeconf.h>
+#include "dbccodeconf.h"
 
-#include <testdb.h>
+#include "testdb.h"
 
 typedef struct
 {
