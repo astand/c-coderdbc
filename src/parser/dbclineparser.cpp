@@ -1,10 +1,11 @@
-#include "dbclineparser.h"
-#include <helpers/formatter.h>
 #include <stdlib.h>
 #include <clocale>
 #include <regex>
 #include <math.h>
 #include <limits.h>
+#include "helpers/formatter.h"
+#include "dbclineparser.h"
+#include "conf-and-limits.h"
 
 /// @brief Minimal possible value for Factor/Offset
 constexpr double MIN_FAC_OFF = 0.000000001;
@@ -136,7 +137,7 @@ bool DbcLineParser::ParseMessageLine(MessageDescriptor_t* msg, const std::string
 
   msg->DLC = atoi(items[4].c_str());
 
-  if ((msg->MsgID & 0x60000000) != 0 || msg->DLC == 0 || msg->DLC > 8)
+  if ((msg->MsgID & 0x60000000) != 0 || msg->DLC == 0 || msg->DLC > CONF_LIMIT_MAX_DLC)
   {
     return false;
   }

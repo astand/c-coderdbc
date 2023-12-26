@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- CAN FD frames with max DLC (64 bytes) are supported
+
 ## [v3.0] - 2023-10-09
 
 ### Added
