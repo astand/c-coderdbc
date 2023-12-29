@@ -340,9 +340,12 @@ void DbcScanner::SetDefualtMessage(MessageDescriptor_t* message)
 
 void DbcScanner::FindVersion(const std::string& instr)
 {
-  // try to find version string which looks like: VERSION "x.x"
-  static constexpr char* versionAttr = (char*)"VERSION";
-  static constexpr size_t VER_MIN_LENGTH = strlen(versionAttr);
+  #define VERSION_DBC_STRING "VERSION"
+
+  static constexpr char* versionAttr = (char*)VERSION_DBC_STRING;
+  // sizeof on string literal returns size with null termination
+  static constexpr size_t VER_MIN_LENGTH = (sizeof(VERSION_DBC_STRING) - 1);
+  static_assert(VER_MIN_LENGTH == 7u, "Please check the dbc version string marker");
 
   uint32_t h = 0, l = 0;
   char marker[VER_MIN_LENGTH + 1u];
@@ -352,6 +355,7 @@ void DbcScanner::FindVersion(const std::string& instr)
     return;
   }
 
+  // try to find dbc version marker which looks like: VERSION "x.x"
   auto ret = std::sscanf(instr.c_str(), "%8s \"%u.%u\"", marker, &h, &l);
 
   if ((ret == 3) && (std::strcmp(marker, versionAttr) == 0))
