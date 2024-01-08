@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - CAN FD frames with max DLC (64 bytes) are supported
+- Minor type cast improvements in the sign extension function (\_\_ext_sig\_\_)
 
 ## [v3.0] - 2023-10-09
 
