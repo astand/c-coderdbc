@@ -18,8 +18,8 @@ const char* ext_sig_func_name = "__ext_sig__";
 
 const char* extend_func_body =
   "// This function performs extension of sign for the signals\n"
-  "// which have non-aligned to power of 2 bit's width.\n"
-  "// The types 'bitext_t' and 'ubitext_t' define maximal bit width which\n"
+  "// whose bit width value is not aligned to one of power of 2 or less than 8.\n"
+  "// The types 'bitext_t' and 'ubitext_t' define the biggest bit width which\n"
   "// can be correctly handled. You need to select type which can contain\n"
   "// n+1 bits where n is the largest signed signal width. For example if\n"
   "// the most wide signed signal has a width of 31 bits you need to set\n"
@@ -27,8 +27,8 @@ const char* extend_func_body =
   "// Defined these typedefs in @dbccodeconf.h or locally in 'dbcdrvname'-config.h\n"
   "static bitext_t %s(ubitext_t val, uint8_t bits)\n"
   "{\n"
-  "  ubitext_t const m = 1u << (bits - 1);\n"
-  "  return (val ^ m) - m;\n"
+  "  ubitext_t const m = (ubitext_t) (1u << (bits - 1u));\n"
+  "  return ((val ^ m) - m);\n"
   "}\n\n";
 
 void CiMainGenerator::Generate(DbcMessageList_t& dlist, const AppSettings_t& fsd)
