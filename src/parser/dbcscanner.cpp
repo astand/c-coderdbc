@@ -1,5 +1,6 @@
 #include "dbcscanner.h"
 #include <cstring>
+#include <sstream>
 #include <algorithm>
 #include <math.h>
 #include "../helpers/formatter.h"
@@ -341,23 +342,15 @@ void DbcScanner::SetDefualtMessage(MessageDescriptor_t* message)
 void DbcScanner::FindVersion(const std::string& instr)
 {
   // try to find version string which looks like: VERSION "x.x"
-  static constexpr char* versionAttr = (char*)"VERSION";
-  static constexpr size_t VER_MIN_LENGTH = strlen(versionAttr);
-
+  std::istringstream iss(instr);
+  std::string marker;
+  char token;
   uint32_t h = 0, l = 0;
-  char marker[VER_MIN_LENGTH + 1u];
 
-  if (instr.size() < VER_MIN_LENGTH)
-  {
-    return;
-  }
-
-  auto ret = std::sscanf(instr.c_str(), "%8s \"%u.%u\"", marker, &h, &l);
-
-  if ((ret == 3) && (std::strcmp(marker, versionAttr) == 0))
-  {
-    // versions have been found, save numeric values
-    dblist.ver.hi = h;
-    dblist.ver.low = l;
+  if (iss >> marker >> token && token == '"' && marker == "VERSION") {
+    if (iss >> h >> token && token == '.' && iss >> l) {
+      dblist.ver.hi = h;
+      dblist.ver.low = l;
+    }
   }
 }

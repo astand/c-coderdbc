@@ -1,4 +1,5 @@
 #include <sys/stat.h>
+#include <iostream>
 #include <filesystem>
 #include "fs-creator.h"
 #include "helpers/formatter.h"
@@ -17,6 +18,23 @@ FsCreator::FsCreator()
 {
 }
 
+std::string FsCreator::FindPath(const std::string& outpath)
+{
+  std::string work_dir_path;
+  std::string separator = work_dir_path.back() == '/' ? "" : "/";
+
+  for (uint32_t dirnum = 0; dirnum < 1000; dirnum++)
+  {
+    snprintf(_tmpb, kTmpLen, "%03d", dirnum);
+    work_dir_path = outpath + separator + _tmpb;
+
+    if (!std::filesystem::exists(work_dir_path))
+    {
+      break;
+    }
+  }
+  return work_dir_path;
+}
 
 void FsCreator::Configure(const std::string& drvname, const std::string& outpath,
   const std::string& info, uint32_t h, uint32_t l)
@@ -94,61 +112,18 @@ void FsCreator::Configure(const std::string& drvname, const std::string& outpath
   FS.gen.lowver = l;
 }
 
-bool FsCreator::PrepareDirectory(bool rw)
+bool FsCreator::PrepareDirectory()
 {
   bool ret = false;
-
-  // find free directory
-  struct stat info;
-
-  std::string work_dir_path;
+  std::error_code ec;
   const auto& basepath = FS.file.core_h.dir;
 
-  if (rw)
+  std::filesystem::create_directories(basepath, ec);
+  if (ec)
   {
-    work_dir_path = basepath;
-    ret = true;
-
-    // for this case check only if directory exists
-    if (stat(work_dir_path.c_str(), &info) != 0)
-    {
-      if (!std::filesystem::create_directory(work_dir_path))
-      {
-        ret = false;
-      }
-    }
-  }
-  else
-  {
-    std::string separator = basepath.back() == '/' ? "" : "/";
-
-    for (int32_t dirnum = 0; dirnum < 1000; dirnum++)
-    {
-      snprintf(_tmpb, kTmpLen, "%03d", dirnum);
-      work_dir_path = basepath + separator + _tmpb;
-
-      if (stat(work_dir_path.c_str(), &info) != 0)
-      {
-        if (std::filesystem::create_directory(work_dir_path))
-        {
-          ret = true;
-          break;
-        }
-      }
-      else if (info.st_mode & S_IFDIR)
-      {
-        // directory exists, try next num
-        continue;
-      }
-      else
-      {
-        if (std::filesystem::create_directory(work_dir_path) != 0)
-        {
-          ret = false;
-          break;
-        }
-      }
-    }
+      // If there is an error, ec will evaluate to true
+      std::cerr << "Error creating directories: " << ec.message() << std::endl;
+      return false;
   }
 
   std::filesystem::create_directory(FS.file.libdir);
@@ -157,7 +132,7 @@ bool FsCreator::PrepareDirectory(bool rw)
   std::filesystem::create_directory(FS.file.confdir);
   std::filesystem::create_directory(FS.file.utildir);
 
-  return ret;
+  return true;
 }
 
 std::string FsCreator::CreateSubDir(std::string basepath, std::string sub, bool rw)

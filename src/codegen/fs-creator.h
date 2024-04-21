@@ -68,13 +68,12 @@ typedef struct
 class FsCreator {
  public:
   FsCreator();
-
+  std::string FindPath(const std::string& outpath);
   void Configure(const std::string& drvname, const std::string& outpath, const std::string& info, uint32_t h, uint32_t l);
-  bool PrepareDirectory(bool rw);
+  bool PrepareDirectory();
 
   std::string CreateSubDir(std::string basepath, std::string subdir, bool rm = true);
 
   AppSettings_t FS;
 
 };
-
