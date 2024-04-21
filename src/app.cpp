@@ -35,6 +35,7 @@ void CoderApp::GenerateCode()
   CiMainGenerator cigen;
   CiUtilGenerator ciugen;
   FsCreator fscreator;
+  std::string path;
 
   std::ifstream reader;
 
@@ -57,9 +58,18 @@ void CoderApp::GenerateCode()
   std::string info("");
 
   // create main destination directory
-  fscreator.Configure(Params.drvname.first, Params.outdir.first, info, scanner.dblist.ver.hi, scanner.dblist.ver.low);
+  if (!Params.is_rewrite)
+  {
+    path = fscreator.FindPath(Params.outdir.first);
+  }
+  else
+  {
+    path = Params.outdir.first;
+  }
 
-  auto ret = fscreator.PrepareDirectory(Params.is_rewrite);
+  fscreator.Configure(Params.drvname.first, path, info, scanner.dblist.ver.hi, scanner.dblist.ver.low);
+
+  auto ret = fscreator.PrepareDirectory();
 
   fscreator.FS.gen.no_config = Params.is_noconfig;
   fscreator.FS.gen.no_inc = Params.is_nocanmon;
