@@ -10,6 +10,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - CAN FD frames with max DLC (64 bytes) are supported
 - Minor type cast improvements in the sign extension function (\_\_ext_sig\_\_)
+- (INFR) Test generation script takes one argument: release/debug to specify particular binary call
+- istream handling improved in dbcscanner
+- The head information with: coderdbc version, dbc file name, generation date added ([issue #28](https://github.com/astand/c-coderdbc/issues/28))
+
+### Fixed
+- Head part info conversion to source code comments in mon-generator module
+- FindVersion function improved
 
 ## [v3.0] - 2023-10-09
 

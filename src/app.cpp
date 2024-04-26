@@ -14,6 +14,20 @@
 #include <codegen/version.h>
 #include <helpers/formatter.h>
 
+/// @brief Function returns filename with extension extracted from full path
+/// @param fullfilepath Full file path
+/// @return Filename only
+std::string ExtractFileName(const std::string& fullfilepath)
+{
+  // find the position of the last path separator
+  size_t pos = fullfilepath.find_last_of("/\\");
+
+  // extract the file name from the full path
+  std::string filename = (pos == std::string::npos) ? fullfilepath : fullfilepath.substr(pos + 1);
+
+  return filename;
+}
+
 void CoderApp::Run()
 {
   std::cout << "coderdbc v" << CODEGEN_LIB_VERSION_MAJ << "." << CODEGEN_LIB_VERSION_MIN << std::endl << std::endl;
@@ -48,16 +62,39 @@ void CoderApp::GenerateCode()
     return;
   }
 
-  reader.open(Params.dbc.first);
+  std::ifstream file(Params.dbc.first);
 
-  std::istream& s = reader;
+  if (!file.is_open())
+  {
+    // Pass ifstream as istream to processStream function
+    std::cerr << "Unable to open DBC file" << std::endl;
+    exit(1);
+  }
 
-  scanner.TrimDbcText(s);
+  scanner.TrimDbcText(file);
+  file.close();
 
-  std::string info("");
+  auto filename = ExtractFileName(Params.dbc.first);
+  // get current time
+  std::time_t now = std::time(nullptr);
+  // convert to local time
+  std::tm* loctime = std::localtime(&now);
+  // prepare string for source files head part
+  std::stringstream srcinfo;
+  srcinfo << "DBC filename     : " << filename << "\n";
+  srcinfo << "Generator version: v" << CODEGEN_LIB_VERSION_MAJ << "." << CODEGEN_LIB_VERSION_MIN;
+
+  if (loctime)
+  {
+    // put the date and time into source file header
+    srcinfo << std::endl << "Generation time  : " << std::put_time(loctime, "%Y.%m.%d %H:%M:%S");
+  }
 
   // create main destination directory
-  fscreator.Configure(Params.drvname.first, Params.outdir.first, info, scanner.dblist.ver.hi, scanner.dblist.ver.low);
+  fscreator.Configure(Params.drvname.first, Params.outdir.first,
+    srcinfo.str(),
+    scanner.dblist.ver.hi,
+    scanner.dblist.ver.low);
 
   auto ret = fscreator.PrepareDirectory(Params.is_rewrite);
 
@@ -169,6 +206,8 @@ void CoderApp::GenerateCode()
       ciugen.Generate(scanner.dblist, fscreator.FS, groups, Params.drvname.first);
     }
   }
+
+  std::cout << std::endl << "Source code generation completed." << std::endl;
 }
 
 /// @brief Checks if all mandatory configuration parameters are provided

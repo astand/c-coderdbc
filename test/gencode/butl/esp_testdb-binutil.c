@@ -1,3 +1,6 @@
+// DBC filename     : testdb.dbc
+// Generator version: v3.1
+// Generation time  : 2024.06.30 12:22:02
 #include "esp_testdb-binutil.h"
 
 // DBC file version
