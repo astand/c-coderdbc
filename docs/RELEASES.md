@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 - Head part info conversion to source code comments in mon-generator module
 - FindVersion function improved
+- Missing comments from dbc for signals based on real data types (floating-point variables, denoted by '_ro' and '_phys').
 
 ## [v3.0] - 2023-10-09
 

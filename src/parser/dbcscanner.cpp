@@ -187,7 +187,7 @@ void DbcScanner::ParseOtherInfo(istream& readstrm)
         {
           for (size_t i = 0; i < msg->Signals.size(); i++)
           {
-            if (cmmnt.SigName == msg->Signals[i].Name)
+            if ((cmmnt.SigName == msg->Signals[i].Name) || ((cmmnt.SigName + "_ro") == msg->Signals[i].Name))
             {
               SignalDescriptor_t& sig = msg->Signals[i];
               // signal has been found, update commnet text
