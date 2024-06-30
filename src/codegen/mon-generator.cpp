@@ -1,3 +1,5 @@
+#include <cstdlib>
+#include <regex>
 #include "mon-generator.h"
 #include "helpers/formatter.h"
 
@@ -6,7 +8,8 @@ uint32_t MonGenerator::FillHeader(FileWriter& wr, std::vector<CiExpr_t*>& sigs,
 {
   if (aset.gen.start_info.size() > 0)
   {
-    wr.Append(aset.gen.start_info);
+    // replace all '\n' on "\n //" for c code comment text
+    wr.Append("// " + std::regex_replace(aset.gen.start_info, std::regex("\n"), "\n// "));
   }
 
   wr.Append("#pragma once");
@@ -88,7 +91,7 @@ uint32_t MonGenerator::FillSource(FileWriter& wr, std::vector<CiExpr_t*>& sigs,
 {
   if (aset.gen.start_info.size() > 0)
   {
-    wr.Append(aset.gen.start_info);
+    wr.Append("// " + std::regex_replace(aset.gen.start_info, std::regex("\n"), "\n// "));
   }
 
   wr.Append("#include \"%s\"", aset.file.fmon_h.fname.c_str());

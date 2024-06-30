@@ -25,7 +25,7 @@ class DbcScanner {
   void ParseOtherInfo(istream& instrm);
   void AddMessage(MessageDescriptor_t* message);
   void SetDefualtMessage(MessageDescriptor_t* message);
-  void FindVersion(const std::string& instr);
+  void FindVersion(const std::string& line);
 
  private:
 

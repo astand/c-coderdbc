@@ -83,13 +83,7 @@ void FsCreator::Configure(const std::string& drvname, const std::string& outpath
   FS.gen.verlow_def = _tmpb;
 
   // load start info to fdescriptor
-  FS.gen.start_info.clear();
-
-  if (info.size() > 0)
-  {
-    FS.gen.start_info = info;
-  }
-
+  FS.gen.start_info = info;
   FS.gen.hiver = h;
   FS.gen.lowver = l;
 }
