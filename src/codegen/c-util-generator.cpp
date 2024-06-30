@@ -101,12 +101,8 @@ void CiUtilGenerator::Generate(DbcMessageList_t& dlist, const AppSettings_t& fsd
 void CiUtilGenerator::PrintHeader()
 {
   tof.Flush();
-
-  if (gdesc->start_info.size() > 0)
-  {
-    tof.Append("// " + std::regex_replace(gdesc->start_info, std::regex("\n"), "\n// "));
-  }
-
+  tof.AppendText(gdesc->start_common_info);
+  tof.AppendText(gdesc->start_driver_info);
   tof.Append("#pragma once");
   tof.Append();
 
@@ -197,10 +193,8 @@ void CiUtilGenerator::PrintHeader()
 
 void CiUtilGenerator::PrintSource()
 {
-  if (gdesc->start_info.size() > 0)
-  {
-    tof.Append("// " + std::regex_replace(gdesc->start_info, std::regex("\n"), "\n// "));
-  }
+  tof.AppendText(gdesc->start_common_info);
+  tof.AppendText(gdesc->start_driver_info);
 
   tof.Append("#include \"%s\"", fdesc->util_h.fname.c_str());
   tof.Append();

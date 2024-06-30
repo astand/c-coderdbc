@@ -12,7 +12,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Minor type cast improvements in the sign extension function (\_\_ext_sig\_\_)
 - (INFR) Test generation script takes one argument: release/debug to specify particular binary call
 - istream handling improved in dbcscanner
-- The head information with: coderdbc version, dbc file name, generation date added ([issue #28](https://github.com/astand/c-coderdbc/issues/28))
+- The head information with: coderdbc version, dbc file name ([issue #28](https://github.com/astand/c-coderdbc/issues/28))
+- General source file (not driver related) have only coderdbc version and date if enabled (see next chages)
+- The generation date can be added to head information with '-gendate' argument
+- The final output directory path is extended by the driver name when '-driverdir' argument is passed 
 
 ### Fixed
 - Head part info conversion to source code comments in mon-generator module
