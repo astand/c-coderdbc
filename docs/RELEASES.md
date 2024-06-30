@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+
+## [v3.1] - 2024-06-30
+
 ### Added
 
 - CAN FD frames with max DLC (64 bytes) are supported
@@ -230,7 +233,8 @@ network node defined in DBC
 - Fixed some warnings
 
 
-[Unreleased]: https://github.com/astand/c-coderdbc/compare/v3.0...HEAD
+[Unreleased]: https://github.com/astand/c-coderdbc/compare/v3.1...HEAD
+[v3.1]: https://github.com/astand/c-coderdbc/compare/v3.0...v3.1
 [v3.0]: https://github.com/astand/c-coderdbc/compare/v2.9...v3.0
 [v2.9]: https://github.com/astand/c-coderdbc/compare/v2.8...v2.9
 [v2.8]: https://github.com/astand/c-coderdbc/compare/v2.7...v2.8
