@@ -28,6 +28,36 @@ std::string ExtractFileName(const std::string& fullfilepath)
   return filename;
 }
 
+/// @brief Combines a directory path and a folder name while handling directory separators
+/// @param path The initial directory path
+/// @param folderName The folder name to append
+/// @return The combined path as a string
+std::string CombinePath(const std::string& path, const std::string& folderName)
+{
+  // check if path ends with '/' or '\\'
+  bool pathEndsWithSeparator = !path.empty() && (path.back() == '/' || path.back() == '\\');
+
+  // check if folderName starts with '/' or '\\'
+  bool folderStartsWithSeparator = !folderName.empty() && (folderName.front() == '/' || folderName.front() == '\\');
+
+  // combine path and folderName based on separators
+  if (pathEndsWithSeparator && folderStartsWithSeparator)
+  {
+    // both have separators, remove one from folderName
+    return path + folderName.substr(1);
+  }
+  else if (!pathEndsWithSeparator && !folderStartsWithSeparator)
+  {
+    // neither has a separator, add one
+    return path + '/' + folderName;
+  }
+  else
+  {
+    // exactly one has a separator, just concatenate
+    return path + folderName;
+  }
+}
+
 void CoderApp::Run()
 {
   std::cout << "coderdbc v" << CODEGEN_LIB_VERSION_MAJ << "." << CODEGEN_LIB_VERSION_MIN << std::endl << std::endl;
@@ -79,20 +109,31 @@ void CoderApp::GenerateCode()
   std::time_t now = std::time(nullptr);
   // convert to local time
   std::tm* loctime = std::localtime(&now);
-  // prepare string for source files head part
-  std::stringstream srcinfo;
-  srcinfo << "DBC filename     : " << filename << "\n";
-  srcinfo << "Generator version: v" << CODEGEN_LIB_VERSION_MAJ << "." << CODEGEN_LIB_VERSION_MIN;
+  // create driver related comment block
+  std::stringstream driversrcinfo;
+  driversrcinfo << "// DBC filename      : " << filename << "\n";
+  // create common comment block
+  std::stringstream commonsrcinfo;
+  commonsrcinfo << "// Generator version : v" << CODEGEN_LIB_VERSION_MAJ << "." << CODEGEN_LIB_VERSION_MIN << "\n";
 
-  if (loctime)
+  if (loctime && Params.add_gen_date)
   {
-    // put the date and time into source file header
-    srcinfo << std::endl << "Generation time  : " << std::put_time(loctime, "%Y.%m.%d %H:%M:%S");
+    // put the date and time inside common comment block
+    commonsrcinfo << "// Generation time   : " << std::put_time(loctime, "%Y.%m.%d %H:%M:%S") << "\n";
+  }
+
+  std::string finalpath = Params.outdir.first;
+
+  if (Params.is_driver_dir)
+  {
+    // append the folder name to the path
+    finalpath = CombinePath(Params.outdir.first, Params.drvname.first);
   }
 
   // create main destination directory
-  fscreator.Configure(Params.drvname.first, Params.outdir.first,
-    srcinfo.str(),
+  fscreator.Configure(Params.drvname.first, finalpath,
+    commonsrcinfo.str(),
+    driversrcinfo.str(),
     scanner.dblist.ver.hi,
     scanner.dblist.ver.low);
 
@@ -231,20 +272,29 @@ void CoderApp::PrintHelp()
   std::cout << std::endl;
   std::cout << "optional parameters:" << std::endl;
   std::cout << "   -nodeutils\t will generate specific pairs of binutils drivers for each node" << std::endl;
+  std::cout << std::endl;
   std::cout << "   -rw\t\t by default each new generation with previously used params" << std::endl;
   std::cout << "   \t\t will create new sud-directory with source files (000, 001, ... etc)" << std::endl;
   std::cout << "   \t\t '-rw' option enables rewriting: all source files previously generated" << std::endl;
   std::cout << "   \t\t will be replaced by new ones" << std::endl;
+  std::cout << std::endl;
   std::cout << "   -noconfig:\t no {drivername}-config and dbccodeconfig generation" << std::endl;
   std::cout << "   -noinc:\t no canmonitorutil.h generation" << std::endl;
   std::cout << "   -nofmon:\t no ***-fmon.c generation" << std::endl;
+  std::cout << std::endl;
+  std::cout << "   -driverdir\t the output path (-out) will be appended by driver name" << std::endl;
+  std::cout << "   -gendate\t the generation date will be included in the header comment section of the source file." <<
+    std::endl;
   std::cout << std::endl;
 
   std::cout << "examples:" << std::endl;
   std::cout << std::endl;
 
   std::cout <<
-    "./dbccoder -dbc /home/user/docs/driveshaft.dbc -out /home/user/docs/gen/ -drvname drivedb -nodeutils -rw" << std::endl;
+    "./dbccoder -dbc /home/user/docs/driveshaft.dbc -out /home/user/docs/gen/ -drvname drivedb -nodeutils -rw -driverdir -gendate"
+    << std::endl;
+  std::cout << "./dbccoder -dbc /home/user/docs/driveshaft.dbc -out /home/user/docs/gen/ -drvname drivedb -nodeutils -rw"
+    << std::endl;
 
   std::cout <<
     "./dbccoder -dbc /home/user/docs/driveshaft.dbc -out /home/user/docs/gen/ -drvname drivedb -nodeutils" << std::endl;

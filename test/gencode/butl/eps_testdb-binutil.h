@@ -1,6 +1,5 @@
-// DBC filename     : testdb.dbc
-// Generator version: v3.1
-// Generation time  : 2024.06.30 12:22:02
+// Generator version : v3.1
+// DBC filename      : testdb.dbc
 #pragma once
 
 #ifdef __cplusplus

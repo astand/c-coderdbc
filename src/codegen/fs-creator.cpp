@@ -18,15 +18,19 @@ FsCreator::FsCreator()
 }
 
 
-void FsCreator::Configure(const std::string& drvname, const std::string& outpath,
-  const std::string& info, uint32_t h, uint32_t l)
+void FsCreator::Configure(const std::string& drvname,
+  const std::string& outpath,
+  const std::string& commoninfo,
+  const std::string& driverinfo,
+  uint32_t highVer,
+  uint32_t lowVer)
 {
   FS.file.libdir = outpath + kLibDir;
   FS.file.usrdir = outpath + kUsrDir;
   FS.file.incdir = outpath + kIncDir;
   FS.file.confdir = outpath + kConfDir;
   FS.file.utildir = outpath + kUtilDir;
-// directory valid and exists, set all the values
+  // directory valid and exists, set all the values
   FS.gen.DrvName_orig = drvname;
   FS.gen.DRVNAME = str_toupper(drvname);
   FS.gen.drvname = str_tolower(drvname);
@@ -83,9 +87,10 @@ void FsCreator::Configure(const std::string& drvname, const std::string& outpath
   FS.gen.verlow_def = _tmpb;
 
   // load start info to fdescriptor
-  FS.gen.start_info = info;
-  FS.gen.hiver = h;
-  FS.gen.lowver = l;
+  FS.gen.start_driver_info = driverinfo;
+  FS.gen.start_common_info = commoninfo;
+  FS.gen.hiver = highVer;
+  FS.gen.lowver = lowVer;
 }
 
 bool FsCreator::PrepareDirectory(bool rw)

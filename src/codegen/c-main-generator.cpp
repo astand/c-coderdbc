@@ -83,14 +83,8 @@ void CiMainGenerator::Generate(DbcMessageList_t& dlist, const AppSettings_t& fsd
 void CiMainGenerator::Gen_MainHeader()
 {
   std::set<std::string> passed_sigs;
-
-  // write comment start text
-  if (fdesc->gen.start_info.size() > 0)
-  {
-    // replace all '\n' on "\n //" for c code comment text
-    fwriter.Append("// " + std::regex_replace(fdesc->gen.start_info, std::regex("\n"), "\n// "));
-  }
-
+  fwriter.AppendText(fdesc->gen.start_common_info);
+  fwriter.AppendText(fdesc->gen.start_driver_info);
   fwriter.Append("#pragma once");
   fwriter.Append();
   fwriter.Append("#ifdef __cplusplus\nextern \"C\" {\n#endif");
@@ -336,12 +330,9 @@ void CiMainGenerator::Gen_MainHeader()
 
 void CiMainGenerator::Gen_MainSource()
 {
-  if (fdesc->gen.start_info.size() > 0)
-  {
-    // replace all '\n' on "\n //" for c code comment text
-    fwriter.Append("// " + std::regex_replace(fdesc->gen.start_info, std::regex("\n"), "\n// "));
-  }
 
+  fwriter.AppendText(fdesc->gen.start_common_info);
+  fwriter.AppendText(fdesc->gen.start_driver_info);
   // include main header file
   fwriter.Append("#include \"%s\"", fdesc->file.core_h.fname.c_str());
   fwriter.Append(2);
@@ -443,11 +434,8 @@ void CiMainGenerator::Gen_MainSource()
 
 void CiMainGenerator::Gen_ConfigHeader()
 {
-  if (fdesc->gen.start_info.size() > 0)
-  {
-    // replace all '\n' on "\n //" for c code comment text
-    fwriter.Append("// " + std::regex_replace(fdesc->gen.start_info, std::regex("\n"), "\n// "));
-  }
+  fwriter.AppendText(fdesc->gen.start_common_info);
+  fwriter.AppendText(fdesc->gen.start_driver_info);
 
   ConfigGenerator confgen;
   confgen.FillHeader(fwriter, fdesc->gen);
@@ -471,6 +459,7 @@ void CiMainGenerator::Gen_FMonSource()
 
 void CiMainGenerator::Gen_CanMonUtil()
 {
+  fwriter.AppendText(fdesc->gen.start_common_info);
   fwriter.Append("#pragma once");
   fwriter.Append("");
   fwriter.Append("#include <stdint.h>");
@@ -530,6 +519,7 @@ void CiMainGenerator::Gen_CanMonUtil()
 
 void CiMainGenerator::Gen_DbcCodeConf()
 {
+  fwriter.AppendText(fdesc->gen.start_common_info);
   fwriter.Append("#pragma once");
   fwriter.Append("");
   fwriter.Append("#include <stdint.h>");
