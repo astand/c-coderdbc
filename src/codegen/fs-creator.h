@@ -43,8 +43,10 @@ typedef struct
   std::string verhigh_def;
   std::string verlow_def;
 
-  // inforamtion to be placed at the start of each source file
-  std::string start_info;
+  // text comment to be placed at the beggining of the driver's related source files
+  std::string start_driver_info;
+  // text comment to be placed at the beggining of each source files
+  std::string start_common_info;
 
   uint32_t hiver{0};
   uint32_t lowver{0};
@@ -69,7 +71,12 @@ class FsCreator {
  public:
   FsCreator();
 
-  void Configure(const std::string& drvname, const std::string& outpath, const std::string& info, uint32_t h, uint32_t l);
+  void Configure(const std::string& drvname,
+    const std::string& outpath,
+    const std::string& commoninfo,
+    const std::string& driverinfo,
+    uint32_t highVer,
+    uint32_t lowVer);
   bool PrepareDirectory(bool rw);
 
   std::string CreateSubDir(std::string basepath, std::string subdir, bool rm = true);

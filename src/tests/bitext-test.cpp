@@ -4,8 +4,8 @@
 template<typename iT, typename uT>
 static iT bitext(uT val, uint8_t bits)
 {
-  uT const m = 1u << (bits - 1);
-  return (val ^ m) - m;
+  uT const m = (uT)(1u << (bits - 1u));
+  return ((val ^ m) - m);
 }
 
 TEST(TestBitExt, FullTest)

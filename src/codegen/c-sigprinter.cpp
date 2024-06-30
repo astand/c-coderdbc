@@ -2,6 +2,7 @@
 #include <memory>
 #include "c-sigprinter.h"
 #include "helpers/formatter.h"
+#include "conf-and-limits.h"
 
 // work buffer for all snprintf operations
 static const size_t WBUFF_LEN = 2048;
@@ -190,9 +191,9 @@ std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig, std::vec
   uint16_t startb = (uint16_t)((sig->Order == BitLayout::kIntel) ?
     (sig->StartBit + (sig->LengthBit - 1)) : (sig->StartBit));
 
-  if (startb > 63)
+  if (startb > CONF_LIMIT_HIGHEST_BIT_POSITION)
   {
-    startb = 63;
+    startb = CONF_LIMIT_HIGHEST_BIT_POSITION;
   }
 
   uint32_t bn = (startb / 8);

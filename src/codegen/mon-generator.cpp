@@ -1,14 +1,13 @@
+#include <cstdlib>
+#include <regex>
 #include "mon-generator.h"
 #include "helpers/formatter.h"
 
 uint32_t MonGenerator::FillHeader(FileWriter& wr, std::vector<CiExpr_t*>& sigs,
   const AppSettings_t& aset)
 {
-  if (aset.gen.start_info.size() > 0)
-  {
-    wr.Append(aset.gen.start_info);
-  }
-
+  wr.AppendText(aset.gen.start_common_info);
+  wr.AppendText(aset.gen.start_driver_info);
   wr.Append("#pragma once");
   wr.Append();
 
@@ -86,11 +85,8 @@ separated .c file. If it won't be done the linkage error will happen\n*/");
 uint32_t MonGenerator::FillSource(FileWriter& wr, std::vector<CiExpr_t*>& sigs,
   const AppSettings_t& aset)
 {
-  if (aset.gen.start_info.size() > 0)
-  {
-    wr.Append(aset.gen.start_info);
-  }
-
+  wr.AppendText(aset.gen.start_common_info);
+  wr.AppendText(aset.gen.start_driver_info);
   wr.Append("#include \"%s\"", aset.file.fmon_h.fname.c_str());
   wr.Append();
   // put diagmonitor ifdef selection for including @drv-fmon header

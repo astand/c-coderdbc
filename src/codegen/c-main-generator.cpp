@@ -18,8 +18,8 @@ const char* ext_sig_func_name = "__ext_sig__";
 
 const char* extend_func_body =
   "// This function performs extension of sign for the signals\n"
-  "// which have non-aligned to power of 2 bit's width.\n"
-  "// The types 'bitext_t' and 'ubitext_t' define maximal bit width which\n"
+  "// whose bit width value is not aligned to one of power of 2 or less than 8.\n"
+  "// The types 'bitext_t' and 'ubitext_t' define the biggest bit width which\n"
   "// can be correctly handled. You need to select type which can contain\n"
   "// n+1 bits where n is the largest signed signal width. For example if\n"
   "// the most wide signed signal has a width of 31 bits you need to set\n"
@@ -27,8 +27,8 @@ const char* extend_func_body =
   "// Defined these typedefs in @dbccodeconf.h or locally in 'dbcdrvname'-config.h\n"
   "static bitext_t %s(ubitext_t val, uint8_t bits)\n"
   "{\n"
-  "  ubitext_t const m = 1u << (bits - 1);\n"
-  "  return (val ^ m) - m;\n"
+  "  ubitext_t const m = (ubitext_t) (1u << (bits - 1u));\n"
+  "  return ((val ^ m) - m);\n"
   "}\n\n";
 
 void CiMainGenerator::Generate(DbcMessageList_t& dlist, const AppSettings_t& fsd)
@@ -83,14 +83,8 @@ void CiMainGenerator::Generate(DbcMessageList_t& dlist, const AppSettings_t& fsd
 void CiMainGenerator::Gen_MainHeader()
 {
   std::set<std::string> passed_sigs;
-
-  // write comment start text
-  if (fdesc->gen.start_info.size() > 0)
-  {
-    // replace all '\n' on "\n //" for c code comment text
-    fwriter.Append("// " + std::regex_replace(fdesc->gen.start_info, std::regex("\n"), "\n// "));
-  }
-
+  fwriter.AppendText(fdesc->gen.start_common_info);
+  fwriter.AppendText(fdesc->gen.start_driver_info);
   fwriter.Append("#pragma once");
   fwriter.Append();
   fwriter.Append("#ifdef __cplusplus\nextern \"C\" {\n#endif");
@@ -336,12 +330,9 @@ void CiMainGenerator::Gen_MainHeader()
 
 void CiMainGenerator::Gen_MainSource()
 {
-  if (fdesc->gen.start_info.size() > 0)
-  {
-    // replace all '\n' on "\n //" for c code comment text
-    fwriter.Append("// " + std::regex_replace(fdesc->gen.start_info, std::regex("\n"), "\n// "));
-  }
 
+  fwriter.AppendText(fdesc->gen.start_common_info);
+  fwriter.AppendText(fdesc->gen.start_driver_info);
   // include main header file
   fwriter.Append("#include \"%s\"", fdesc->file.core_h.fname.c_str());
   fwriter.Append(2);
@@ -443,11 +434,8 @@ void CiMainGenerator::Gen_MainSource()
 
 void CiMainGenerator::Gen_ConfigHeader()
 {
-  if (fdesc->gen.start_info.size() > 0)
-  {
-    // replace all '\n' on "\n //" for c code comment text
-    fwriter.Append("// " + std::regex_replace(fdesc->gen.start_info, std::regex("\n"), "\n// "));
-  }
+  fwriter.AppendText(fdesc->gen.start_common_info);
+  fwriter.AppendText(fdesc->gen.start_driver_info);
 
   ConfigGenerator confgen;
   confgen.FillHeader(fwriter, fdesc->gen);
@@ -471,6 +459,7 @@ void CiMainGenerator::Gen_FMonSource()
 
 void CiMainGenerator::Gen_CanMonUtil()
 {
+  fwriter.AppendText(fdesc->gen.start_common_info);
   fwriter.Append("#pragma once");
   fwriter.Append("");
   fwriter.Append("#include <stdint.h>");
@@ -530,6 +519,7 @@ void CiMainGenerator::Gen_CanMonUtil()
 
 void CiMainGenerator::Gen_DbcCodeConf()
 {
+  fwriter.AppendText(fdesc->gen.start_common_info);
   fwriter.Append("#pragma once");
   fwriter.Append("");
   fwriter.Append("#include <stdint.h>");

@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+
+## [v3.1] - 2024-06-30
+
+### Added
+
+- CAN FD frames with max DLC (64 bytes) are supported
+- Minor type cast improvements in the sign extension function (\_\_ext_sig\_\_)
+- (INFR) Test generation script takes one argument: release/debug to specify particular binary call
+- istream handling improved in dbcscanner
+- The head information with: coderdbc version, dbc file name ([issue #28](https://github.com/astand/c-coderdbc/issues/28))
+- General source file (not driver related) have only coderdbc version and date if enabled (see next chages)
+- The generation date can be added to head information with '-gendate' argument
+- The final output directory path is extended by the driver name when '-driverdir' argument is passed 
+
+### Fixed
+- Head part info conversion to source code comments in mon-generator module
+- FindVersion function improved
+- Missing comments from dbc for signals based on real data types (floating-point variables, denoted by '_ro' and '_phys').
+
 ## [v3.0] - 2023-10-09
 
 ### Added
@@ -214,7 +233,8 @@ network node defined in DBC
 - Fixed some warnings
 
 
-[Unreleased]: https://github.com/astand/c-coderdbc/compare/v3.0...HEAD
+[Unreleased]: https://github.com/astand/c-coderdbc/compare/v3.1...HEAD
+[v3.1]: https://github.com/astand/c-coderdbc/compare/v3.0...v3.1
 [v3.0]: https://github.com/astand/c-coderdbc/compare/v2.9...v3.0
 [v2.9]: https://github.com/astand/c-coderdbc/compare/v2.8...v2.9
 [v2.8]: https://github.com/astand/c-coderdbc/compare/v2.7...v2.8

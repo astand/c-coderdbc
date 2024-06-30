@@ -1,3 +1,5 @@
+// Generator version : v3.1
+// DBC filename      : testdb.dbc
 #include "eps_testdb-binutil.h"
 
 // DBC file version

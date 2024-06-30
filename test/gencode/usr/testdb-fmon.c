@@ -1,3 +1,5 @@
+// Generator version : v3.1
+// DBC filename      : testdb.dbc
 #include "testdb-fmon.h"
 
 #ifdef TESTDB_USE_DIAG_MONITORS

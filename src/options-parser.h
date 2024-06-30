@@ -28,6 +28,12 @@ class OptionsParser {
     /// @brief rewrite previously generated files or generate to next subdirectory
     bool is_rewrite{false};
 
+    /// @brief add additional directory named as dbc driver inside generation output directory
+    bool is_driver_dir{false};
+
+    /// @brief add generation date at the beggining of the source file
+    bool add_gen_date{false};
+
     /// @brief generate specific utility drivers for each ECU defined in the matrix
     bool is_nodeutils{false};
 

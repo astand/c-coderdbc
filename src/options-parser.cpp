@@ -78,6 +78,14 @@ OptionsParser::GenOptions OptionsParser::GetOptions(int argc, char** argv)
     {
       retpairs.is_nofmon = true;
     }
+    else if (temppairs[i].first.compare("-driverdir") == 0)
+    {
+      retpairs.is_driver_dir = true;
+    }
+    else if (temppairs[i].first.compare("-gendate") == 0)
+    {
+      retpairs.add_gen_date = true;
+    }
   }
 
   return retpairs;

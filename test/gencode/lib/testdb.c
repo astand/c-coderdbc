@@ -1,3 +1,5 @@
+// Generator version : v3.1
+// DBC filename      : testdb.dbc
 #include "testdb.h"
 
 
@@ -31,8 +33,8 @@
 #endif
 
 // This function performs extension of sign for the signals
-// which have non-aligned to power of 2 bit's width.
-// The types 'bitext_t' and 'ubitext_t' define maximal bit width which
+// whose bit width value is not aligned to one of power of 2 or less than 8.
+// The types 'bitext_t' and 'ubitext_t' define the biggest bit width which
 // can be correctly handled. You need to select type which can contain
 // n+1 bits where n is the largest signed signal width. For example if
 // the most wide signed signal has a width of 31 bits you need to set
@@ -40,8 +42,8 @@
 // Defined these typedefs in @dbccodeconf.h or locally in 'dbcdrvname'-config.h
 static bitext_t __ext_sig__(ubitext_t val, uint8_t bits)
 {
-  ubitext_t const m = 1u << (bits - 1);
-  return (val ^ m) - m;
+  ubitext_t const m = (ubitext_t) (1u << (bits - 1u));
+  return ((val ^ m) - m);
 }
 
 uint32_t Unpack_UTEST_2_testdb(UTEST_2_t* _m, const uint8_t* _d, uint8_t dlc_)

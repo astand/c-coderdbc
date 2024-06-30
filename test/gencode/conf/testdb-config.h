@@ -1,3 +1,5 @@
+// Generator version : v3.1
+// DBC filename      : testdb.dbc
 #pragma once
 
 /* include common dbccode configurations */

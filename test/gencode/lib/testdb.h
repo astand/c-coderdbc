@@ -1,3 +1,5 @@
+// Generator version : v3.1
+// DBC filename      : testdb.dbc
 #pragma once
 
 #ifdef __cplusplus
@@ -342,6 +344,7 @@ typedef struct
   // <Checksum:kXor4:1>
   uint8_t CS : 4;                            //      Bits= 4
 
+  // Test floating point value.
   uint16_t Accel_ro;                         //      Bits=12 Offset= -100.0             Factor= 0.1             Unit:'m/s'
 
 #ifdef TESTDB_USE_SIGFLOAT
@@ -402,6 +405,7 @@ typedef struct
   // <Checksum:kXor4:1>
   uint8_t CS;                                //      Bits= 4
 
+  // Test floating point value.
   uint16_t Accel_ro;                         //      Bits=12 Offset= -100.0             Factor= 0.1             Unit:'m/s'
 
 #ifdef TESTDB_USE_SIGFLOAT

@@ -1,7 +1,11 @@
 #include "dbcscanner.h"
-#include <cstring>
 #include <algorithm>
 #include <math.h>
+#include <regex>
+#include <cstring>
+#include <cctype>
+#include <sstream>
+#include <iostream>
 #include "../helpers/formatter.h"
 
 MessageDescriptor_t* find_message(vector<MessageDescriptor_t*> msgs, uint32_t ID)
@@ -67,10 +71,8 @@ void DbcScanner::ParseMessageInfo(istream& readstrm)
 
   MessageDescriptor_t* pMsg = nullptr;
 
-  while (readstrm.eof() == false)
+  while (std::getline(readstrm, sline))
   {
-    std::getline(readstrm, sline);
-
     sline = str_trim(sline);
 
     FindVersion(sline);
@@ -164,10 +166,8 @@ void DbcScanner::ParseOtherInfo(istream& readstrm)
 
   AttributeDescriptor_t attr;
 
-  while (!readstrm.eof())
+  while (std::getline(readstrm, sline))
   {
-    std::getline(readstrm, sline);
-
     sline = str_trim(sline);
 
     if (lparser.ParseCommentLine(&cmmnt, sline))
@@ -187,7 +187,7 @@ void DbcScanner::ParseOtherInfo(istream& readstrm)
         {
           for (size_t i = 0; i < msg->Signals.size(); i++)
           {
-            if (cmmnt.SigName == msg->Signals[i].Name)
+            if ((cmmnt.SigName == msg->Signals[i].Name) || ((cmmnt.SigName + "_ro") == msg->Signals[i].Name))
             {
               SignalDescriptor_t& sig = msg->Signals[i];
               // signal has been found, update commnet text
@@ -338,26 +338,63 @@ void DbcScanner::SetDefualtMessage(MessageDescriptor_t* message)
 }
 
 
-void DbcScanner::FindVersion(const std::string& instr)
+/// @brief Parses the line to extract a string and two unsigned integers.
+/// @param line The input line to parse.
+/// @param str The extracted string.
+/// @param num1 The first extracted unsigned integer.
+/// @param num2 The second extracted unsigned integer.
+/// @return The number of successfully matched parts (0 if the pattern did not match).
+static bool ParseVersionLine(const std::string& line, std::string& str, uint32_t& num1, uint32_t& num2)
 {
-  // try to find version string which looks like: VERSION "x.x"
-  static constexpr char* versionAttr = (char*)"VERSION";
-  static constexpr size_t VER_MIN_LENGTH = strlen(versionAttr);
+  std::regex pattern("([a-zA-Z]+)\\s*\"?(\\d+)\\D+(\\d+)\"?");
+  std::smatch matches;
 
-  uint32_t h = 0, l = 0;
-  char marker[VER_MIN_LENGTH + 1u];
-
-  if (instr.size() < VER_MIN_LENGTH)
+  // try to match the regex pattern to the input line
+  if (std::regex_match(line, matches, pattern))
   {
+    if (matches.size() == 4)
+    {
+      // 1 for the whole match and 3 for the capture groups
+      str = matches[1].str();
+      num1 = std::stoul(matches[2].str());
+      num2 = std::stoul(matches[3].str());
+      // successfully matched all three parts
+      return true;
+    }
+  }
+
+  // pattern did not match or some parts were not matched
+  return false;
+}
+
+void DbcScanner::FindVersion(const std::string& line)
+{
+  std::istringstream stream(line);
+  std::string versionStr;
+  uint32_t num1, num2;
+
+  if (ParseVersionLine(line, versionStr, num1, num2) == false)
+  {
+    // pattern did not match or not all parts were successfully parsed
     return;
   }
 
-  auto ret = std::sscanf(instr.c_str(), "%8s \"%u.%u\"", marker, &h, &l);
+  // check if the string is composed only of alphabetic characters
+  if (!std::all_of(versionStr.begin(), versionStr.end(), [](char c) { return std::isalpha(c); }))
+  {
+    // the string part is not purely alphabetic
+    return; 
+  }
 
-  if ((ret == 3) && (std::strcmp(marker, versionAttr) == 0))
+  // convert the extracted string to lowercase for case-insensitive comparison
+  std::string lowerStr = versionStr;
+  std::transform(lowerStr.begin(), lowerStr.end(), lowerStr.begin(), ::tolower);
+
+  // compare the lowercase string with "version"
+  if (lowerStr == "version")
   {
     // versions have been found, save numeric values
-    dblist.ver.hi = h;
-    dblist.ver.low = l;
+    dblist.ver.hi = num1;
+    dblist.ver.low = num2;
   }
 }
