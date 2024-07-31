@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- Issue with '-rw' key handling. Empty sequence folders.
 
 ## [v3.1] - 2024-06-30
 

@@ -122,12 +122,21 @@ void CoderApp::GenerateCode()
     commonsrcinfo << "// Generation time   : " << std::put_time(loctime, "%Y.%m.%d %H:%M:%S") << "\n";
   }
 
-  std::string finalpath = Params.outdir.first;
+  std::string wholedrvpath = Params.outdir.first;
 
   if (Params.is_driver_dir)
   {
     // append the folder name to the path
-    finalpath = CombinePath(Params.outdir.first, Params.drvname.first);
+    wholedrvpath = CombinePath(Params.outdir.first, Params.drvname.first);
+  }
+
+  std::string finalpath;
+
+  if (fscreator.GetOutputPath(wholedrvpath, Params.is_rewrite, finalpath) == false)
+  {
+    // something wrong with parameters
+    std::cerr << "Output directory format problem, check parameters" << std::endl;
+    exit(1);
   }
 
   // create main destination directory
