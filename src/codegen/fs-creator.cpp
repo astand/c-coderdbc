@@ -1,5 +1,9 @@
 #include <sys/stat.h>
 #include <filesystem>
+#include <iostream>
+#include <string>
+#include <cstdio>
+#include <sstream>
 #include "fs-creator.h"
 #include "helpers/formatter.h"
 
@@ -93,6 +97,46 @@ void FsCreator::Configure(const std::string& drvname,
   FS.gen.lowver = lowVer;
 }
 
+bool FsCreator::GetOutputPath(std::string& path, bool rw, std::string& finalpath)
+{
+  if (!path.empty() && path.back() == '/')
+  {
+    path.pop_back();
+  }
+
+  // check if the path is a proper directory
+  if (!std::filesystem::is_directory(path))
+  {
+    return false;
+  }
+
+  if (rw)
+  {
+    // if rw is true, copy path to finalpath and return true
+    finalpath = path;
+    return true;
+  }
+  else
+  {
+    // if rw is false, find a unique directory path
+    for (int dirnum = 0; dirnum < 1000; ++dirnum)
+    {
+      std::ostringstream oss;
+      oss << path << "/" << std::setw(3) << std::setfill('0') << dirnum;
+      std::string candidate = oss.str();
+
+      if (!std::filesystem::exists(candidate))
+      {
+        finalpath = candidate;
+        return true;
+      }
+    }
+
+    // if no unique path found, return false
+    return false;
+  }
+}
+
 bool FsCreator::PrepareDirectory(bool rw)
 {
   bool ret = false;
@@ -103,50 +147,15 @@ bool FsCreator::PrepareDirectory(bool rw)
   std::string work_dir_path;
   const auto& basepath = FS.file.core_h.dir;
 
-  if (rw)
+  work_dir_path = basepath;
+  ret = true;
+
+  // for this case check only if directory exists
+  if (stat(work_dir_path.c_str(), &info) != 0)
   {
-    work_dir_path = basepath;
-    ret = true;
-
-    // for this case check only if directory exists
-    if (stat(work_dir_path.c_str(), &info) != 0)
+    if (!std::filesystem::create_directory(work_dir_path))
     {
-      if (!std::filesystem::create_directory(work_dir_path))
-      {
-        ret = false;
-      }
-    }
-  }
-  else
-  {
-    std::string separator = basepath.back() == '/' ? "" : "/";
-
-    for (int32_t dirnum = 0; dirnum < 1000; dirnum++)
-    {
-      snprintf(_tmpb, kTmpLen, "%03d", dirnum);
-      work_dir_path = basepath + separator + _tmpb;
-
-      if (stat(work_dir_path.c_str(), &info) != 0)
-      {
-        if (std::filesystem::create_directory(work_dir_path))
-        {
-          ret = true;
-          break;
-        }
-      }
-      else if (info.st_mode & S_IFDIR)
-      {
-        // directory exists, try next num
-        continue;
-      }
-      else
-      {
-        if (std::filesystem::create_directory(work_dir_path) != 0)
-        {
-          ret = false;
-          break;
-        }
-      }
+      ret = false;
     }
   }
 

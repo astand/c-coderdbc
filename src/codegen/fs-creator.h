@@ -77,6 +77,9 @@ class FsCreator {
     const std::string& driverinfo,
     uint32_t highVer,
     uint32_t lowVer);
+
+  bool GetOutputPath(std::string& path, bool rw, std::string& finalpath);
+
   bool PrepareDirectory(bool rw);
 
   std::string CreateSubDir(std::string basepath, std::string subdir, bool rm = true);
