@@ -18,8 +18,11 @@ class CSigPrinter {
  private:
   int32_t BuildCConvertExprs(CiExpr_t* msg);
 
-  std::string PrintSignalExpr(const SignalDescriptor_t* sig, std::vector<std::string>& to_bytes);
+  std::string PrintSignalExpr(const SignalDescriptor_t* sig, const std::vector<int> mux_values, std::vector<std::string>& to_bytes, std::vector<std::vector<std::string>>& to_bytes_mux);
+
+  void AppendToAllMuxValues(std::vector<std::string>& to_bytes_mux, int mux_ind, const std::string& workbuff);
 
   void AppendToByteLine(std::string& expr, std::string str);
 
+  void FindMultiplexorValues(const MessageDescriptor_t& message, std::vector<int>& mux_values);
 };

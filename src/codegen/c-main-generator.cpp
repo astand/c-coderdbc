@@ -794,7 +794,7 @@ void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExp
 {
   // this function will print body of packing function
 
-  // pring array content clearin loop
+  // print array content clearing loop
   fwriter.Append("  uint8_t i; for (i = 0u; i < %s(%s_DLC); %s[i++] = %s);",
     prt_dlcValidateMacroName.c_str(),
     sgs->msg.Name.c_str(), arrtxt.c_str(),
@@ -842,6 +842,18 @@ void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExp
     fwriter.Append();
   }
 
+  // Find the master multiplex signal (if any)
+  const SignalDescriptor_t* masterSignal = nullptr;
+  for (const auto& sig : sgs->msg.Signals)
+  {
+    if (sig.Multiplex == MultiplexType::kMaster)
+    {
+      masterSignal = &sig;
+      break;
+    }
+  }
+
+  // Generate packing code for each byte in the CAN message
   for (size_t i = 0; i < sgs->to_bytes.size(); i++)
   {
     if (sgs->to_bytes[i].size() < 2)
@@ -849,7 +861,39 @@ void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExp
       continue;
     }
 
-    fwriter.Append("  %s[%d] |= (uint8_t) ( %s );", arrtxt.c_str(), i, sgs->to_bytes[i].c_str());
+    fwriter.Append("  // Packing byte %d", i);
+
+    if (masterSignal)
+    {
+      bool first = true;
+      for (size_t mux_idx = 0; mux_idx < sgs->mux_values.size(); ++mux_idx)
+      {
+        int mux_val = sgs->mux_values[mux_idx];
+        if (sgs->to_bytes_mux[i].size() > mux_idx && !sgs->to_bytes_mux[i][mux_idx].empty())
+        {
+          if (first)
+          {
+            fwriter.Append("  if (_m->%s == %d) {", masterSignal->Name.c_str(), mux_val);
+            first = false;
+          }
+          else
+          {
+            fwriter.Append("  else if (_m->%s == %d) {", masterSignal->Name.c_str(), mux_val);
+          }
+          fwriter.Append("    %s[%d] |= (uint8_t) (%s);", arrtxt.c_str(), i, sgs->to_bytes_mux[i][mux_idx].c_str());
+          fwriter.Append("  }");
+        }
+      }
+    }
+
+    // Handle non-multiplexed signals
+    for (const auto& sig : sgs->msg.Signals)
+    {
+      if (sig.Multiplex == MultiplexType::kNone)
+      {
+        fwriter.Append("  %s[%d] |= (uint8_t) (%s);", arrtxt.c_str(), i, sgs->to_bytes[i].c_str());
+      }
+    }
   }
 
   fwriter.Append("");
@@ -863,10 +907,9 @@ void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExp
       sgs->msg.CsmSig->Name.c_str(), arrtxt.c_str(), sgs->msg.Name.c_str(),
       sgs->msg.Name.c_str(), sgs->msg.CsmMethod.c_str(), sgs->msg.CsmOp);
 
-    fwriter.Append("  %s[%d] |= (uint8_t) ( %s );", arrtxt.c_str(), sgs->msg.CsmByteNum, sgs->msg.CsmToByteExpr.c_str());
+    fwriter.Append("  %s[%d] |= (uint8_t) (%s);", arrtxt.c_str(), sgs->msg.CsmByteNum, sgs->msg.CsmToByteExpr.c_str());
 
     fwriter.Append("#endif // %s", fdesc->gen.usecsm_def.c_str());
     fwriter.Append();
   }
 }
-

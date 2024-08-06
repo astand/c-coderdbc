@@ -91,6 +91,8 @@ typedef struct
 
   MultiplexType Multiplex;
 
+  uint32_t MultiplexValue;
+
 } SignalDescriptor_t;
 
 typedef struct
