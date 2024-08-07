@@ -1,0 +1,109 @@
+VERSION ""
+
+
+NS_ : 
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_:
+
+BU_: MCU VMU
+
+
+BO_ 1096 MUX_SIG_TEST1: 8 MCU
+ SG_ mux8_sig1 m8 : 8|8@1+ (1,0) [1|3] ""  VMU
+ SG_ mux8_sig2 m8 : 16|15@1+ (0.125,0) [0|4090] "V"  VMU
+ SG_ mux7_sig1 m7 : 8|8@1+ (1,0) [1|3] ""  VMU
+ SG_ mux7_sig2 m7 : 16|15@1+ (0.125,0) [0|4090] "V"  VMU
+ SG_ mux6_sig1 m6 : 8|48@1+ (1,0) [0|0] ""  VMU
+ SG_ mux0_sig1 m0 : 32|8@1+ (1,0) [0|0] ""  VMU
+ SG_ mux0_sig2 m0 : 24|8@1+ (1,0) [0|0] ""  VMU
+ SG_ mux5_sig1 m5 : 8|48@1+ (1,0) [0|0] ""  VMU
+ SG_ mux4_sig4 m4 : 8|32@1+ (1,0) [0|0] ""  VMU
+ SG_ mux4_sig3 m3 : 24|16@1+ (1,0) [0|0] ""  VMU
+ SG_ mux0_sig3 m0 : 16|8@1+ (1,0) [0|0] ""  VMU
+ SG_ mux0_sig4 m0 : 8|8@1+ (1,0) [0|0] ""  VMU
+ SG_ mux2_sig1 m2 : 8|16@1+ (1,-32767) [0|32760] "RPM"  VMU
+ SG_ mux1_sig1 m1 : 8|15@1+ (0.125,0) [0|4090] "Nm"  VMU
+ SG_ mux3_sig1 m3 : 16|8@1+ (1,0) [0|0] ""  VMU
+ SG_ mux3_sig2 m3 : 8|8@1+ (1,0) [0|0] ""  VMU
+ SG_ mux_master M : 0|7@1+ (1,0) [0|0] ""  VMU
+ SG_ signal1 : 7|1@1+ (1,0) [0|0] ""  VMU
+
+BO_ 1091 SIG_TEST1: 5 MCU
+ SG_ signal1 : 36|4@1+ (1,0) [0|15] ""  VMU
+ SG_ signal2 : 0|16@1+ (1,0) [0|65535] ""  VMU
+
+BO_ 66 MUX_SIG_TEST2: 5 VMU
+ SG_ mux4_sig1 m4 : 16|16@1+ (1,-32767) [4294934536|32760] "RPM" Vector__XXX
+ SG_ mux4_sig2 m4 : 0|16@1+ (0.125,-4096) [4294963206|4090] "Nm" Vector__XXX
+ SG_ mux1_sig1 m1 : 0|16@1+ (0.125,-4096) [4294963206|4090] "Nm"  MCU
+ SG_ mux3_sig3 m3 : 0|16@1+ (0.125,-4096) [0|4090] "V"  MCU
+ SG_ signal1 : 36|4@1+ (1,0) [0|15] ""  MCU
+ SG_ mux2_sig1 m2 : 16|16@1+ (1,-32767) [4294934536|32760] "RPM"  MCU
+ SG_ mux_master M : 32|3@1+ (1,0) [1|7] ""  MCU
+
+BO_ 65 MUX_SIG_TEST3: 6 VMU
+ SG_ signal1 : 6|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ max_master M : 7|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ mux1_sig1 m1 : 3|2@1+ (1,0) [0|3] "" Vector__XXX
+ SG_ signal2 : 5|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ signal3 : 24|16@1+ (1,-32767) [4294934536|32760] "RPM" Vector__XXX
+ SG_ mux1_sig2 m1 : 8|16@1+ (0.125,-4096) [4294963206|4090] "Nm" Vector__XXX
+ SG_ mux0_sig1 m0 : 6|1@1+ (1,0) [0|0] ""  MCU
+ SG_ mux0_sig2 m0 : 8|16@1+ (0.125,-4096) [0|4090] "V"  MCU
+ SG_ mux0_sig3 m0 : 3|2@1+ (1,0) [1|3] ""  MCU
+ SG_ signal4 : 44|4@1+ (1,0) [0|15] ""  MCU
+ SG_ mux0_sig4 m0 : 8|16@1+ (0.125,-4096) [4294963206|4090] "Nm"  MCU
+ SG_ signal5 : 0|3@1+ (1,0) [0|3] ""  MCU
+
+BO_ 1093 SIG_TEST2: 3 MCU
+ SG_ mux_master M : 0|7@1+ (1,0) [0|127] ""  VMU
+
+
+
+BA_DEF_ EV_  "Version" STRING ;
+BA_DEF_  "BusType" STRING ;
+BA_DEF_DEF_  "Version" "1.0";
+BA_DEF_DEF_  "BusType" "";
+BA_ "BusType" "CAN";
+VAL_ 1096 mux8_sig1 1 "Mode1" 2 "Mode2" 3 "Mode3" ;
+VAL_ 1096 mux7_sig1 1 "Mode1" 2 "Mode2" 3 "Mode3" ;
+VAL_ 1096 mux_master 0 "Mode0" 1 "Mode1" 2 "Mode2" 3 "Mode3" 4 "Mode4" 5 "Mode5" 6 "Mode6" 7 "Mode7" 8 "Mode8" ;
+VAL_ 1096 signal1 0 "Mode0" 1 "Mode1" ;
+VAL_ 66 mux_master 1 "Mode1" 2 "Mode2" 3 "Mode3" 4 "Mode4" 5 "Reserved" 6 "Reserved" 7 "Reserved" ;
+VAL_ 65 signal1 0 "mode0" 1 "mode1" ;
+VAL_ 65 max_master 1 "ON" 0 "OFF" ;
+VAL_ 65 mux1_sig1 1 "Mode1" ;
+VAL_ 65 signal2 0 "mode0" 1 "mode1" ;
+VAL_ 65 mux0_sig1 1 "invalid" 0 "valid" ;
+VAL_ 65 mux0_sig3 1 "mode1" 2 "mode2" 3 "mode3" ;
+VAL_ 65 signal5 0 "mode0" 1 "mode1" 3 "mode3" 4 "mode4" ;
+VAL_ 1093 mux_master 0 "mode0" ;
+

@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <memory>
+#include <algorithm> // For std::find
 #include "c-sigprinter.h"
 #include "helpers/formatter.h"
 #include "conf-and-limits.h"
@@ -41,6 +42,9 @@ void CSigPrinter::LoadMessage(const MessageDescriptor_t& message)
   CiExpr_t* nexpr = new CiExpr_t;
 
   nexpr->msg = message;
+
+  // Find the multiplexor master signal in the message
+  FindMultiplexorValues(message, nexpr->mux_values);
 
   // do for this new expr to_byte and to_field expression building,
   // add them to dedicated members, set signal stdint type
@@ -130,7 +134,14 @@ int32_t CSigPrinter::BuildCConvertExprs(CiExpr_t* msgprinter)
 
   msgprinter->to_bytes.clear();
   msgprinter->to_signals.clear();
+  msgprinter->to_bytes_mux.clear();
   msgprinter->to_bytes.resize(msgprinter->msg.DLC);
+  // Resize the to_bytes_mux vector to the number of bytes in the message for the first dimension
+  // and the number of multiplexor values msgprinter->mux_values.size() for the second dimension.
+  for (size_t i = 0; i < msgprinter->msg.DLC; i++)
+  {
+    msgprinter->to_bytes_mux.push_back(std::vector<std::string>(msgprinter->mux_values.size()));
+  }
 
   // for each signal specific to_signal expression must be defined,
   // and during all signals processing, for each byte to_byte expression
@@ -154,22 +165,35 @@ int32_t CSigPrinter::BuildCConvertExprs(CiExpr_t* msgprinter)
     //
     // bytes expression is saved to vector @to_bytes, where id is the
     // byte number in frame payload (i.e. to_bytes.size() == frame.DLC)
-    msgprinter->to_signals.push_back(PrintSignalExpr(&msgprinter->msg.Signals[i], msgprinter->to_bytes));
+    msgprinter->to_signals.push_back(PrintSignalExpr(&msgprinter->msg.Signals[i], msgprinter->mux_values, msgprinter->to_bytes, msgprinter->to_bytes_mux));
   }
 
   if (msgprinter->msg.CsmSig != nullptr)
   {
     std::vector<std::string> v(8);
+    std::vector<std::vector<std::string>> v2(8);
+    // resize the v2 vector to the number of multiplex values
+    for (size_t i = 0; i < 8; i++)
+    {
+      v2[i].resize(msgprinter->mux_values.size());
+    }
 
-    PrintSignalExpr(msgprinter->msg.CsmSig, v);
+    PrintSignalExpr(msgprinter->msg.CsmSig, msgprinter->mux_values, v, v2);
 
     for (uint8_t i = 0; i < v.size() && i < 8; i++)
     {
-      if (v[i].size() > 0)
+      // As long as the checksum signal is not a multiplex signal.
+      if (msgprinter->msg.CsmSig->Multiplex != MultiplexType::kMulValue)
       {
-        msgprinter->msg.CsmToByteExpr = v[i];
-        msgprinter->msg.CsmByteNum = i;
-        break;
+        if (v[i].size() > 0)
+        {
+          msgprinter->msg.CsmToByteExpr = v[i];
+          msgprinter->msg.CsmByteNum = i;
+          break;
+        }
+      } else {
+        printf("Error in DBC file !!!! Checksum signal cannot be a multiplexor signal.");
+        ret = -1; 
       }
     }
   }
@@ -177,14 +201,14 @@ int32_t CSigPrinter::BuildCConvertExprs(CiExpr_t* msgprinter)
   return ret;
 }
 
-std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig, std::vector<std::string>& to_bytes)
+std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig, const std::vector<int> mux_values, std::vector<std::string>& to_bytes, std::vector<std::vector<std::string>>& to_bytes_mux)
 {
   // value for collecting expression (to_signal)
   std::string tosigexpr;
 
   if (to_bytes.size() == 0)
   {
-    // return empty line is bytes count somehow equals 0
+    // return empty line if bytes count somehow equals 0
     return "Error in DBC file !!!! Dlc of this message must be greater.";
   }
 
@@ -206,9 +230,20 @@ std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig, std::vec
     return to_bytes[0];
   }
 
+  // Find the multiplexor index if the signal is multiplexed
+  int mux_ind = -1;
+  if (sig->Multiplex == MultiplexType::kMulValue)
+  {
+    auto it = std::find(mux_values.begin(), mux_values.end(), sig->MultiplexValue);
+    if (it != mux_values.end())
+    {
+      mux_ind = std::distance(mux_values.begin(), it);
+    }
+  }
+
   // set valid to_byte prefix
-  int32_t bbc = (startb % 8) + 1;
-  int32_t slen = sig->LengthBit;
+  int32_t bbc = (startb % 8) + 1; // Byte bit 
+  int32_t slen = sig->LengthBit;  // Signal length in bits
 
   if (bbc > slen)
   {
@@ -217,6 +252,8 @@ std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig, std::vec
 
     snprintf(workbuff, WBUFF_LEN, "((_m->%s & (%s)) << %dU)", sig->Name.c_str(), msk[slen].c_str(), bbc - slen);
     AppendToByteLine(to_bytes[bn], workbuff);
+
+    AppendToAllMuxValues(to_bytes_mux[bn], mux_ind, workbuff);
   }
   else if (bbc == slen)
   {
@@ -226,6 +263,8 @@ std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig, std::vec
 
     snprintf(workbuff, WBUFF_LEN, "(_m->%s & (%s))", sig->Name.c_str(), msk[slen].c_str());
     AppendToByteLine(to_bytes[bn], workbuff);
+
+    AppendToAllMuxValues(to_bytes_mux[bn], mux_ind, workbuff);
   }
   else
   {
@@ -242,6 +281,8 @@ std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig, std::vec
 
     snprintf(workbuff, WBUFF_LEN, "((_m->%s >> %dU) & (%s))", sig->Name.c_str(), slen, msk[bbc].c_str());
     AppendToByteLine(to_bytes[bn], workbuff);
+
+    AppendToAllMuxValues(to_bytes_mux[bn], mux_ind, workbuff);
 
     while ((slen - 8) >= 0)
     {
@@ -270,6 +311,7 @@ std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig, std::vec
         snprintf(workbuff, WBUFF_LEN, "(_m->%s & (%s))", sig->Name.c_str(), msk[8].c_str());
         AppendToByteLine(to_bytes[bn], workbuff);
 
+        AppendToAllMuxValues(to_bytes_mux[bn], mux_ind, workbuff);
       }
       else
       {
@@ -283,6 +325,8 @@ std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig, std::vec
 
         snprintf(workbuff, WBUFF_LEN, "((_m->%s >> %dU) & (%s))", sig->Name.c_str(), slen, msk[8].c_str());
         AppendToByteLine(to_bytes[bn], workbuff);
+
+        AppendToAllMuxValues(to_bytes_mux[bn], mux_ind, workbuff);
       }
     }
 
@@ -293,13 +337,30 @@ std::string CSigPrinter::PrintSignalExpr(const SignalDescriptor_t* sig, std::vec
       snprintf(workbuff, WBUFF_LEN, " | ((_d[%d] >> %dU) & (%s))", bn, 8 - slen, msk[slen].c_str());
       tosigexpr += workbuff;
 
-      snprintf(workbuff, WBUFF_LEN, "((_m->%s & (%s)) << %dU)", sig->Name.c_str(), msk[slen].c_str(),
-        8 - slen);
+      snprintf(workbuff, WBUFF_LEN, "((_m->%s & (%s)) << %dU)", sig->Name.c_str(), msk[slen].c_str(), 8 - slen);
       AppendToByteLine(to_bytes[bn], workbuff);
+
+      AppendToAllMuxValues(to_bytes_mux[bn], mux_ind, workbuff);
     }
   }
 
   return tosigexpr;
+}
+
+void CSigPrinter::AppendToAllMuxValues(std::vector<std::string>& to_bytes_mux, int mux_ind, const std::string& workbuff)
+{
+  if (mux_ind >= 0)
+  {
+    AppendToByteLine(to_bytes_mux[mux_ind], workbuff);
+  }
+  else
+  {
+    // Append to all multiplexor values if the signal is not multiplexed
+    for (size_t i = 0; i < to_bytes_mux.size(); ++i)
+    {
+      AppendToByteLine(to_bytes_mux[i], workbuff);
+    }
+  }
 }
 
 void CSigPrinter::AppendToByteLine(std::string& expr, std::string str)
@@ -314,4 +375,42 @@ void CSigPrinter::AppendToByteLine(std::string& expr, std::string str)
     // First appending
     expr = str;
   }
+}
+
+void CSigPrinter::FindMultiplexorValues(const MessageDescriptor_t& message, std::vector<int>& mux_values)
+{
+    // Clear the vectors to ensure they are empty before filling them
+    mux_values.clear();
+
+    // First, find the master multiplexor signal
+    SignalDescriptor_t* master_signal = nullptr;
+    for (const auto& signal : message.Signals)
+    {
+        if (signal.Multiplex == MultiplexType::kMaster)
+        {
+            master_signal = const_cast<SignalDescriptor_t*>(&signal);
+            break;
+        }
+    }
+
+    // If there's no master multiplexor signal, return
+    if (!master_signal)
+    {
+        return;
+    }
+
+    // Now find all multiplex values
+    for (const auto& signal : message.Signals)
+    {
+        if (signal.Multiplex == MultiplexType::kMulValue)
+        {
+            // Extract and add to the list of total possible multiplex values for the CAN message.
+            int mux_value = signal.MultiplexValue; // Extract the multiplexor value this signal corresponds to
+            // If the multiplexor value is not already in the list, add it
+            if (std::find(mux_values.begin(), mux_values.end(), mux_value) == mux_values.end())
+            {
+              mux_values.push_back(mux_value);
+            }
+        }
+    }
 }

@@ -794,7 +794,7 @@ void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExp
 {
   // this function will print body of packing function
 
-  // pring array content clearin loop
+  // print array content clearing loop
   fwriter.Append("  uint8_t i; for (i = 0u; i < %s(%s_DLC); %s[i++] = %s);",
     prt_dlcValidateMacroName.c_str(),
     sgs->msg.Name.c_str(), arrtxt.c_str(),
@@ -842,14 +842,65 @@ void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExp
     fwriter.Append();
   }
 
+  // Find the master multiplex signal (if any)
+  const SignalDescriptor_t* masterSignal = nullptr;
+  for (const auto& sig : sgs->msg.Signals)
+  {
+    if (sig.Multiplex == MultiplexType::kMaster)
+    {
+      masterSignal = &sig;
+      break;
+    }
+  }
+
+  // Generate packing code for each byte in the CAN message
   for (size_t i = 0; i < sgs->to_bytes.size(); i++)
   {
-    if (sgs->to_bytes[i].size() < 2)
-    {
-      continue;
-    }
 
-    fwriter.Append("  %s[%d] |= (uint8_t) ( %s );", arrtxt.c_str(), i, sgs->to_bytes[i].c_str());
+    if (masterSignal)
+    {
+      bool first = true;
+      // Handle the case where only a master multiplexor signal exists and there are no other kMulValue signal types in the CAN msg.
+      // There may or may not be other normal signals in the CAN msg.
+      if (sgs->mux_values.size() == 0)
+      {
+        // Filter out any empty bytes in the CAN msg. 
+        if ( !sgs->to_bytes[i].empty() )
+        {
+          fwriter.Append("  %s[%d] |= (uint8_t) ( %s );", arrtxt.c_str(), i, sgs->to_bytes[i].c_str());
+        }
+      } 
+      else 
+      {
+        // handle the case where there is a mux master and kMulValue (and other normal signals) in the CAN msg.
+        for (size_t mux_idx = 0; mux_idx < sgs->mux_values.size(); ++mux_idx)
+        {
+          int mux_val = sgs->mux_values[mux_idx];
+          if (sgs->to_bytes_mux[i].size() > mux_idx && !sgs->to_bytes_mux[i][mux_idx].empty())
+          {
+            if (first)
+            {
+              fwriter.Append("  if (_m->%s == %d) {", masterSignal->Name.c_str(), mux_val);
+              first = false;
+            }
+            else
+            {
+              fwriter.Append("  else if (_m->%s == %d) {", masterSignal->Name.c_str(), mux_val);
+            }
+            fwriter.Append("    %s[%d] |= (uint8_t) ( %s );", arrtxt.c_str(), i, sgs->to_bytes_mux[i][mux_idx].c_str());
+            fwriter.Append("  }");
+          }
+        }
+      }
+    }
+    else 
+    {
+      // Handle for when there is no master multiplexor signal. Just pack the signal values from all signals making up this byte.
+      if ( !sgs->to_bytes[i].empty() )
+      {
+        fwriter.Append("  %s[%d] |= (uint8_t) ( %s );", arrtxt.c_str(), i, sgs->to_bytes[i].c_str());
+      }
+    }
   }
 
   fwriter.Append("");
@@ -869,4 +920,3 @@ void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExp
     fwriter.Append();
   }
 }
-
