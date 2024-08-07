@@ -914,7 +914,7 @@ void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExp
       sgs->msg.CsmSig->Name.c_str(), arrtxt.c_str(), sgs->msg.Name.c_str(),
       sgs->msg.Name.c_str(), sgs->msg.CsmMethod.c_str(), sgs->msg.CsmOp);
 
-    fwriter.Append("  %s[%d] |= (uint8_t) (%s);", arrtxt.c_str(), sgs->msg.CsmByteNum, sgs->msg.CsmToByteExpr.c_str());
+    fwriter.Append("  %s[%d] |= (uint8_t) ( %s );", arrtxt.c_str(), sgs->msg.CsmByteNum, sgs->msg.CsmToByteExpr.c_str());
 
     fwriter.Append("#endif // %s", fdesc->gen.usecsm_def.c_str());
     fwriter.Append();
