@@ -6,14 +6,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Set the build type to Debug if not specified
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Debug)
-endif()
-
-# Add debug flags
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
-
 add_executable(coderdbc
     ${CMAKE_CURRENT_SOURCE_DIR}/codegen/c-main-generator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/codegen/mon-generator.cpp
@@ -30,6 +22,7 @@ add_executable(coderdbc
     ${CMAKE_CURRENT_SOURCE_DIR}/app.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/maincli.cpp
 )
+
 
 include(FetchContent)
 FetchContent_Declare(
@@ -60,6 +53,7 @@ target_link_libraries(
 
 include(GoogleTest)
 gtest_discover_tests(cctest)
+
 
 add_library(
   dummy OBJECT 
