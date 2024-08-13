@@ -212,6 +212,9 @@ bool DbcLineParser::ParseSignalLine(SignalDescriptor_t* sig, const std::string& 
       else
       {
         sig->Multiplex = MultiplexType::kMulValue;
+        // Multiplex value e.g m0, m1, m2...
+        // Convert to integer
+        sig->MultiplexValue = atoi(halfs[2].c_str() + 1);
       }
     }
   }
