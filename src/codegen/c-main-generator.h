@@ -10,7 +10,7 @@
 
 class CiMainGenerator {
  public:
-  void Generate(DbcMessageList_t& dlist, const AppSettings_t& fsd);
+  void Generate(DbcMessageList_t& dlist, const AppSettings_t& fsd, bool mux_enabled);
 
  private:
 
@@ -39,4 +39,6 @@ class CiMainGenerator {
   // Macro for frame DLC validation
   std::string prt_dlcValidateMacroName;
   const AppSettings_t* fdesc;
+  // Bool to turn on or off code generation based on multiplexor master signal values is enabled for multiplexed signals.
+  bool is_multiplex_enabled;
 };

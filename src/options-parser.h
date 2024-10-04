@@ -48,6 +48,9 @@ class OptionsParser {
 
     /// @brief help is requested
     bool is_help{false};
+
+    /// @brief Code generation based on multiplexor master signal values is enabled for multiplexed signals. 
+    bool is_multiplex_enabled{false};
   };
 
   /// @brief Parses arguments and theirs optional values

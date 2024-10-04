@@ -145,7 +145,7 @@ void CoderApp::GenerateCode()
 
   if (ret)
   {
-    cigen.Generate(scanner.dblist, fscreator.FS);
+    cigen.Generate(scanner.dblist, fscreator.FS, Params.is_multiplex_enabled);
   }
   else
   {
@@ -283,8 +283,8 @@ void CoderApp::PrintHelp()
   std::cout << "   -nofmon:\t no ***-fmon.c generation" << std::endl;
   std::cout << std::endl;
   std::cout << "   -driverdir\t the output path (-out) will be appended by driver name" << std::endl;
-  std::cout << "   -gendate\t the generation date will be included in the header comment section of the source file." <<
-    std::endl;
+  std::cout << "   -gendate\t the generation date will be included in the header comment section of the source file." << std::endl;
+  std::cout << "   -multiplex or -muxgen\t enable multiplex signal packing/unpacking code generation based on multiplexor master signal values for multiplexed signals." << std::endl;
   std::cout << std::endl;
 
   std::cout << "examples:" << std::endl;
@@ -295,10 +295,7 @@ void CoderApp::PrintHelp()
     << std::endl;
   std::cout << "./dbccoder -dbc /home/user/docs/driveshaft.dbc -out /home/user/docs/gen/ -drvname drivedb -nodeutils -rw"
     << std::endl;
-
-  std::cout <<
-    "./dbccoder -dbc /home/user/docs/driveshaft.dbc -out /home/user/docs/gen/ -drvname drivedb -nodeutils" << std::endl;
-
+  std::cout << "./dbccoder -dbc /home/user/docs/driveshaft.dbc -out /home/user/docs/gen/ -drvname drivedb -nodeutils" << std::endl;
   std::cout << "./dbccoder -dbc /home/user/docs/driveshaft.dbc -out /home/user/docs/gen/ -drvname drivedb" << std::endl;
   std::cout << std::endl;
 }

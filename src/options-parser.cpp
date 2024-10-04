@@ -86,6 +86,10 @@ OptionsParser::GenOptions OptionsParser::GetOptions(int argc, char** argv)
     {
       retpairs.add_gen_date = true;
     }
+    else if (temppairs[i].first.compare("-multiplex") == 0 || temppairs[i].first.compare("-muxgen") == 0)
+    {
+      retpairs.is_multiplex_enabled = true;
+    }
   }
 
   return retpairs;
